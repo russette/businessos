@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
        STARTUP
        ========================================================= */
 
-    const USE_DEMO_DATA = true;
+   const USE_DEMO_DATA = false;
 
     if (USE_DEMO_DATA) {
 

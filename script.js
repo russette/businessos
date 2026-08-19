@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
        DATA
        ========================================================= */
 
-    let products =
+   let products =
         JSON.parse(localStorage.getItem("businessOSProducts")) || [];
 
     let customers =

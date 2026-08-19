@@ -571,36 +571,66 @@
         </section>
 
 
+<!-- ================= BUSINESS DATA ================= -->
 
-        <!-- ================= BUSINESS DATA ================= -->
+<section class="danger-zone">
 
-        <section class="danger-zone">
+    <div>
 
-            <div>
+        <p class="eyebrow">
+            BUSINESS DATA
+        </p>
 
-                <p class="eyebrow">
-                    BUSINESS DATA
-                </p>
+        <h3>Manage Your Business Data</h3>
 
-                <h3>Reset Business Data</h3>
+        <p>
+            Backup, restore or reset all products,
+            customers, sales and invoices stored
+            in this browser.
+        </p>
 
-                <p>
-                    Permanently delete all products,
-                    customers, sales and invoices
-                    stored in this browser.
-                </p>
+    </div>
 
-            </div>
+    <div class="data-actions">
 
-            <button class="danger-btn"
-                    onclick="resetBusinessData()">
+        <button
+            type="button"
+            class="secondary-btn"
+            onclick="exportBusinessData()">
 
-                Reset Business Data
+            📤 Export Backup
 
-            </button>
+        </button>
 
-        </section>
 
+        <label
+            class="secondary-btn"
+            style="cursor:pointer;">
+
+            📥 Import Backup
+
+            <input
+                type="file"
+                accept=".json,application/json"
+                onchange="importBusinessData(this.files[0])"
+                style="display:none;"
+            >
+
+        </label>
+
+
+        <button
+            type="button"
+            class="danger-btn"
+            onclick="resetBusinessData()">
+
+            🗑️ Reset Business Data
+
+        </button>
+
+    </div>
+
+</section>
 
     </main>
 

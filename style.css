@@ -1610,3 +1610,102 @@ footer p:first-child {
     }
 
 }
+/* =====================================================
+   BUSINESSOS DASHBOARD STAT CARDS
+   ===================================================== */
+
+.stat-card {
+    position: relative;
+    padding: 22px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    overflow: hidden;
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.stat-card::after {
+    content: "";
+    position: absolute;
+    width: 90px;
+    height: 90px;
+    right: -35px;
+    top: -35px;
+    border-radius: 50%;
+    background: #eff6ff;
+    opacity: 0.8;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    border-color: #bfdbfe;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.stat-icon {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    border-radius: 13px;
+    background: #eff6ff;
+    font-size: 21px;
+}
+
+.stat-card p {
+    margin: 0 0 7px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.stat-card h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+
+/* =====================================================
+   STAT GRID
+   ===================================================== */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin: 30px 0;
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+}

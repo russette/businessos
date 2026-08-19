@@ -1442,3 +1442,64 @@ footer p:first-child {
         font-size: 32px;
     }
 }
+/* =========================================================
+   SEARCH & FILTERS
+   ========================================================= */
+
+.search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.search-bar input,
+.search-bar select {
+    padding: 13px 15px;
+
+    border: 1px solid #dbe2ea;
+
+    border-radius: 12px;
+
+    background: white;
+
+    color: #111827;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.search-bar input {
+    flex: 1;
+}
+
+.search-bar input:focus,
+.search-bar select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 4px
+        rgba(37, 99, 235, 0.1);
+}
+
+.search-bar select {
+    min-width: 160px;
+}
+
+@media (max-width: 550px) {
+
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-bar input,
+    .search-bar select {
+        width: 100%;
+    }
+}

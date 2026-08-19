@@ -1502,24 +1502,20 @@ document.addEventListener("DOMContentLoaded", () => {
            SALES OVERVIEW
            ===================================================== */
 
-        text(
-            "salesTotalRevenue",
-            money(totalRevenue)
-        );
+     text(
+    "overviewRevenue",
+    money(totalRevenue)
+);
 
+text(
+    "unitsSold",
+    unitsSold
+);
 
-        text(
-            "salesUnitsSold",
-            unitsSold
-        );
-
-
-        text(
-            "salesAverage",
-            money(averageSale)
-        );
-
-
+text(
+    "overviewAverage",
+    money(averageSale)
+);
         text(
             "largestSale",
             money(largestSale)
@@ -1720,10 +1716,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderRevenueTrend() {
 
-        const container =
-            document.getElementById(
-                "revenueTrend"
-            );
+       const container =
+    document.getElementById(
+        "revenueChart"
+    );
 
 
         if (!container) {

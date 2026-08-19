@@ -38,32 +38,107 @@
 
         <!-- ================= DASHBOARD ================= -->
 
-        <section id="dashboard" class="hero">
+    <section id="dashboard" class="hero">
 
-            <p class="eyebrow">BUSINESSOS</p>
+    <p class="eyebrow">BUSINESSOS • CONTROL CENTER</p>
 
-            <h1>Run your business smarter.</h1>
+    <h1>Run your business smarter.</h1>
 
-            <p class="hero-text">
-                Manage products, customers, sales and invoices
-                from one simple business dashboard.
-            </p>
+    <p class="hero-text">
+        Manage your products, customers, sales and invoices
+        from one powerful business dashboard.
+    </p>
 
-            <div class="hero-buttons">
+    <div class="hero-buttons">
 
-                <button onclick="scrollToSection('products')">
-                    Manage Products
-                </button>
+        <button onclick="scrollToSection('products')">
+            📦 Manage Products
+        </button>
 
-                <button class="secondary-btn"
-                        onclick="scrollToSection('analytics')">
-                    View Analytics
-                </button>
+        <button class="secondary-btn"
+                onclick="scrollToSection('analytics')">
+            📊 View Analytics
+        </button>
 
+    </div>
+
+    <!-- Quick Actions -->
+
+    <div class="quick-actions">
+
+        <div class="quick-actions-heading">
+            <div>
+                <p class="eyebrow">QUICK ACTIONS</p>
+                <h2>Get things done faster.</h2>
             </div>
+        </div>
 
-        </section>
+        <div class="quick-actions-grid">
 
+            <button class="quick-action"
+                    onclick="openProductModal()">
+
+                <span class="quick-action-icon">📦</span>
+
+                <span>
+                    <strong>Add Product</strong>
+                    <small>Add something to your inventory</small>
+                </span>
+
+                <span class="quick-action-arrow">→</span>
+
+            </button>
+
+
+            <button class="quick-action"
+                    onclick="openCustomerModal()">
+
+                <span class="quick-action-icon">👤</span>
+
+                <span>
+                    <strong>Add Customer</strong>
+                    <small>Add a new customer</small>
+                </span>
+
+                <span class="quick-action-arrow">→</span>
+
+            </button>
+
+
+            <button class="quick-action"
+                    onclick="openSaleModal()">
+
+                <span class="quick-action-icon">🛒</span>
+
+                <span>
+                    <strong>Record Sale</strong>
+                    <small>Record a new transaction</small>
+                </span>
+
+                <span class="quick-action-arrow">→</span>
+
+            </button>
+
+
+            <button class="quick-action"
+                    onclick="openInvoiceModal()">
+
+                <span class="quick-action-icon">🧾</span>
+
+                <span>
+                    <strong>Create Invoice</strong>
+                    <small>Send a professional invoice</small>
+                </span>
+
+                <span class="quick-action-arrow">→</span>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
 
         <!-- ================= STATS ================= -->
 

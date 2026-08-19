@@ -3035,7 +3035,621 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================================================
        START BUSINESSOS
        ========================================================= */
+/* =========================================================
+   SEARCH & FILTERS
+   ========================================================= */
 
+let productSearchTerm = "";
+let customerSearchTerm = "";
+let salesSearchTerm = "";
+let invoiceSearchTerm = "";
+let invoiceStatusFilter = "all";
+
+
+/* =========================================================
+   PRODUCT SEARCH
+   ========================================================= */
+
+document
+    .getElementById("productSearch")
+    ?.addEventListener("input", event => {
+
+        productSearchTerm =
+            event.target.value
+                .toLowerCase()
+                .trim();
+
+        renderProducts();
+    });
+
+
+/* =========================================================
+   CUSTOMER SEARCH
+   ========================================================= */
+
+document
+    .getElementById("customerSearch")
+    ?.addEventListener("input", event => {
+
+        customerSearchTerm =
+            event.target.value
+                .toLowerCase()
+                .trim();
+
+        renderCustomers();
+    });
+
+
+/* =========================================================
+   SALES SEARCH
+   ========================================================= */
+
+document
+    .getElementById("salesSearch")
+    ?.addEventListener("input", event => {
+
+        salesSearchTerm =
+            event.target.value
+                .toLowerCase()
+                .trim();
+
+        renderSales();
+    });
+
+
+/* =========================================================
+   INVOICE SEARCH
+   ========================================================= */
+
+document
+    .getElementById("invoiceSearch")
+    ?.addEventListener("input", event => {
+
+        invoiceSearchTerm =
+            event.target.value
+                .toLowerCase()
+                .trim();
+
+        renderInvoices();
+    });
+
+
+/* =========================================================
+   INVOICE STATUS FILTER
+   ========================================================= */
+
+document
+    .getElementById("invoiceStatusFilter")
+    ?.addEventListener("change", event => {
+
+        invoiceStatusFilter =
+            event.target.value;
+
+        renderInvoices();
+    });
+
+
+/* =========================================================
+   SEARCH-AWARE PRODUCT RENDERING
+   ========================================================= */
+
+const originalRenderProducts =
+    renderProducts;
+
+renderProducts = function() {
+
+    const list =
+        document.getElementById("productsList");
+
+    if (!list) return;
+
+    const filtered =
+        products.filter(product => {
+
+            const name =
+                String(product.name || "")
+                    .toLowerCase();
+
+            return name.includes(
+                productSearchTerm
+            );
+        });
+
+    if (!filtered.length) {
+
+        list.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    No products found
+                </h3>
+
+                <p>
+                    Try a different search term.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        filtered.map(product => {
+
+            const stock =
+                Number(product.stock) || 0;
+
+            return `
+                <div class="product-card">
+
+                    <h3>
+                        ${safe(product.name)}
+                    </h3>
+
+                    <p class="product-price">
+                        ${money(product.price)}
+                    </p>
+
+                    <p>
+                        Stock: ${stock}
+                    </p>
+
+                    <span class="status">
+                        ${
+                            stock > 0
+                                ? "IN STOCK"
+                                : "OUT OF STOCK"
+                        }
+                    </span>
+
+                    <div class="product-actions">
+
+                        <button
+                            class="edit-btn"
+                            onclick="editProduct('${product.id}')">
+                            Edit
+                        </button>
+
+                        <button
+                            class="delete-btn"
+                            onclick="deleteProduct('${product.id}')">
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+};
+
+
+/* =========================================================
+   SEARCH-AWARE CUSTOMER RENDERING
+   ========================================================= */
+
+const originalRenderCustomers =
+    renderCustomers;
+
+renderCustomers = function() {
+
+    const list =
+        document.getElementById(
+            "customersList"
+        );
+
+    if (!list) return;
+
+    const filtered =
+        customers.filter(customer => {
+
+            const name =
+                String(customer.name || "")
+                    .toLowerCase();
+
+            const email =
+                String(customer.email || "")
+                    .toLowerCase();
+
+            const phone =
+                String(customer.phone || "")
+                    .toLowerCase();
+
+            return (
+                name.includes(customerSearchTerm) ||
+                email.includes(customerSearchTerm) ||
+                phone.includes(customerSearchTerm)
+            );
+        });
+
+    if (!filtered.length) {
+
+        list.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    No customers found
+                </h3>
+
+                <p>
+                    Try a different search term.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        filtered.map(customer => {
+
+            return `
+                <div class="customer-card">
+
+                    <h3>
+                        ${safe(customer.name)}
+                    </h3>
+
+                    ${
+                        customer.email
+                            ? `
+                                <p>
+                                    📧
+                                    ${safe(customer.email)}
+                                </p>
+                            `
+                            : ""
+                    }
+
+                    ${
+                        customer.phone
+                            ? `
+                                <p>
+                                    📱
+                                    ${safe(customer.phone)}
+                                </p>
+                            `
+                            : ""
+                    }
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteCustomer('${customer.id}')">
+                        Delete
+                    </button>
+
+                </div>
+            `;
+
+        }).join("");
+};
+
+
+/* =========================================================
+   SEARCH-AWARE SALES RENDERING
+   ========================================================= */
+
+const originalRenderSales =
+    renderSales;
+
+renderSales = function() {
+
+    const list =
+        document.getElementById(
+            "salesList"
+        );
+
+    if (!list) return;
+
+    const filtered =
+        sales.filter(sale => {
+
+            const productName =
+                String(
+                    sale.productName || ""
+                ).toLowerCase();
+
+            return productName.includes(
+                salesSearchTerm
+            );
+        });
+
+    if (!filtered.length) {
+
+        list.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    No sales found
+                </h3>
+
+                <p>
+                    Try a different search term.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        [...filtered]
+            .reverse()
+            .map(sale => {
+
+                return `
+                    <div class="sale-card">
+
+                        <div class="sale-info">
+
+                            <div class="sale-icon">
+                                🧾
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    ${safe(
+                                        sale.productName ||
+                                        "Unknown Product"
+                                    )}
+                                </strong>
+
+                                <p>
+                                    Quantity:
+                                    ${Number(
+                                        sale.quantity
+                                    ) || 0}
+                                </p>
+
+                                <p>
+                                    ${formatDate(
+                                        sale.date
+                                    )}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                ${money(sale.total)}
+                            </strong>
+
+                            <br>
+
+                            <button
+                                class="delete-btn"
+                                onclick="deleteSale('${sale.id}')">
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </div>
+                `;
+
+            })
+            .join("");
+};
+
+
+/* =========================================================
+   SEARCH + FILTER INVOICES
+   ========================================================= */
+
+const originalRenderInvoices =
+    renderInvoices;
+
+renderInvoices = function() {
+
+    const list =
+        document.getElementById(
+            "invoicesList"
+        );
+
+    if (!list) return;
+
+    const filtered =
+        invoices.filter(invoice => {
+
+            const number =
+                String(
+                    invoice.invoiceNumber || ""
+                ).toLowerCase();
+
+            const customer =
+                String(
+                    invoice.customerName || ""
+                ).toLowerCase();
+
+            const product =
+                String(
+                    invoice.productName || ""
+                ).toLowerCase();
+
+            const matchesSearch =
+                number.includes(invoiceSearchTerm) ||
+                customer.includes(invoiceSearchTerm) ||
+                product.includes(invoiceSearchTerm);
+
+            const matchesStatus =
+                invoiceStatusFilter === "all" ||
+                (
+                    invoiceStatusFilter === "paid" &&
+                    invoice.status === "Paid"
+                ) ||
+                (
+                    invoiceStatusFilter === "unpaid" &&
+                    invoice.status !== "Paid"
+                );
+
+            return (
+                matchesSearch &&
+                matchesStatus
+            );
+        });
+
+    if (!filtered.length) {
+
+        list.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    No invoices found
+                </h3>
+
+                <p>
+                    Try changing your search or filter.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        [...filtered]
+            .reverse()
+            .map(invoice => {
+
+                const paid =
+                    invoice.status === "Paid";
+
+                return `
+                    <div class="invoice-card">
+
+                        <div class="invoice-main">
+
+                            <div class="invoice-icon">
+                                🧾
+                            </div>
+
+                            <div>
+
+                                <h3>
+                                    ${safe(
+                                        invoice.invoiceNumber
+                                    )}
+                                </h3>
+
+                                <p>
+                                    ${safe(
+                                        invoice.customerName
+                                    )}
+                                </p>
+
+                                <p>
+                                    ${safe(
+                                        invoice.productName
+                                    )}
+                                    ×
+                                    ${Number(
+                                        invoice.quantity
+                                    ) || 0}
+                                </p>
+
+                                <p>
+                                    Due:
+                                    ${formatDate(
+                                        invoice.dueDate
+                                    )}
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="invoice-meta">
+
+                            <strong>
+                                ${money(
+                                    invoice.total
+                                )}
+                            </strong>
+
+                            <span
+                                class="invoice-status"
+                                style="
+                                    display:inline-block;
+                                    margin:8px 0;
+                                "
+                            >
+                                ${
+                                    paid
+                                        ? "Paid"
+                                        : "Unpaid"
+                                }
+                            </span>
+
+                            <br>
+
+                            <button
+                                type="button"
+                                class="edit-btn"
+                                onclick="toggleInvoicePaid('${invoice.id}')"
+                            >
+                                ${
+                                    paid
+                                        ? "Mark as Unpaid"
+                                        : "Mark as Paid"
+                                }
+                            </button>
+
+                            <button
+                                type="button"
+                                class="secondary-btn"
+                                onclick="viewInvoice('${invoice.id}')"
+                            >
+                                👁️ View Invoice
+                            </button>
+
+                            <button
+                                type="button"
+                                class="delete-btn"
+                                onclick="deleteInvoice('${invoice.id}')"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </div>
+                `;
+
+            })
+            .join("");
+};
+
+
+/* =========================================================
+   FINAL RENDER
+   ========================================================= */
+
+renderAll();
     renderAll();
 
 });

@@ -3650,6 +3650,5 @@ renderInvoices = function() {
    ========================================================= */
 
 renderAll();
-    renderAll();
 
 });

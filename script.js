@@ -1123,151 +1123,302 @@ document.addEventListener("DOMContentLoaded", () => {
        ANALYTICS
        ========================================================= */
 
-    function updateAnalytics() {
+ function updateAnalytics() {
 
-        const totalRevenue =
-            sales.reduce(
-                (sum, sale) =>
-                    sum +
-                    Number(sale.total || 0),
-                0
-            );
+    /* =====================================================
+       REVENUE
+       ===================================================== */
 
-        const unitsSold =
-            sales.reduce(
-                (sum, sale) =>
-                    sum +
-                    Number(sale.quantity || 0),
-                0
-            );
+    const totalRevenue =
+        sales.reduce(
+            (sum, sale) =>
+                sum + Number(sale.total || 0),
+            0
+        );
 
-        const averageSale =
-            sales.length
-                ? totalRevenue / sales.length
-                : 0;
 
-        const largestSale =
-            sales.length
-                ? Math.max(
-                    ...sales.map(
-                        sale =>
-                            Number(
-                                sale.total || 0
-                            )
-                    )
+    /* =====================================================
+       TODAY'S REVENUE
+       ===================================================== */
+
+    const today =
+        new Date();
+
+    const todayString =
+        today.toISOString().split("T")[0];
+
+    const todayRevenue =
+        sales.reduce(
+            (sum, sale) => {
+
+                if (!sale.date) {
+                    return sum;
+                }
+
+                const saleDate =
+                    new Date(sale.date)
+                        .toISOString()
+                        .split("T")[0];
+
+                if (saleDate === todayString) {
+
+                    return (
+                        sum +
+                        Number(sale.total || 0)
+                    );
+
+                }
+
+                return sum;
+
+            },
+            0
+        );
+
+
+    /* =====================================================
+       SALES
+       ===================================================== */
+
+    const unitsSold =
+        sales.reduce(
+            (sum, sale) =>
+                sum +
+                Number(sale.quantity || 0),
+            0
+        );
+
+
+    const averageSale =
+        sales.length
+            ? totalRevenue / sales.length
+            : 0;
+
+
+    const largestSale =
+        sales.length
+            ? Math.max(
+                ...sales.map(
+                    sale =>
+                        Number(
+                            sale.total || 0
+                        )
                 )
-                : 0;
+            )
+            : 0;
 
-        const unitsInStock =
-            products.reduce(
-                (sum, product) =>
-                    sum +
-                    Number(product.stock || 0),
-                0
-            );
 
-        const inventoryValue =
-            products.reduce(
-                (sum, product) =>
-                    sum +
+    /* =====================================================
+       INVENTORY
+       ===================================================== */
+
+    const unitsInStock =
+        products.reduce(
+            (sum, product) =>
+                sum +
+                Number(product.stock || 0),
+            0
+        );
+
+
+    const inventoryValue =
+        products.reduce(
+            (sum, product) =>
+                sum +
+                (
                     Number(product.price || 0) *
-                    Number(product.stock || 0),
-                0
+                    Number(product.stock || 0)
+                ),
+            0
+        );
+
+
+    /* =====================================================
+       LOW STOCK
+       ===================================================== */
+
+    const lowStockProducts =
+        products.filter(
+            product =>
+                Number(product.stock || 0) <= 3
+        ).length;
+
+
+    /* =====================================================
+       INVOICES
+       ===================================================== */
+
+    const paidInvoices =
+        invoices.filter(
+            invoice =>
+                invoice.status === "Paid"
+        ).length;
+
+
+    const unpaidInvoices =
+        invoices.filter(
+            invoice =>
+                invoice.status !== "Paid"
+        ).length;
+
+
+    /* =====================================================
+       BEST SELLER
+       ===================================================== */
+
+    const productSales = {};
+
+
+    sales.forEach(sale => {
+
+        const name =
+            sale.productName ||
+            "Unknown Product";
+
+        productSales[name] =
+            (
+                productSales[name] || 0
+            ) +
+            Number(
+                sale.quantity || 0
             );
 
-        const productSales = {};
-
-        sales.forEach(sale => {
-
-            const name =
-                sale.productName ||
-                "Unknown Product";
-
-            productSales[name] =
-                (productSales[name] || 0) +
-                Number(sale.quantity || 0);
-        });
-
-        const ranked =
-            Object.entries(productSales)
-                .sort(
-                    (a, b) =>
-                        b[1] - a[1]
-                );
-
-        const bestSeller =
-            ranked.length
-                ? ranked[0][0]
-                : "—";
-
-        text(
-            "totalRevenue",
-            money(totalRevenue)
-        );
-
-        text(
-            "totalProducts",
-            products.length
-        );
-
-        text(
-            "totalCustomers",
-            customers.length
-        );
-
-        text(
-            "totalSales",
-            sales.length
-        );
-
-        text(
-            "averageSale",
-            money(averageSale)
-        );
-
-        text(
-            "unitsInStock",
-            unitsInStock
-        );
-
-        text(
-            "inventoryValue",
-            money(inventoryValue)
-        );
-
-        text(
-            "bestSeller",
-            bestSeller
-        );
-
-        text(
-            "overviewRevenue",
-            money(totalRevenue)
-        );
-
-        text(
-            "unitsSold",
-            unitsSold
-        );
-
-        text(
-            "overviewAverage",
-            money(averageSale)
-        );
-
-        text(
-            "largestSale",
-            money(largestSale)
-        );
-
-        renderTopProducts(ranked);
-
-        renderInventoryAlerts();
-
-        renderRevenueChart();
-    }
+    });
 
 
+    const ranked =
+        Object.entries(productSales)
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            );
+
+
+    const bestSeller =
+        ranked.length
+            ? ranked[0][0]
+            : "—";
+
+
+    /* =====================================================
+       UPDATE DASHBOARD
+       ===================================================== */
+
+    text(
+        "totalRevenue",
+        money(totalRevenue)
+    );
+
+
+    text(
+        "todayRevenue",
+        money(todayRevenue)
+    );
+
+
+    text(
+        "totalProducts",
+        products.length
+    );
+
+
+    text(
+        "totalCustomers",
+        customers.length
+    );
+
+
+    text(
+        "totalSales",
+        sales.length
+    );
+
+
+    text(
+        "paidInvoices",
+        paidInvoices
+    );
+
+
+    text(
+        "unpaidInvoices",
+        unpaidInvoices
+    );
+
+
+    text(
+        "lowStockProducts",
+        lowStockProducts
+    );
+
+
+    /* =====================================================
+       ANALYTICS CARDS
+       ===================================================== */
+
+    text(
+        "averageSale",
+        money(averageSale)
+    );
+
+
+    text(
+        "unitsInStock",
+        unitsInStock
+    );
+
+
+    text(
+        "inventoryValue",
+        money(inventoryValue)
+    );
+
+
+    text(
+        "bestSeller",
+        bestSeller
+    );
+
+
+    /* =====================================================
+       SALES OVERVIEW
+       ===================================================== */
+
+    text(
+        "overviewRevenue",
+        money(totalRevenue)
+    );
+
+
+    text(
+        "unitsSold",
+        unitsSold
+    );
+
+
+    text(
+        "overviewAverage",
+        money(averageSale)
+    );
+
+
+    text(
+        "largestSale",
+        money(largestSale)
+    );
+
+
+    /* =====================================================
+       EXTRA DASHBOARD COMPONENTS
+       ===================================================== */
+
+    renderTopProducts(ranked);
+
+    renderInventoryAlerts();
+
+    renderRevenueChart();
+
+}
     /* =========================================================
        TOP PRODUCTS
        ========================================================= */

@@ -3515,24 +3515,164 @@ text(
        RENDER ALL
        ========================================================= */
 
-    function renderAll() {
+function renderAll() {
 
-        renderProducts();
+    renderProducts();
 
-        renderCustomers();
+    renderCustomers();
 
-        renderSales();
+    renderSales();
 
-        renderInvoices();
+    renderInvoices();
 
-        updateAnalytics();
-    }
+    updateAnalytics();
 
+    renderRecentActivity();
+}
 
     /* =========================================================
        START APPLICATION
        ========================================================= */
+function renderRecentActivity() {
 
+    const container =
+        document.getElementById("recentActivity");
+
+    if (!container) {
+        return;
+    }
+
+    const activity = [];
+
+    /* Recent sales */
+
+    sales.forEach(sale => {
+
+        activity.push({
+
+            type: "sale",
+
+            icon: "🛒",
+
+            title: `Sale: ${sale.productName || "Product"}`,
+
+            detail:
+                `Quantity: ${Number(sale.quantity) || 0}`,
+
+            value:
+                money(sale.total),
+
+            date:
+                sale.date || ""
+
+        });
+
+    });
+
+
+    /* Recent invoices */
+
+    invoices.forEach(invoice => {
+
+        activity.push({
+
+            type: "invoice",
+
+            icon: "🧾",
+
+            title:
+                `Invoice ${invoice.invoiceNumber || ""}`,
+
+            detail:
+                invoice.customerName ||
+                "Customer",
+
+            value:
+                money(invoice.total),
+
+            date:
+                invoice.createdAt || ""
+
+        });
+
+    });
+
+
+    /* Sort newest first */
+
+    activity.sort(
+        (a, b) =>
+            new Date(b.date) -
+            new Date(a.date)
+    );
+
+
+    const recent =
+        activity.slice(0, 6);
+
+
+    if (!recent.length) {
+
+        container.innerHTML = `
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    📊
+                </div>
+
+                <h3>
+                    No recent activity
+                </h3>
+
+                <p>
+                    Your latest business activity
+                    will appear here.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    container.innerHTML =
+        recent.map(item => {
+
+            return `
+
+                <div class="activity-item">
+
+                    <div class="activity-icon">
+                        ${item.icon}
+                    </div>
+
+                    <div class="activity-info">
+
+                        <strong>
+                            ${safe(item.title)}
+                        </strong>
+
+                        <span>
+                            ${safe(item.detail)}
+                            •
+                            ${formatDate(item.date)}
+                        </span>
+
+                    </div>
+
+                    <div class="activity-value">
+                        ${item.value}
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("");
+}
     setupSearch();
 
     setupNavigation();

@@ -1,6 +1,7 @@
 /* =========================================================
    BUSINESSOS
    Professional Business Management Dashboard
+   Premium Modern UI
    ========================================================= */
 
 * {
@@ -21,11 +22,16 @@ body {
         "Segoe UI",
         sans-serif;
 
-    background: #f5f7fb;
+    background:
+        linear-gradient(
+            180deg,
+            #f8fafc 0%,
+            #f1f5f9 100%
+        );
+
     color: #111827;
     line-height: 1.6;
 }
-
 
 /* =========================================================
    TOPBAR
@@ -42,19 +48,23 @@ body {
     align-items: center;
     justify-content: space-between;
 
-    padding: 18px 6%;
+    padding: 16px 5%;
 
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.88);
 
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid rgba(229, 231, 235, 0.8);
 
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
 }
 
 .logo {
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -1px;
+    font-size: 25px;
+    font-weight: 900;
+
+    letter-spacing: -1.5px;
+
+    color: #111827;
 }
 
 .logo span {
@@ -64,23 +74,49 @@ body {
 nav {
     display: flex;
     align-items: center;
-    gap: 25px;
+    gap: 26px;
 }
 
 nav a {
+    position: relative;
+
     color: #4b5563;
+
     text-decoration: none;
 
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 700;
 
-    transition: 0.25s ease;
+    transition:
+        color 0.25s ease,
+        transform 0.25s ease;
+}
+
+nav a::after {
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    bottom: -7px;
+
+    width: 0;
+    height: 2px;
+
+    background: #2563eb;
+
+    border-radius: 999px;
+
+    transition: width 0.25s ease;
 }
 
 nav a:hover {
     color: #2563eb;
 }
 
+nav a:hover::after {
+    width: 100%;
+}
 
 /* =========================================================
    MAIN CONTAINER
@@ -91,53 +127,82 @@ nav a:hover {
     margin: auto;
 }
 
-
 /* =========================================================
    HERO
    ========================================================= */
 
 .hero {
-    padding: 100px 0 70px;
-    max-width: 800px;
+    position: relative;
+
+    padding: 110px 0 75px;
+
+    max-width: 850px;
+}
+
+.hero::before {
+    content: "";
+
+    position: absolute;
+
+    top: 40px;
+    left: -180px;
+
+    width: 400px;
+    height: 400px;
+
+    background: rgba(37, 99, 235, 0.07);
+
+    filter: blur(80px);
+
+    border-radius: 50%;
+
+    pointer-events: none;
+
+    z-index: -1;
 }
 
 .eyebrow {
     color: #2563eb;
 
-    font-size: 12px;
-    font-weight: 800;
+    font-size: 11px;
+    font-weight: 900;
 
-    letter-spacing: 1.8px;
+    letter-spacing: 2px;
 
     margin-bottom: 12px;
 }
 
 .hero h1 {
-    font-size: clamp(42px, 6vw, 72px);
+    font-size: clamp(45px, 6vw, 76px);
 
-    line-height: 1.05;
+    line-height: 1.02;
 
-    letter-spacing: -3px;
+    letter-spacing: -4px;
 
-    margin-bottom: 22px;
+    margin-bottom: 24px;
+
+    max-width: 850px;
 }
 
 .hero-text {
-    max-width: 650px;
+    max-width: 680px;
 
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 18px;
 
-    margin-bottom: 30px;
+    line-height: 1.8;
+
+    margin-bottom: 32px;
 }
 
 .hero-buttons {
     display: flex;
+
     gap: 12px;
+
     flex-wrap: wrap;
 }
-
 
 /* =========================================================
    BUTTONS
@@ -149,12 +214,12 @@ button {
     background: #2563eb;
     color: white;
 
-    padding: 12px 18px;
+    padding: 12px 19px;
 
-    border-radius: 10px;
+    border-radius: 11px;
 
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
 
     cursor: pointer;
 
@@ -170,19 +235,27 @@ button:hover {
     transform: translateY(-2px);
 
     box-shadow:
-        0 8px 20px rgba(37, 99, 235, 0.2);
+        0 10px 25px rgba(37, 99, 235, 0.22);
+}
+
+button:active {
+    transform: translateY(0);
 }
 
 .secondary-btn {
-    background: #eef2f7;
-    color: #374151;
+    background: #e9eef6;
+
+    color: #334155;
 }
 
 .secondary-btn:hover {
-    background: #e5e7eb;
-    color: #111827;
-}
+    background: #dfe7f1;
 
+    color: #111827;
+
+    box-shadow:
+        0 8px 20px rgba(15, 23, 42, 0.08);
+}
 
 /* =========================================================
    STATS
@@ -196,41 +269,79 @@ button:hover {
 
     gap: 18px;
 
-    margin-bottom: 90px;
+    margin-bottom: 85px;
 }
 
 .stat-card {
-    background: white;
+    position: relative;
+
+    overflow: hidden;
+
+    background: rgba(255, 255, 255, 0.92);
 
     border: 1px solid #e5e7eb;
 
-    border-radius: 18px;
+    border-radius: 20px;
 
-    padding: 24px;
+    padding: 25px;
 
     box-shadow:
-        0 8px 30px rgba(15, 23, 42, 0.04);
+        0 8px 30px rgba(15, 23, 42, 0.045);
 
-    transition: 0.25s ease;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
+}
+
+.stat-card::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 3px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #2563eb,
+            #60a5fa
+        );
+
+    opacity: 0;
+
+    transition: opacity 0.25s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
+
+    border-color: #dbeafe;
 
     box-shadow:
-        0 15px 35px rgba(15, 23, 42, 0.08);
+        0 18px 40px rgba(15, 23, 42, 0.09);
+}
+
+.stat-card:hover::before {
+    opacity: 1;
 }
 
 .stat-icon {
-    width: 45px;
-    height: 45px;
+    width: 48px;
+    height: 48px;
 
     display: grid;
     place-items: center;
 
     background: #eff6ff;
 
-    border-radius: 12px;
+    border: 1px solid #dbeafe;
+
+    border-radius: 14px;
 
     font-size: 21px;
 
@@ -238,27 +349,28 @@ button:hover {
 }
 
 .stat-card p {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
 
     margin-bottom: 5px;
 }
 
 .stat-card h2 {
-    font-size: 27px;
-}
+    font-size: 29px;
 
+    letter-spacing: -1px;
+}
 
 /* =========================================================
    SECTIONS
    ========================================================= */
 
 .section {
-    padding: 70px 0;
+    padding: 75px 0;
 
-    scroll-margin-top: 90px;
+    scroll-margin-top: 100px;
 }
 
 .section-heading {
@@ -270,21 +382,20 @@ button:hover {
 
     gap: 25px;
 
-    margin-bottom: 30px;
+    margin-bottom: 32px;
 }
 
 .section-heading h2 {
-    font-size: 38px;
+    font-size: 39px;
 
-    letter-spacing: -1.5px;
+    letter-spacing: -1.8px;
 
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 }
 
 .section-heading p:not(.eyebrow) {
-    color: #6b7280;
+    color: #64748b;
 }
-
 
 /* =========================================================
    ANALYTICS
@@ -306,9 +417,23 @@ button:hover {
 
     border: 1px solid #e5e7eb;
 
-    border-radius: 16px;
+    border-radius: 18px;
 
-    padding: 22px;
+    padding: 23px;
+
+    box-shadow:
+        0 6px 25px rgba(15, 23, 42, 0.035);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.analytics-card:hover {
+    transform: translateY(-3px);
+
+    box-shadow:
+        0 14px 35px rgba(15, 23, 42, 0.07);
 }
 
 .analytics-card > span {
@@ -316,7 +441,7 @@ button:hover {
 }
 
 .analytics-card p {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 13px;
 
@@ -324,9 +449,10 @@ button:hover {
 }
 
 .analytics-card strong {
-    font-size: 23px;
-}
+    font-size: 24px;
 
+    letter-spacing: -0.5px;
+}
 
 /* =========================================================
    CHART CARDS
@@ -337,14 +463,23 @@ button:hover {
 
     border: 1px solid #e5e7eb;
 
-    border-radius: 18px;
+    border-radius: 20px;
 
-    padding: 25px;
+    padding: 26px;
 
     margin-bottom: 20px;
 
     box-shadow:
-        0 8px 30px rgba(15, 23, 42, 0.03);
+        0 8px 30px rgba(15, 23, 42, 0.035);
+
+    transition:
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
+}
+
+.chart-card:hover {
+    box-shadow:
+        0 14px 40px rgba(15, 23, 42, 0.06);
 }
 
 .chart-card h3 {
@@ -354,7 +489,7 @@ button:hover {
 }
 
 .chart-card > p {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 14px;
 }
@@ -373,26 +508,35 @@ button:hover {
 
     margin-top: 20px;
 
-    border-radius: 14px;
+    border-radius: 15px;
 
-    background: #f8fafc;
+    background:
+        linear-gradient(
+            135deg,
+            #f8fafc,
+            #f1f5f9
+        );
+
+    border: 1px solid #eef2f7;
+
+    overflow: hidden;
 }
 
 .empty-chart {
     height: 210px;
 
     display: grid;
+
     place-items: center;
 
     text-align: center;
 
     padding: 30px;
 
-    color: #9ca3af;
+    color: #94a3b8;
 
     font-size: 14px;
 }
-
 
 /* =========================================================
    OVERVIEW
@@ -410,17 +554,29 @@ button:hover {
 }
 
 .overview-grid > div {
-    padding: 20px;
+    padding: 21px;
 
     background: #f8fafc;
 
-    border-radius: 12px;
+    border: 1px solid #eef2f7;
+
+    border-radius: 14px;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.overview-grid > div:hover {
+    background: #f1f5f9;
+
+    transform: translateY(-2px);
 }
 
 .overview-grid span {
     display: block;
 
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 12px;
 
@@ -430,7 +586,6 @@ button:hover {
 .overview-grid strong {
     font-size: 20px;
 }
-
 
 /* =========================================================
    PRODUCTS / CUSTOMERS
@@ -447,23 +602,30 @@ button:hover {
 
 .product-card,
 .customer-card {
+    position: relative;
+
     background: white;
 
     border: 1px solid #e5e7eb;
 
-    border-radius: 16px;
+    border-radius: 18px;
 
-    padding: 23px;
+    padding: 24px;
 
-    transition: 0.25s ease;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease;
 }
 
 .product-card:hover,
 .customer-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+
+    border-color: #dbeafe;
 
     box-shadow:
-        0 12px 30px rgba(15, 23, 42, 0.07);
+        0 15px 35px rgba(15, 23, 42, 0.08);
 }
 
 .product-card h3,
@@ -476,16 +638,16 @@ button:hover {
 .product-price {
     color: #2563eb;
 
-    font-size: 20px;
+    font-size: 21px;
 
-    font-weight: 800;
+    font-weight: 900;
 
     margin-bottom: 8px;
 }
 
 .product-card p,
 .customer-card p {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 14px;
 
@@ -505,9 +667,11 @@ button:hover {
 
     color: #166534;
 
-    font-size: 11px;
+    font-size: 10px;
 
-    font-weight: 800;
+    font-weight: 900;
+
+    letter-spacing: 0.5px;
 }
 
 .product-actions {
@@ -518,29 +682,35 @@ button:hover {
     margin-top: 18px;
 }
 
-
 /* =========================================================
    ACTION BUTTONS
    ========================================================= */
 
 .edit-btn {
     background: #eef2ff;
+
     color: #3730a3;
 }
 
 .edit-btn:hover {
     background: #e0e7ff;
+
+    box-shadow:
+        0 8px 18px rgba(79, 70, 229, 0.12);
 }
 
 .delete-btn {
     background: #fee2e2;
+
     color: #b91c1c;
 }
 
 .delete-btn:hover {
     background: #fecaca;
-}
 
+    box-shadow:
+        0 8px 18px rgba(220, 38, 38, 0.1);
+}
 
 /* =========================================================
    EMPTY STATES
@@ -549,19 +719,19 @@ button:hover {
 .empty-state {
     grid-column: 1 / -1;
 
-    background: white;
+    background: rgba(255, 255, 255, 0.8);
 
-    border: 1px dashed #d1d5db;
+    border: 1px dashed #cbd5e1;
 
-    border-radius: 18px;
+    border-radius: 20px;
 
-    padding: 55px 25px;
+    padding: 60px 25px;
 
     text-align: center;
 }
 
 .empty-icon {
-    font-size: 40px;
+    font-size: 42px;
 
     margin-bottom: 12px;
 }
@@ -571,14 +741,13 @@ button:hover {
 }
 
 .empty-state p {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 14px;
 }
 
-
 /* =========================================================
-   SALES
+   SALES / INVOICES
    ========================================================= */
 
 .sales-list,
@@ -602,9 +771,21 @@ button:hover {
 
     border: 1px solid #e5e7eb;
 
-    border-radius: 16px;
+    border-radius: 18px;
 
-    padding: 20px;
+    padding: 21px;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.sale-card:hover,
+.invoice-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 12px 30px rgba(15, 23, 42, 0.06);
 }
 
 .sale-info,
@@ -618,22 +799,25 @@ button:hover {
 
 .sale-icon,
 .invoice-icon {
-    width: 45px;
-    height: 45px;
+    width: 46px;
+    height: 46px;
 
     display: grid;
+
     place-items: center;
 
     background: #eff6ff;
 
-    border-radius: 12px;
+    border: 1px solid #dbeafe;
+
+    border-radius: 13px;
 
     font-size: 20px;
 }
 
 .sale-info p,
 .invoice-main p {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 13px;
 
@@ -649,7 +833,6 @@ button:hover {
 .invoice-meta strong {
     font-size: 18px;
 }
-
 
 /* =========================================================
    TOP PRODUCTS
@@ -670,7 +853,7 @@ button:hover {
 
     text-align: center;
 
-    font-weight: 700;
+    font-weight: 800;
 }
 
 .top-product-info {
@@ -688,7 +871,7 @@ button:hover {
 }
 
 .top-product-header span {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 13px;
 }
@@ -706,11 +889,15 @@ button:hover {
 .top-product-progress-bar {
     height: 100%;
 
-    background: #2563eb;
+    background:
+        linear-gradient(
+            90deg,
+            #2563eb,
+            #60a5fa
+        );
 
     border-radius: inherit;
 }
-
 
 /* =========================================================
    INVENTORY ALERTS
@@ -727,11 +914,10 @@ button:hover {
 
     color: #166534;
 
-    border-radius: 10px;
+    border-radius: 12px;
 
     font-size: 14px;
 }
-
 
 /* =========================================================
    INVOICE STATUS
@@ -746,11 +932,10 @@ button:hover {
 
     color: #92400e;
 
-    font-size: 11px;
+    font-size: 10px;
 
-    font-weight: 800;
+    font-weight: 900;
 }
-
 
 /* =========================================================
    MODALS
@@ -766,13 +951,16 @@ button:hover {
     display: none;
 
     align-items: center;
+
     justify-content: center;
 
     padding: 20px;
 
-    background: rgba(15, 23, 42, 0.55);
+    background:
+        rgba(15, 23, 42, 0.58);
 
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
 }
 
 .modal.active {
@@ -790,25 +978,34 @@ button:hover {
 
     background: white;
 
-    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
 
-    padding: 30px;
+    border-radius: 22px;
+
+    padding: 31px;
 
     box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.2);
+        0 30px 100px rgba(0, 0, 0, 0.22);
 
-    animation: modalIn 0.2s ease;
+    animation:
+        modalIn 0.22s ease;
 }
 
 @keyframes modalIn {
     from {
         opacity: 0;
-        transform: translateY(15px) scale(0.98);
+
+        transform:
+            translateY(15px)
+            scale(0.97);
     }
 
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+
+        transform:
+            translateY(0)
+            scale(1);
     }
 }
 
@@ -818,12 +1015,12 @@ button:hover {
     top: 15px;
     right: 15px;
 
-    width: 35px;
-    height: 35px;
+    width: 36px;
+    height: 36px;
 
     padding: 0;
 
-    background: #f3f4f6;
+    background: #f1f5f9;
 
     color: #374151;
 
@@ -833,11 +1030,10 @@ button:hover {
 }
 
 .close-btn:hover {
-    background: #e5e7eb;
+    background: #e2e8f0;
 
     box-shadow: none;
 }
-
 
 /* =========================================================
    FORMS
@@ -846,7 +1042,9 @@ button:hover {
 .modal-content h2 {
     margin-bottom: 25px;
 
-    font-size: 26px;
+    font-size: 27px;
+
+    letter-spacing: -0.8px;
 }
 
 .modal-content label {
@@ -856,7 +1054,7 @@ button:hover {
 
     font-size: 13px;
 
-    font-weight: 700;
+    font-weight: 800;
 
     color: #374151;
 }
@@ -865,11 +1063,11 @@ button:hover {
 .modal-content select {
     width: 100%;
 
-    padding: 12px 14px;
+    padding: 13px 14px;
 
     border: 1px solid #d1d5db;
 
-    border-radius: 10px;
+    border-radius: 11px;
 
     outline: none;
 
@@ -879,7 +1077,14 @@ button:hover {
 
     font-size: 14px;
 
-    transition: 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.modal-content input:hover,
+.modal-content select:hover {
+    border-color: #94a3b8;
 }
 
 .modal-content input:focus,
@@ -887,13 +1092,13 @@ button:hover {
     border-color: #2563eb;
 
     box-shadow:
-        0 0 0 3px rgba(37, 99, 235, 0.1);
+        0 0 0 4px
+        rgba(37, 99, 235, 0.1);
 }
 
 .modal-content form > button {
     margin-top: 22px;
 }
-
 
 /* =========================================================
    SALE TOTAL
@@ -912,7 +1117,9 @@ button:hover {
 
     background: #f8fafc;
 
-    border-radius: 12px;
+    border: 1px solid #eef2f7;
+
+    border-radius: 13px;
 }
 
 .sale-total strong {
@@ -920,7 +1127,6 @@ button:hover {
 
     color: #2563eb;
 }
-
 
 /* =========================================================
    INVOICE PREVIEW
@@ -935,7 +1141,7 @@ button:hover {
 }
 
 .invoice-modal-header p:last-child {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 14px;
 }
@@ -943,11 +1149,13 @@ button:hover {
 .invoice-preview {
     margin-top: 25px;
 
-    padding: 20px;
+    padding: 21px;
 
     background: #f8fafc;
 
-    border-radius: 14px;
+    border: 1px solid #eef2f7;
+
+    border-radius: 15px;
 }
 
 .invoice-preview-row,
@@ -960,7 +1168,7 @@ button:hover {
 }
 
 .invoice-preview-row span {
-    color: #6b7280;
+    color: #64748b;
 }
 
 .invoice-total-row {
@@ -985,7 +1193,6 @@ button:hover {
     flex: 1;
 }
 
-
 /* =========================================================
    DANGER ZONE
    ========================================================= */
@@ -994,19 +1201,25 @@ button:hover {
     display: flex;
 
     align-items: center;
+
     justify-content: space-between;
 
     gap: 25px;
 
     margin: 60px 0;
 
-    padding: 28px;
+    padding: 29px;
 
-    background: #fffafa;
+    background:
+        linear-gradient(
+            135deg,
+            #fffafa,
+            #fff5f5
+        );
 
     border: 1px solid #fecaca;
 
-    border-radius: 18px;
+    border-radius: 20px;
 }
 
 .danger-zone h3 {
@@ -1014,7 +1227,7 @@ button:hover {
 }
 
 .danger-zone p:not(.eyebrow) {
-    color: #6b7280;
+    color: #64748b;
 
     font-size: 14px;
 
@@ -1029,8 +1242,10 @@ button:hover {
 
 .danger-btn:hover {
     background: #b91c1c;
-}
 
+    box-shadow:
+        0 10px 25px rgba(220, 38, 38, 0.18);
+}
 
 /* =========================================================
    FOOTER
@@ -1039,11 +1254,11 @@ button:hover {
 footer {
     margin-top: 70px;
 
-    padding: 45px 20px;
+    padding: 50px 20px;
 
     text-align: center;
 
-    background: #111827;
+    background: #0f172a;
 
     color: white;
 }
@@ -1051,7 +1266,7 @@ footer {
 footer p {
     margin: 5px 0;
 
-    color: #9ca3af;
+    color: #94a3b8;
 
     font-size: 13px;
 }
@@ -1059,11 +1274,34 @@ footer p {
 footer p:first-child {
     color: white;
 
-    font-size: 20px;
+    font-size: 21px;
 
-    font-weight: 800;
+    font-weight: 900;
+
+    letter-spacing: -0.5px;
 }
 
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+    width: 9px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+
+    border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
 
 /* =========================================================
    RESPONSIVE DESIGN
@@ -1088,7 +1326,6 @@ footer p:first-child {
     }
 }
 
-
 @media (max-width: 750px) {
 
     .topbar {
@@ -1109,6 +1346,12 @@ footer p:first-child {
         padding-bottom: 5px;
 
         gap: 18px;
+
+        scrollbar-width: none;
+    }
+
+    nav::-webkit-scrollbar {
+        display: none;
     }
 
     nav a {
@@ -1116,11 +1359,11 @@ footer p:first-child {
     }
 
     .hero {
-        padding: 65px 0 50px;
+        padding: 70px 0 50px;
     }
 
     .hero h1 {
-        letter-spacing: -2px;
+        letter-spacing: -2.5px;
     }
 
     .section-heading {
@@ -1143,7 +1386,6 @@ footer p:first-child {
         width: 100%;
     }
 }
-
 
 @media (max-width: 550px) {
 
@@ -1189,7 +1431,7 @@ footer p:first-child {
     }
 
     .modal-content {
-        padding: 24px 20px;
+        padding: 25px 20px;
     }
 
     .form-buttons {

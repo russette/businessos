@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>BusinessOS | Business Management Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="topbar">
+
+        <div class="logo">
+            Business<span>OS</span>
+        </div>
+
+        <nav>
+            <a href="#dashboard">Dashboard</a>
+            <a href="#analytics">Analytics</a>
+            <a href="#products">Products</a>
+            <a href="#customers">Customers</a>
+            <a href="#sales">Sales</a>
+            <a href="#invoices">Invoices</a>
+        </nav>
+
+    </header>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="container">
+
+
+        <!-- ================= DASHBOARD ================= -->
+
+        <section id="dashboard" class="hero">
+
+            <p class="eyebrow">BUSINESSOS</p>
+
+            <h1>Run your business smarter.</h1>
+
+            <p class="hero-text">
+                Manage products, customers, sales and invoices
+                from one simple business dashboard.
+            </p>
+
+            <div class="hero-buttons">
+
+                <button onclick="scrollToSection('products')">
+                    Manage Products
+                </button>
+
+                <button class="secondary-btn"
+                        onclick="scrollToSection('analytics')">
+                    View Analytics
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= STATS ================= -->
+
+        <section class="stats-grid">
+
+            <div class="stat-card">
+
+                <div class="stat-icon">💰</div>
+
+                <p>Total Revenue</p>
+
+                <h2 id="totalRevenue">$0.00</h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">📦</div>
+
+                <p>Products</p>
+
+                <h2 id="totalProducts">0</h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">👥</div>
+
+                <p>Customers</p>
+
+                <h2 id="totalCustomers">0</h2>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon">🧾</div>
+
+                <p>Total Sales</p>
+
+                <h2 id="totalSales">0</h2>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= ANALYTICS ================= -->
+
+        <section id="analytics" class="section">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">BUSINESS INTELLIGENCE</p>
+                    <h2>Analytics</h2>
+
+                    <p>
+                        Understand how your business is performing.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="analytics-grid">
+
+
+                <div class="analytics-card">
+
+                    <span>💵</span>
+
+                    <p>Average Sale</p>
+
+                    <strong id="averageSale">
+                        $0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="analytics-card">
+
+                    <span>📦</span>
+
+                    <p>Units In Stock</p>
+
+                    <strong id="unitsInStock">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="analytics-card">
+
+                    <span>💼</span>
+
+                    <p>Inventory Value</p>
+
+                    <strong id="inventoryValue">
+                        $0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="analytics-card">
+
+                    <span>🏆</span>
+
+                    <p>Best Seller</p>
+
+                    <strong id="bestSeller">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- Revenue -->
+
+            <div class="chart-card">
+
+                <h3>📈 Revenue Trend</h3>
+
+                <p>
+                    Your revenue over time.
+                </p>
+
+                <div id="revenueChart" class="chart">
+
+                    <div class="empty-chart">
+                        Make your first sale to see your revenue trend.
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Top Products -->
+
+            <div class="analytics-two-column">
+
+                <div class="chart-card">
+
+                    <h3>🏆 Top Products</h3>
+
+                    <div id="topProducts">
+
+                        <div class="empty-state">
+                            No sales yet.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="chart-card">
+
+                    <h3>⚠️ Inventory Alerts</h3>
+
+                    <div id="inventoryAlerts">
+
+                        <div class="success-message">
+                            ✅ All products have healthy stock levels.
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Sales Overview -->
+
+            <div class="chart-card">
+
+                <h3>📊 Sales Overview</h3>
+
+                <div class="overview-grid">
+
+                    <div>
+                        <span>Total revenue</span>
+                        <strong id="overviewRevenue">
+                            $0.00
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Units sold</span>
+                        <strong id="unitsSold">
+                            0
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Average sale</span>
+                        <strong id="overviewAverage">
+                            $0.00
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Largest sale</span>
+                        <strong id="largestSale">
+                            $0.00
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= PRODUCTS ================= -->
+
+        <section id="products" class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="eyebrow">
+                        INVENTORY
+                    </p>
+
+                    <h2>Products</h2>
+
+                    <p>
+                        Manage what your business sells.
+                    </p>
+
+                </div>
+
+                <button onclick="openProductModal()">
+                    + Add Product
+                </button>
+
+            </div>
+
+
+            <div id="productsList" class="items-grid">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        📦
+                    </div>
+
+                    <h3>No products yet</h3>
+
+                    <p>
+                        Add your first product to start
+                        managing your inventory.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= CUSTOMERS ================= -->
+
+        <section id="customers" class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="eyebrow">
+                        CUSTOMERS
+                    </p>
+
+                    <h2>Customers</h2>
+
+                    <p>
+                        Keep track of the people you serve.
+                    </p>
+
+                </div>
+
+                <button onclick="openCustomerModal()">
+                    + Add Customer
+                </button>
+
+            </div>
+
+
+            <div id="customersList" class="items-grid">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        👥
+                    </div>
+
+                    <h3>No customers yet</h3>
+
+                    <p>
+                        Add your first customer to start
+                        building your customer list.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= SALES ================= -->
+
+        <section id="sales" class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="eyebrow">
+                        SALES
+                    </p>
+
+                    <h2>Recent Sales</h2>
+
+                    <p>
+                        Track your completed transactions.
+                    </p>
+
+                </div>
+
+                <button onclick="openSaleModal()">
+                    + Record Sale
+                </button>
+
+            </div>
+
+
+            <div id="salesList" class="sales-list">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        🧾
+                    </div>
+
+                    <h3>No sales yet</h3>
+
+                    <p>
+                        Your recorded sales will appear here.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= INVOICES ================= -->
+
+        <section id="invoices" class="section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="eyebrow">
+                        BILLING
+                    </p>
+
+                    <h2>Invoices</h2>
+
+                    <p>
+                        Create professional invoices
+                        for your customers.
+                    </p>
+
+                </div>
+
+                <button onclick="openInvoiceModal()">
+                    + Create Invoice
+                </button>
+
+            </div>
+
+
+            <div id="invoicesList" class="invoice-list">
+
+                <div class="empty-state">
+
+                    <div class="empty-icon">
+                        🧾
+                    </div>
+
+                    <h3>No invoices yet</h3>
+
+                    <p>
+                        Create your first invoice for a customer.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= BUSINESS DATA ================= -->
+
+        <section class="danger-zone">
+
+            <div>
+
+                <p class="eyebrow">
+                    BUSINESS DATA
+                </p>
+
+                <h3>Reset Business Data</h3>
+
+                <p>
+                    Permanently delete all products,
+                    customers, sales and invoices
+                    stored in this browser.
+                </p>
+
+            </div>
+
+            <button class="danger-btn"
+                    onclick="resetBusinessData()">
+
+                Reset Business Data
+
+            </button>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- ================================================= -->
+    <!-- PRODUCT MODAL -->
+    <!-- ================================================= -->
+
+    <div id="productModal" class="modal">
+
+        <div class="modal-content">
+
+            <button class="close-btn"
+                    onclick="closeProductModal()">
+                ×
+            </button>
+
+            <h2 id="productModalTitle">
+                Add Product
+            </h2>
+
+            <form id="productForm">
+
+                <input type="hidden" id="productId">
+
+                <label>
+                    Product Name
+                </label>
+
+                <input
+                    type="text"
+                    id="productName"
+                    placeholder="e.g. MacBook Pro"
+                    required
+                >
+
+
+                <label>
+                    Price (USD)
+                </label>
+
+                <input
+                    type="number"
+                    id="productPrice"
+                    placeholder="1956"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+
+
+                <label>
+                    Stock
+                </label>
+
+                <input
+                    type="number"
+                    id="productStock"
+                    placeholder="10"
+                    min="0"
+                    required
+                >
+
+
+                <button type="submit">
+                    Save Product
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- CUSTOMER MODAL -->
+    <!-- ================================================= -->
+
+    <div id="customerModal" class="modal">
+
+        <div class="modal-content">
+
+            <button class="close-btn"
+                    onclick="closeCustomerModal()">
+                ×
+            </button>
+
+            <h2>Add Customer</h2>
+
+            <form id="customerForm">
+
+                <label>
+                    Customer Name
+                </label>
+
+                <input
+                    type="text"
+                    id="customerName"
+                    placeholder="John Smith"
+                    required
+                >
+
+
+                <label>
+                    Email
+                </label>
+
+                <input
+                    type="email"
+                    id="customerEmail"
+                    placeholder="john@example.com"
+                >
+
+
+                <label>
+                    Phone
+                </label>
+
+                <input
+                    type="tel"
+                    id="customerPhone"
+                    placeholder="+1 555 123 4567"
+                >
+
+
+                <button type="submit">
+                    Save Customer
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- SALE MODAL -->
+    <!-- ================================================= -->
+
+    <div id="saleModal" class="modal">
+
+        <div class="modal-content">
+
+            <button class="close-btn"
+                    onclick="closeSaleModal()">
+                ×
+            </button>
+
+            <h2>Record Sale</h2>
+
+            <form id="saleForm">
+
+                <label>
+                    Product
+                </label>
+
+                <select id="saleProduct" required>
+
+                    <option value="">
+                        Select a product
+                    </option>
+
+                </select>
+
+
+                <label>
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="saleQuantity"
+                    value="1"
+                    min="1"
+                    required
+                >
+
+
+                <div class="sale-total">
+
+                    <span>
+                        Total (USD)
+                    </span>
+
+                    <strong id="saleTotal">
+                        $0.00
+                    </strong>
+
+                </div>
+
+
+                <button type="submit">
+                    Record Sale
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    onclick="closeSaleModal()">
+
+                    Cancel
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================================================= -->
+    <!-- INVOICE MODAL -->
+    <!-- ================================================= -->
+
+    <div id="invoiceModal" class="modal">
+
+        <div class="modal-content invoice-modal">
+
+            <button class="close-btn"
+                    onclick="closeInvoiceModal()">
+                ×
+            </button>
+
+
+            <div class="invoice-modal-header">
+
+                <p class="eyebrow">
+                    BUSINESSOS BILLING
+                </p>
+
+                <h2>Create Invoice</h2>
+
+                <p>
+                    Create a professional invoice
+                    for your customer.
+                </p>
+
+            </div>
+
+
+            <form id="invoiceForm">
+
+
+                <!-- Invoice Number -->
+
+                <label>
+                    Invoice Number
+                </label>
+
+                <input
+                    type="text"
+                    id="invoiceNumber"
+                    readonly
+                >
+
+
+                <!-- Customer -->
+
+                <label>
+                    Customer
+                </label>
+
+                <select id="invoiceCustomer" required>
+
+                    <option value="">
+                        Select a customer
+                    </option>
+
+                </select>
+
+
+                <!-- Product -->
+
+                <label>
+                    Product
+                </label>
+
+                <select id="invoiceProduct" required>
+
+                    <option value="">
+                        Select a product
+                    </option>
+
+                </select>
+
+
+                <!-- Quantity -->
+
+                <label>
+                    Quantity
+                </label>
+
+                <input
+                    type="number"
+                    id="invoiceQuantity"
+                    value="1"
+                    min="1"
+                    required
+                >
+
+
+                <!-- Due Date -->
+
+                <label>
+                    Due Date
+                </label>
+
+                <input
+                    type="date"
+                    id="invoiceDueDate"
+                    required
+                >
+
+
+                <!-- Discount -->
+
+                <label>
+                    Discount (USD)
+                </label>
+
+                <input
+                    type="number"
+                    id="invoiceDiscount"
+                    value="0"
+                    min="0"
+                    step="0.01"
+                >
+
+
+                <!-- Tax -->
+
+                <label>
+                    Tax (%)
+                </label>
+
+                <input
+                    type="number"
+                    id="invoiceTax"
+                    value="0"
+                    min="0"
+                    step="0.01"
+                >
+
+
+                <!-- Invoice Preview -->
+
+                <div class="invoice-preview">
+
+                    <div class="invoice-preview-row">
+
+                        <span>
+                            Subtotal
+                        </span>
+
+                        <strong id="invoiceSubtotal">
+                            $0.00
+                        </strong>
+
+                    </div>
+
+
+                    <div class="invoice-preview-row">
+
+                        <span>
+                            Discount
+                        </span>
+
+                        <strong id="invoiceDiscountDisplay">
+                            -$0.00
+                        </strong>
+
+                    </div>
+
+
+                    <div class="invoice-preview-row">
+
+                        <span>
+                            Tax
+                        </span>
+
+                        <strong id="invoiceTaxDisplay">
+                            $0.00
+                        </strong>
+
+                    </div>
+
+
+                    <div class="invoice-total-row">
+
+                        <span>
+                            Total
+                        </span>
+
+                        <strong id="invoiceTotal">
+                            $0.00
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-buttons">
+
+                    <button type="submit">
+                        Create Invoice
+                    </button>
+
+                    <button
+                        type="button"
+                        class="secondary-btn"
+                        onclick="closeInvoiceModal()">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        <p>
+            BusinessOS
+        </p>
+
+        <p>
+            Built by Russette with HTML, CSS & JavaScript.
+        </p>
+
+        <p>
+            © 2026 BusinessOS
+        </p>
+
+    </footer>
+
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

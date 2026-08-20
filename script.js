@@ -2771,6 +2771,30 @@ function setupDarkMode() {
             darkMode
                 ? "☀️ Light Mode"
                 : "🌙 Dark Mode";
+        /* =========================================================
+   BUSINESSOS PRICING
+   ========================================================= */
+
+window.startProPlan = function() {
+
+    alert(
+        "BusinessOS Pro is coming soon.\n\n" +
+        "You'll be able to unlock professional invoices, " +
+        "PDF exports, advanced analytics and more."
+    );
+
+};
+
+
+window.startBusinessPlan = function() {
+
+    alert(
+        "BusinessOS Business is coming soon.\n\n" +
+        "This plan will include multiple users, " +
+        "advanced reports and priority support."
+    );
+
+};
     });
 }
     /* =========================================================

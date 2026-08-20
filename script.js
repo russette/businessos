@@ -3480,239 +3480,256 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
 
-    /* =========================================================
-       PAYSTACK
-       ========================================================= */
+/* =========================================================
+   PAYSTACK PAYMENT
+   ========================================================= */
 
-    window.payWithPaystack =
-        function() {
+window.payWithPaystack = function () {
 
-            const email =
-                prompt(
-                    "Enter your email address:"
+    const email = prompt("Enter your email address:");
+
+    if (!email) {
+        return;
+    }
+
+    const amountInput = prompt(
+        "Enter payment amount in USD:"
+    );
+
+    const amount = Number(amountInput);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        alert("Enter a valid payment amount.");
+        return;
+    }
+
+    if (typeof PaystackPop === "undefined") {
+
+        alert(
+            "Paystack could not be loaded. " +
+            "Please check your internet connection and refresh the page."
+        );
+
+        console.error(
+            "PaystackPop is undefined. Make sure " +
+            "https://js.paystack.co/v2/inline.js " +
+            "is loaded BEFORE script.js."
+        );
+
+        return;
+    }
+
+    try {
+
+        const paystack = new PaystackPop();
+
+        paystack.newTransaction({
+
+            key: "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+            email: email,
+
+            amount: Math.round(amount * 100),
+
+            currency: "USD",
+
+            onLoad: function (response) {
+
+                console.log(
+                    "Paystack loaded:",
+                    response
                 );
 
+            },
 
-            if (!email) {
-                return;
-            }
+            onSuccess: function (transaction) {
 
-
-            const amount =
-                prompt(
-                    "Enter payment amount in USD:"
+                console.log(
+                    "Paystack payment successful:",
+                    transaction
                 );
-
-
-            if (
-                !amount ||
-                Number(amount) <= 0
-            ) {
 
                 alert(
-                    "Enter a valid amount."
+                    "🎉 Payment successful!\n\n" +
+                    "Reference: " +
+                    transaction.reference
                 );
 
-                return;
-            }
+            },
 
-
-            if (
-                typeof PaystackPop ===
-                "undefined"
-            ) {
+            onCancel: function () {
 
                 alert(
-                    "Payment system is not loaded yet."
+                    "Payment cancelled."
                 );
 
-                return;
+            },
+
+            onError: function (error) {
+
+                console.error(
+                    "Paystack error:",
+                    error
+                );
+
+                alert(
+                    "Payment failed:\n" +
+                    (error?.message || "Unknown error")
+                );
+
             }
 
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Could not start Paystack:",
+            error
+        );
+
+        alert(
+            "Could not start Paystack. " +
+            "Please refresh the page and try again."
+        );
+    }
+};
+
+/* =========================================================
+   BUSINESSOS PRO
+   ========================================================= */
+
+const upgradeProBtn =
+    document.getElementById("upgradeProBtn");
+
+if (upgradeProBtn) {
+
+    upgradeProBtn.addEventListener("click", () => {
+
+        const email = prompt(
+            "Enter your email address for BusinessOS Pro:"
+        );
+
+        if (!email) {
+            return;
+        }
+
+        if (typeof PaystackPop === "undefined") {
+
+            alert(
+                "Paystack could not be loaded. " +
+                "Please refresh the page."
+            );
+
+            console.error(
+                "PaystackPop is undefined. " +
+                "Check the Paystack script in index.html."
+            );
+
+            return;
+        }
+
+        try {
 
             const paystack =
                 new PaystackPop();
-
 
             paystack.newTransaction({
 
                 key:
                     "pk_test_2321844583071969c00a747ba838b337df808a44",
 
-                email:
+                email: email,
 
-                    email,
+                /*
+                 * 900 GHS = 90000 pesewas
+                 */
+                amount: 90000,
 
-                amount:
+                currency: "GHS",
 
-                    Math.round(
-                        Number(amount) *
-                        100
-                    ),
+                metadata: {
 
-                currency:
-                    "USD",
+                    product:
+                        "BusinessOS Pro",
 
-                onSuccess:
-                    function(transaction) {
+                    plan:
+                        "Pro"
 
-                        alert(
-                            "Payment successful!\nReference: " +
-                            transaction.reference
-                        );
+                },
 
+                onLoad: function (response) {
 
-                        console.log(
-                            "Paystack payment:",
-                            transaction
-                        );
-                    },
-
-
-                onCancel:
-                    function() {
-
-                        alert(
-                            "Payment cancelled."
-                        );
-                    },
-
-
-                onError:
-                    function(error) {
-
-                        console.error(
-                            error
-                        );
-
-
-                        alert(
-                            "Payment failed: " +
-                            (
-                                error.message ||
-                                "Unknown error"
-                            )
-                        );
-                    }
-            });
-        };
-
-
-    /* =========================================================
-       BUSINESSOS PRO PAYMENT
-       ========================================================= */
-
-    const upgradeProBtn =
-        document.getElementById(
-            "upgradeProBtn"
-        );
-
-
-    if (upgradeProBtn) {
-
-        upgradeProBtn.addEventListener(
-            "click",
-            () => {
-
-                const email =
-                    prompt(
-                        "Enter your email address for BusinessOS Pro:"
+                    console.log(
+                        "Pro payment loaded:",
+                        response
                     );
 
+                },
 
-                if (!email) {
-                    return;
-                }
+                onSuccess: function (transaction) {
 
+                    console.log(
+                        "Pro payment successful:",
+                        transaction
+                    );
 
-                if (
-                    typeof PaystackPop ===
-                    "undefined"
-                ) {
+                    localStorage.setItem(
+                        "businessOSPro",
+                        "true"
+                    );
 
                     alert(
-                        "Payment system is not loaded yet."
+                        "🎉 Payment successful!\n\n" +
+                        "Welcome to BusinessOS Pro!\n\n" +
+                        "Reference: " +
+                        transaction.reference
                     );
 
-                    return;
+                },
+
+                onCancel: function () {
+
+                    alert(
+                        "Payment cancelled."
+                    );
+
+                },
+
+                onError: function (error) {
+
+                    console.error(
+                        "Pro payment error:",
+                        error
+                    );
+
+                    alert(
+                        "Payment failed:\n" +
+                        (error?.message ||
+                         "Unknown error")
+                    );
+
                 }
 
+            });
 
-                const paystack =
-                    new PaystackPop();
+        } catch (error) {
 
+            console.error(
+                "Paystack initialization error:",
+                error
+            );
 
-                paystack.newTransaction({
+            alert(
+                "Could not start Paystack. " +
+                "Please refresh the page and try again."
+            );
 
-                    key:
-                        "pk_test_2321844583071969c00a747ba838b337df808a44",
+        }
 
-                    email:
-                        email,
+    });
 
-                    amount:
-                        900,
-
-                    currency:
-                        "GHS",
-
-                    metadata: {
-
-                        product:
-                            "BusinessOS Pro",
-
-                        plan:
-                            "Pro"
-                    },
-
-
-                    onSuccess:
-                        transaction => {
-
-                            console.log(
-                                "Paystack transaction:",
-                                transaction
-                            );
-
-
-                            alert(
-                                "🎉 Payment successful! Welcome to BusinessOS Pro."
-                            );
-
-
-                            localStorage.setItem(
-                                "businessOSPro",
-                                "true"
-                            );
-                        },
-
-
-                    onCancel:
-                        () => {
-
-                            alert(
-                                "Payment cancelled."
-                            );
-                        },
-
-
-                    onError:
-                        error => {
-
-                            console.error(
-                                error
-                            );
-
-
-                            alert(
-                                "Payment failed."
-                            );
-                        }
-                });
-            }
-        );
-    }
-
+}
 
     /* =========================================================
        RENDER EVERYTHING

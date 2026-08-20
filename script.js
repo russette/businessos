@@ -2810,3 +2810,61 @@ setupModalBehavior();
 setupDarkMode();
 
 renderAll();
+window.payWithPaystack = function () {
+
+    const email = prompt("Enter customer email:");
+
+    if (!email) {
+        return;
+    }
+
+    const amount = prompt("Enter payment amount in USD:");
+
+    if (!amount || Number(amount) <= 0) {
+        alert("Enter a valid amount.");
+        return;
+    }
+
+    const paystack = new PaystackPop();
+
+    paystack.newTransaction({
+
+        key: "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+        email: email,
+
+        amount: Math.round(Number(amount) * 100),
+
+        currency: "USD",
+
+        onSuccess: function (transaction) {
+
+            alert(
+                "Payment successful!\nReference: " +
+                transaction.reference
+            );
+
+            console.log(
+                "Paystack payment:",
+                transaction
+            );
+        },
+
+        onCancel: function () {
+
+            alert("Payment cancelled.");
+
+        },
+
+        onError: function (error) {
+
+            console.error(error);
+
+            alert(
+                "Payment failed: " +
+                (error.message || "Unknown error")
+            );
+        }
+
+    });
+};

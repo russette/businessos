@@ -2924,7 +2924,64 @@ document.addEventListener("DOMContentLoaded", () => {
                 filterInvoices
             );
     }
+/* =========================================================
+   CONTACT FORM
+========================================================= */
 
+function sendContactMessage(event) {
+
+    event.preventDefault();
+
+    const name =
+        document.getElementById("contactName").value.trim();
+
+    const email =
+        document.getElementById("contactEmail").value.trim();
+
+    const subject =
+        document.getElementById("contactSubject").value.trim();
+
+    const message =
+        document.getElementById("contactMessage").value.trim();
+
+
+    if (!name || !email || !subject || !message) {
+
+        alert("Please complete all contact fields.");
+
+        return;
+
+    }
+
+
+    const emailSubject =
+        encodeURIComponent(
+            "BusinessOS Contact: " + subject
+        );
+
+
+    const emailBody =
+        encodeURIComponent(
+            "Hello BusinessOS,\n\n" +
+
+            "Name: " + name + "\n" +
+
+            "Email: " + email + "\n\n" +
+
+            "Message:\n" +
+
+            message
+        );
+
+
+    window.location.href =
+        "mailto:crarcss@gmail.com" +
+        "?subject=" +
+        emailSubject +
+        "&body=" +
+        emailBody;
+
+}
 
     /* =========================================================
        BACKUP / RESTORE

@@ -2750,12 +2750,8 @@ function setupDarkMode() {
         localStorage.getItem("businessOSTheme");
 
     if (savedTheme === "dark") {
-
         document.body.classList.add("dark-mode");
-
-        themeToggle.textContent =
-            "☀️ Light Mode";
-
+        themeToggle.textContent = "☀️ Light Mode";
     }
 
     themeToggle.addEventListener("click", () => {

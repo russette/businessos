@@ -2733,7 +2733,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderRecentActivity();
     }
-
 /* =========================================================
    DARK MODE
    ========================================================= */
@@ -2751,8 +2750,12 @@ function setupDarkMode() {
         localStorage.getItem("businessOSTheme");
 
     if (savedTheme === "dark") {
+
         document.body.classList.add("dark-mode");
-        themeToggle.textContent = "☀️ Light Mode";
+
+        themeToggle.textContent =
+            "☀️ Light Mode";
+
     }
 
     themeToggle.addEventListener("click", () => {
@@ -2771,6 +2774,10 @@ function setupDarkMode() {
             darkMode
                 ? "☀️ Light Mode"
                 : "🌙 Dark Mode";
+
+    });
+
+}
         /* =========================================================
    BUSINESSOS PRICING
    ========================================================= */

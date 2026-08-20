@@ -2868,3 +2868,65 @@ window.payWithPaystack = function () {
 
     });
 };
+/* =========================================================
+   BUSINESSOS PRO — PAYSTACK TEST PAYMENT
+   ========================================================= */
+
+const upgradeProBtn = document.getElementById("upgradeProBtn");
+
+if (upgradeProBtn) {
+
+    upgradeProBtn.addEventListener("click", () => {
+
+        const email = prompt(
+            "Enter your email address for BusinessOS Pro:"
+        );
+
+        if (!email) {
+            return;
+        }
+
+        const paystack = new PaystackPop();
+
+        paystack.newTransaction({
+
+            key: "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+            email: email,
+
+            amount: 900,
+
+            currency: "GHS",
+
+            metadata: {
+                product: "BusinessOS Pro",
+                plan: "Pro"
+            },
+
+            onSuccess: (transaction) => {
+
+                console.log(
+                    "Paystack transaction:",
+                    transaction
+                );
+
+                alert(
+                    "🎉 Payment successful! Welcome to BusinessOS Pro."
+                );
+
+                localStorage.setItem(
+                    "businessOSPro",
+                    "true"
+                );
+            },
+
+            onCancel: () => {
+
+                alert(
+                    "Payment cancelled."
+                );
+            }
+
+        });
+    });
+}

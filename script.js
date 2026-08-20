@@ -2772,13 +2772,14 @@ function setupDarkMode() {
                 : "🌙 Dark Mode";
 
     });
-
 }
-        /* =========================================================
+
+
+/* =========================================================
    BUSINESSOS PRICING
    ========================================================= */
 
-window.startProPlan = function() {
+window.startProPlan = function () {
 
     alert(
         "BusinessOS Pro is coming soon.\n\n" +
@@ -2789,7 +2790,7 @@ window.startProPlan = function() {
 };
 
 
-window.startBusinessPlan = function() {
+window.startBusinessPlan = function () {
 
     alert(
         "BusinessOS Business is coming soon.\n\n" +
@@ -2798,13 +2799,13 @@ window.startBusinessPlan = function() {
     );
 
 };
-    });
-}
-    /* =========================================================
-       INITIALIZATION
-       ========================================================= */
 
- setupNavigation();
+
+/* =========================================================
+   INITIALIZATION
+   ========================================================= */
+
+setupNavigation();
 
 setupSearch();
 
@@ -2813,18 +2814,37 @@ setupModalBehavior();
 setupDarkMode();
 
 renderAll();
+
+
+/* =========================================================
+   PAYSTACK PAYMENT
+   ========================================================= */
+
 window.payWithPaystack = function () {
 
-    const email = prompt("Enter customer email:");
+    const email = prompt(
+        "Enter your email address:"
+    );
 
     if (!email) {
         return;
     }
 
-    const amount = prompt("Enter payment amount in USD:");
+    const amount = prompt(
+        "Enter payment amount in USD:"
+    );
 
     if (!amount || Number(amount) <= 0) {
         alert("Enter a valid amount.");
+        return;
+    }
+
+    if (typeof PaystackPop === "undefined") {
+
+        alert(
+            "Payment system is not loaded yet."
+        );
+
         return;
     }
 
@@ -2836,7 +2856,10 @@ window.payWithPaystack = function () {
 
         email: email,
 
-        amount: Math.round(Number(amount) * 100),
+        amount:
+            Math.round(
+                Number(amount) * 100
+            ),
 
         currency: "USD",
 
@@ -2855,7 +2878,9 @@ window.payWithPaystack = function () {
 
         onCancel: function () {
 
-            alert("Payment cancelled.");
+            alert(
+                "Payment cancelled."
+            );
 
         },
 
@@ -2865,71 +2890,100 @@ window.payWithPaystack = function () {
 
             alert(
                 "Payment failed: " +
-                (error.message || "Unknown error")
+                (error.message ||
+                 "Unknown error")
             );
         }
 
     });
 };
+
+
 /* =========================================================
-   BUSINESSOS PRO — PAYSTACK TEST PAYMENT
+   BUSINESSOS PRO
    ========================================================= */
 
-const upgradeProBtn = document.getElementById("upgradeProBtn");
+const upgradeProBtn =
+    document.getElementById("upgradeProBtn");
 
 if (upgradeProBtn) {
 
-    upgradeProBtn.addEventListener("click", () => {
+    upgradeProBtn.addEventListener(
+        "click",
+        () => {
 
-        const email = prompt(
-            "Enter your email address for BusinessOS Pro:"
-        );
+            const email = prompt(
+                "Enter your email address for BusinessOS Pro:"
+            );
 
-        if (!email) {
-            return;
-        }
-
-        const paystack = new PaystackPop();
-
-        paystack.newTransaction({
-
-            key: "pk_test_2321844583071969c00a747ba838b337df808a44",
-
-            email: email,
-
-            amount: 900,
-
-            currency: "GHS",
-
-            metadata: {
-                product: "BusinessOS Pro",
-                plan: "Pro"
-            },
-
-            onSuccess: (transaction) => {
-
-                console.log(
-                    "Paystack transaction:",
-                    transaction
-                );
-
-                alert(
-                    "🎉 Payment successful! Welcome to BusinessOS Pro."
-                );
-
-                localStorage.setItem(
-                    "businessOSPro",
-                    "true"
-                );
-            },
-
-            onCancel: () => {
-
-                alert(
-                    "Payment cancelled."
-                );
+            if (!email) {
+                return;
             }
 
-        });
-    });
+            if (typeof PaystackPop === "undefined") {
+
+                alert(
+                    "Payment system is not loaded yet."
+                );
+
+                return;
+            }
+
+            const paystack =
+                new PaystackPop();
+
+            paystack.newTransaction({
+
+                key:
+                    "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+                email: email,
+
+                amount: 900,
+
+                currency: "GHS",
+
+                metadata: {
+
+                    product:
+                        "BusinessOS Pro",
+
+                    plan:
+                        "Pro"
+
+                },
+
+                onSuccess:
+                    (transaction) => {
+
+                        console.log(
+                            "Paystack transaction:",
+                            transaction
+                        );
+
+                        alert(
+                            "🎉 Payment successful! " +
+                            "Welcome to BusinessOS Pro."
+                        );
+
+                        localStorage.setItem(
+                            "businessOSPro",
+                            "true"
+                        );
+
+                    },
+
+                onCancel: () => {
+
+                    alert(
+                        "Payment cancelled."
+                    );
+
+                }
+
+            });
+
+        }
+    );
+
 }

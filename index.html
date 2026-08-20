@@ -62,6 +62,10 @@
             Invoices
         </a>
 
+        <a href="#contact">
+            Contact
+        </a>
+
     </nav>
 
 
@@ -1599,8 +1603,6 @@
         >
 
 
-        <!-- IMPORTANT:
-             This ID matches script.js -->
         <select id="invoiceStatusFilter">
 
             <option value="all">
@@ -1621,8 +1623,6 @@
 
 
 
-    <!-- IMPORTANT:
-         This ID matches script.js -->
     <div
         id="invoicesList"
         class="invoice-list"
@@ -1643,6 +1643,267 @@
             <p>
                 Create your first invoice for a customer.
             </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     CONTACT
+========================================================= -->
+
+<section
+    id="contact"
+    class="section contact-section"
+>
+
+    <div class="section-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                GET IN TOUCH
+            </p>
+
+
+            <h2>
+                Contact BusinessOS
+            </h2>
+
+
+            <p>
+                Have a question, suggestion or need help
+                with BusinessOS? We'd love to hear from you.
+            </p>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="contact-grid">
+
+
+        <!-- CONTACT INFO -->
+
+        <div class="contact-info">
+
+
+            <div class="contact-card">
+
+                <div class="contact-icon">
+                    📧
+                </div>
+
+
+                <div>
+
+                    <h3>
+                        Email
+                    </h3>
+
+                    <p>
+                        Have a question? Send us an email.
+                    </p>
+
+                    <a
+                        href="mailto:your-email@example.com"
+                    >
+                        your-email@example.com
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="contact-card">
+
+                <div class="contact-icon">
+                    💬
+                </div>
+
+
+                <div>
+
+                    <h3>
+                        WhatsApp
+                    </h3>
+
+                    <p>
+                        Chat with us directly.
+                    </p>
+
+                    <a
+                        href="https://wa.me/"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        Message us on WhatsApp
+                    </a>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="contact-card">
+
+                <div class="contact-icon">
+                    🌍
+                </div>
+
+
+                <div>
+
+                    <h3>
+                        BusinessOS
+                    </h3>
+
+                    <p>
+                        Simple tools for growing businesses.
+                    </p>
+
+                    <span>
+                        Available worldwide
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="contact-card">
+
+                <div class="contact-icon">
+                    🚀
+                </div>
+
+
+                <div>
+
+                    <h3>
+                        Need Business Support?
+                    </h3>
+
+                    <p>
+                        Tell us what you need and we'll
+                        get back to you.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- CONTACT FORM -->
+
+        <div class="contact-form-card">
+
+            <div class="contact-form-header">
+
+                <p class="eyebrow">
+                    SEND A MESSAGE
+                </p>
+
+
+                <h3>
+                    Let's talk.
+                </h3>
+
+
+                <p>
+                    Fill out the form below and your
+                    email application will open.
+                </p>
+
+            </div>
+
+
+            <form
+                id="contactForm"
+                onsubmit="sendContactMessage(event)"
+            >
+
+
+                <label for="contactName">
+                    Your Name
+                </label>
+
+
+                <input
+                    type="text"
+                    id="contactName"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                >
+
+
+
+                <label for="contactEmail">
+                    Your Email
+                </label>
+
+
+                <input
+                    type="email"
+                    id="contactEmail"
+                    name="email"
+                    placeholder="you@example.com"
+                    required
+                >
+
+
+
+                <label for="contactSubject">
+                    Subject
+                </label>
+
+
+                <input
+                    type="text"
+                    id="contactSubject"
+                    name="subject"
+                    placeholder="How can we help?"
+                    required
+                >
+
+
+
+                <label for="contactMessage">
+                    Message
+                </label>
+
+
+                <textarea
+                    id="contactMessage"
+                    name="message"
+                    rows="6"
+                    placeholder="Write your message..."
+                    required
+                ></textarea>
+
+
+
+                <button
+                    type="submit"
+                >
+                    📩 Send Message
+                </button>
+
+            </form>
 
         </div>
 
@@ -2183,8 +2444,6 @@
                         Tax
                     </span>
 
-                    <!-- IMPORTANT:
-                         This ID matches script.js -->
                     <strong id="invoiceTaxDisplay">
                         $0.00
                     </strong>
@@ -2338,6 +2597,77 @@
 ========================================================= -->
 
 <script src="script.js"></script>
+
+
+
+<!-- =========================================================
+     CONTACT FORM
+========================================================= -->
+
+<script>
+
+function sendContactMessage(event) {
+
+    event.preventDefault();
+
+    const name =
+        document.getElementById("contactName").value.trim();
+
+    const email =
+        document.getElementById("contactEmail").value.trim();
+
+    const subject =
+        document.getElementById("contactSubject").value.trim();
+
+    const message =
+        document.getElementById("contactMessage").value.trim();
+
+
+    if (!name || !email || !subject || !message) {
+
+        alert("Please complete all contact fields.");
+
+        return;
+
+    }
+
+
+    /*
+        IMPORTANT:
+
+        Replace your-email@example.com below
+        with the real BusinessOS email address.
+    */
+
+    const businessEmail =
+        "your-email@example.com";
+
+
+    const emailSubject =
+        encodeURIComponent(subject);
+
+
+    const emailBody =
+        encodeURIComponent(
+
+            "Name: " + name +
+            "\nEmail: " + email +
+            "\n\nMessage:\n" + message
+
+        );
+
+
+    window.location.href =
+        "mailto:" +
+        businessEmail +
+        "?subject=" +
+        emailSubject +
+        "&body=" +
+        emailBody;
+
+}
+
+</script>
 
 
 </body>

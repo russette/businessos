@@ -1941,89 +1941,124 @@ footer p:first-child {
     }
 }
 /* =========================================================
-   DARK MODE
+   BUSINESSOS DARK MODE
    ========================================================= */
 
 body.dark-mode {
-    background: #0f172a;
-    color: #f8fafc;
+    background: #0b1120 !important;
+    color: #f8fafc !important;
 }
+
+/* Main page areas */
+
+body.dark-mode main,
+body.dark-mode section,
+body.dark-mode .section,
+body.dark-mode .dashboard,
+body.dark-mode .content,
+body.dark-mode .container {
+    background: #0b1120 !important;
+    color: #f8fafc !important;
+}
+
+/* Header / Navigation */
 
 body.dark-mode header,
-body.dark-mode .topbar,
 body.dark-mode nav,
-body.dark-mode .navbar {
-    background: #111827;
-    color: #f8fafc;
+body.dark-mode .navbar,
+body.dark-mode .topbar {
+    background: #111827 !important;
+    color: #f8fafc !important;
 }
 
+/* Cards */
+
 body.dark-mode .card,
-body.dark-mode .dashboard-card,
 body.dark-mode .product-card,
 body.dark-mode .customer-card,
 body.dark-mode .sale-card,
 body.dark-mode .invoice-card,
-body.dark-mode .modal-content,
+body.dark-mode .dashboard-card,
 body.dark-mode .analytics-card,
-body.dark-mode .section-card {
-    background: #1e293b;
-    color: #f8fafc;
-    border-color: #334155;
+body.dark-mode .stat-card,
+body.dark-mode .section-card,
+body.dark-mode .activity-item,
+body.dark-mode .top-product-row,
+body.dark-mode .inventory-alert {
+    background: #111827 !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
 }
+
+/* Text */
 
 body.dark-mode h1,
 body.dark-mode h2,
 body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
 body.dark-mode p,
 body.dark-mode span,
 body.dark-mode strong,
 body.dark-mode label {
-    color: #f8fafc;
+    color: #f8fafc !important;
 }
+
+/* Inputs */
 
 body.dark-mode input,
 body.dark-mode select,
 body.dark-mode textarea {
-    background: #0f172a;
-    color: #f8fafc;
-    border-color: #475569;
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
 }
 
 body.dark-mode input::placeholder,
 body.dark-mode textarea::placeholder {
-    color: #94a3b8;
+    color: #94a3b8 !important;
 }
+
+/* Modals */
+
+body.dark-mode .modal {
+    background: rgba(0, 0, 0, 0.75) !important;
+}
+
+body.dark-mode .modal-content {
+    background: #111827 !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+/* Empty states */
 
 body.dark-mode .empty-state,
 body.dark-mode .empty-chart {
-    background: #1e293b;
-    color: #cbd5e1;
+    background: #111827 !important;
+    color: #cbd5e1 !important;
 }
+
+/* Buttons */
 
 body.dark-mode .secondary-btn {
-    background: #334155;
-    color: #f8fafc;
-    border-color: #475569;
+    background: #334155 !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
 }
 
-body.dark-mode .activity-item,
-body.dark-mode .top-product-row,
-body.dark-mode .inventory-alert {
-    background: #172033;
-    border-color: #334155;
-}
-
-/* Dark mode button */
+/* Theme button */
 
 .theme-toggle {
-    border: none;
+    background: #111827;
+    color: #ffffff;
+    border: 1px solid #334155;
     padding: 10px 16px;
     border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
-    background: #111827;
-    color: white;
-    transition: 0.3s ease;
+    transition: 0.25s ease;
 }
 
 .theme-toggle:hover {
@@ -2031,6 +2066,6 @@ body.dark-mode .inventory-alert {
 }
 
 body.dark-mode .theme-toggle {
-    background: #f8fafc;
-    color: #111827;
+    background: #f8fafc !important;
+    color: #111827 !important;
 }

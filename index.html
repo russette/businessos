@@ -1598,7 +1598,112 @@
 
 
     <!-- JAVASCRIPT -->
+<!-- PAYSTACK -->
+<script src="https://js.paystack.co/v2/inline.js"></script>
 
+<section class="pricing-section" id="pricing">
+
+    <p class="eyebrow">BUSINESSOS PRO</p>
+
+    <h2>Take your business to the next level.</h2>
+
+    <p>
+        Unlock invoices, analytics, revenue tracking,
+        inventory alerts and more.
+    </p>
+
+    <div class="pricing-card">
+
+        <div class="pricing-icon">🚀</div>
+
+        <h3>BusinessOS Pro</h3>
+
+        <div class="pricing-price">
+            $9 <span>/ month</span>
+        </div>
+
+        <ul>
+            <li>✅ Advanced analytics</li>
+            <li>✅ Professional invoices</li>
+            <li>✅ Revenue tracking</li>
+            <li>✅ Inventory alerts</li>
+            <li>✅ Business reports</li>
+            <li>✅ Priority support</li>
+        </ul>
+
+        <button
+            type="button"
+            onclick="startBusinessOSProPayment()">
+            Upgrade to Pro — $9/month
+        </button>
+
+    </div>
+
+</section>
+
+<script>
+function startBusinessOSProPayment() {
+
+    const email = prompt(
+        "Enter your email address to continue:"
+    );
+
+    if (!email) {
+        return;
+    }
+
+    const popup = new Paystack();
+
+    popup.checkout({
+
+        key: "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+        email: email,
+
+        amount: 900,
+
+        currency: "USD",
+
+        metadata: {
+            product: "BusinessOS Pro",
+            plan: "Pro",
+            billing: "monthly"
+        },
+
+        onSuccess: function(transaction) {
+
+            alert(
+                "Payment successful! Reference: " +
+                transaction.reference
+            );
+
+            console.log(
+                "BusinessOS Pro payment:",
+                transaction
+            );
+        },
+
+        onCancel: function() {
+
+            alert("Payment cancelled.");
+
+        },
+
+        onError: function(error) {
+
+            alert(
+                "Payment could not be completed: " +
+                error.message
+            );
+
+            console.error(error);
+        }
+
+    });
+}
+</script>
+
+<script src="script.js"></script>
     <script src="script.js"></script>
 
 </body>

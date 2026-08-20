@@ -5,7 +5,6 @@ document.addEventListener("DOMContentLoaded", () => {
        COMPLETE BUSINESS MANAGEMENT SYSTEM
        ========================================================= */
 
-
     /* =========================================================
        DATA
        ========================================================= */
@@ -24,10 +23,45 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
+       PAYSTACK CONFIGURATION
+       ========================================================= */
+
+    /*
+     * IMPORTANT:
+     *
+     * Your BusinessOS dashboard can display USD.
+     *
+     * However, because your Paystack merchant account is Ghana-based,
+     * Paystack currently expects GHS for your merchant transactions.
+     *
+     * Therefore:
+     *
+     * BusinessOS display currency = USD
+     * Paystack payment currency   = GHS
+     *
+     * Example:
+     * BusinessOS Pro = $900 display price
+     * Paystack charge = GHS 900
+     *
+     * Change PRO_PRICE_GHS if you want another amount.
+     */
+
+    const PAYSTACK_PUBLIC_KEY =
+        "pk_test_2321844583071969c00a747ba838b337df808a44";
+
+    const PAYSTACK_CURRENCY =
+        "GHS";
+
+    const PRO_PRICE_GHS =
+        900;
+
+
+    /* =========================================================
        HELPERS
        ========================================================= */
 
     function createId() {
+
         return (
             Date.now().toString(36) +
             Math.random().toString(36).slice(2)
@@ -35,7 +69,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    function createReference(prefix = "BUSINESSOS") {
+
+        return (
+            prefix +
+            "-" +
+            Date.now() +
+            "-" +
+            Math.random()
+                .toString(36)
+                .substring(2, 8)
+                .toUpperCase()
+        );
+    }
+
+
     function money(value) {
+
         return new Intl.NumberFormat("en-US", {
             style: "currency",
             currency: "USD"
@@ -43,7 +93,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    function ghcMoney(value) {
+
+        return new Intl.NumberFormat("en-GH", {
+            style: "currency",
+            currency: "GHS"
+        }).format(Number(value) || 0);
+    }
+
+
     function safe(value) {
+
         return String(value ?? "")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -125,6 +185,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    function isValidEmail(email) {
+
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            String(email).trim()
+        );
+    }
+
+
     /* =========================================================
        NAVIGATION
        ========================================================= */
@@ -197,20 +265,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             list.innerHTML = `
                 <div class="empty-state">
+                    <div class="empty-icon">📦</div>
 
-                    <div class="empty-icon">
-                        📦
-                    </div>
-
-                    <h3>
-                        No products yet
-                    </h3>
+                    <h3>No products yet</h3>
 
                     <p>
                         Add your first product to start
                         managing your inventory.
                     </p>
-
                 </div>
             `;
 
@@ -234,25 +296,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
             list.innerHTML = `
                 <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
 
-                    <div class="empty-icon">
-                        🔍
-                    </div>
-
-                    <h3>
-                        No products found
-                    </h3>
+                    <h3>No products found</h3>
 
                     <p>
                         Try a different search.
                     </p>
-
                 </div>
             `;
 
             return;
         }
-
 
         list.innerHTML =
             items.map(product => {
@@ -320,18 +375,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 .getElementById("productForm")
                 ?.reset();
 
-
             const title =
                 document.getElementById(
                     "productModalTitle"
                 );
 
-
             const hidden =
                 document.getElementById(
                     "productId"
                 );
-
 
             if (productId) {
 
@@ -346,18 +398,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 if (title) {
                     title.textContent =
                         "Edit Product";
                 }
 
-
                 if (hidden) {
                     hidden.value =
                         product.id;
                 }
-
 
                 const nameInput =
                     document.getElementById(
@@ -374,18 +423,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         "productStock"
                     );
 
-
                 if (nameInput) {
                     nameInput.value =
                         product.name || "";
                 }
 
-
                 if (priceInput) {
                     priceInput.value =
                         product.price ?? "";
                 }
-
 
                 if (stockInput) {
                     stockInput.value =
@@ -403,7 +449,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     hidden.value = "";
                 }
             }
-
 
             modal.classList.add("active");
         };
@@ -433,21 +478,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
-
                 const productId =
                     document.getElementById(
                         "productId"
                     )?.value;
 
-
                 const name =
                     document
-                        .getElementById(
-                            "productName"
-                        )
+                        .getElementById("productName")
                         ?.value
                         .trim();
-
 
                 const price =
                     Number(
@@ -456,14 +496,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         )?.value
                     );
 
-
                 const stock =
                     Number(
                         document.getElementById(
                             "productStock"
                         )?.value
                     );
-
 
                 if (!name) {
 
@@ -473,7 +511,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     return;
                 }
-
 
                 if (
                     !Number.isFinite(price) ||
@@ -489,7 +526,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 if (productId) {
 
                     const product =
@@ -498,7 +534,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 String(p.id) ===
                                 String(productId)
                         );
-
 
                     if (product) {
 
@@ -536,7 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 }
 
-
                 saveData();
 
                 renderAll();
@@ -556,14 +590,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         String(productId)
                 );
 
-
             const usedInInvoices =
                 invoices.some(
                     invoice =>
                         String(invoice.productId) ===
                         String(productId)
                 );
-
 
             if (
                 usedInSales ||
@@ -589,14 +621,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-
             products =
                 products.filter(
                     product =>
                         String(product.id) !==
                         String(productId)
                 );
-
 
             saveData();
 
@@ -624,7 +654,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!list) {
             return;
         }
-
 
         if (!items.length) {
 
@@ -660,7 +689,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             return;
         }
-
 
         list.innerHTML =
             items.map(customer => {
@@ -737,7 +765,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
-
                 const name =
                     document
                         .getElementById(
@@ -745,7 +772,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         )
                         ?.value
                         .trim();
-
 
                 const email =
                     document
@@ -755,7 +781,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         ?.value
                         .trim();
 
-
                 const phone =
                     document
                         .getElementById(
@@ -763,7 +788,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         )
                         ?.value
                         .trim();
-
 
                 if (!name) {
 
@@ -774,6 +798,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
+                if (
+                    email &&
+                    !isValidEmail(email)
+                ) {
+
+                    alert(
+                        "Enter a valid email address."
+                    );
+
+                    return;
+                }
 
                 customers.push({
 
@@ -789,7 +824,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     createdAt:
                         new Date().toISOString()
                 });
-
 
                 saveData();
 
@@ -809,7 +843,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         String(invoice.customerId) ===
                         String(customerId)
                 );
-
 
             if (hasInvoices) {
 
@@ -832,14 +865,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-
             customers =
                 customers.filter(
                     customer =>
                         String(customer.id) !==
                         String(customerId)
                 );
-
 
             saveData();
 
@@ -859,11 +890,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     "saleProduct"
                 );
 
-
             if (!select) {
                 return;
             }
-
 
             select.innerHTML = `
                 <option value="">
@@ -871,12 +900,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 </option>
             `;
 
-
             products.forEach(product => {
 
                 const stock =
                     Number(product.stock) || 0;
-
 
                 select.innerHTML += `
                     <option
@@ -890,20 +917,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             });
 
-
             const quantity =
                 document.getElementById(
                     "saleQuantity"
                 );
 
-
             if (quantity) {
                 quantity.value = 1;
             }
 
-
             updateSaleTotal();
-
 
             document
                 .getElementById("saleModal")
@@ -927,14 +950,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 "saleProduct"
             )?.value;
 
-
         const quantity =
             Number(
                 document.getElementById(
                     "saleQuantity"
                 )?.value
             ) || 0;
-
 
         const product =
             products.find(
@@ -943,13 +964,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     String(productId)
             );
 
-
         const total =
             product
                 ? Number(product.price) *
                   quantity
                 : 0;
-
 
         text(
             "saleTotal",
@@ -982,12 +1001,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
-
                 const productId =
                     document.getElementById(
                         "saleProduct"
                     )?.value;
-
 
                 const quantity =
                     Number(
@@ -996,14 +1013,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         )?.value
                     );
 
-
                 const product =
                     products.find(
                         p =>
                             String(p.id) ===
                             String(productId)
                     );
-
 
                 if (!product) {
 
@@ -1013,7 +1028,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     return;
                 }
-
 
                 if (
                     !Number.isFinite(quantity) ||
@@ -1028,10 +1042,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 const stock =
                     Number(product.stock) || 0;
-
 
                 if (quantity > stock) {
 
@@ -1042,11 +1054,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 const total =
                     Number(product.price) *
                     quantity;
-
 
                 sales.push({
 
@@ -1067,17 +1077,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         new Date().toISOString()
                 });
 
-
                 product.stock =
                     stock - quantity;
-
 
                 saveData();
 
                 renderAll();
 
                 closeSaleModal();
-
 
                 alert(
                     "Sale recorded successfully."
@@ -1093,11 +1100,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "salesList"
             );
 
-
         if (!list) {
             return;
         }
-
 
         if (!items.length) {
 
@@ -1133,7 +1138,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             return;
         }
-
 
         list.innerHTML =
             [...items]
@@ -1218,14 +1222,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
             const sale =
                 sales.find(
                     s =>
                         String(s.id) ===
                         String(saleId)
                 );
-
 
             if (!sale) {
 
@@ -1236,14 +1238,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
             const product =
                 products.find(
                     p =>
                         String(p.id) ===
                         String(sale.productId)
                 );
-
 
             if (product) {
 
@@ -1252,7 +1252,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     Number(sale.quantity || 0);
             }
 
-
             sales =
                 sales.filter(
                     s =>
@@ -1260,11 +1259,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         String(saleId)
                 );
 
-
             saveData();
 
             renderAll();
-
 
             alert(
                 "Sale deleted and inventory restored."
@@ -1295,46 +1292,38 @@ document.addEventListener("DOMContentLoaded", () => {
                 "invoiceNumber"
             );
 
-
         if (number) {
 
             number.value =
                 generateInvoiceNumber();
         }
 
-
         const dueDate =
             document.getElementById(
                 "invoiceDueDate"
             );
-
 
         if (dueDate) {
 
             const date =
                 new Date();
 
-
             date.setDate(
                 date.getDate() + 7
             );
 
-
             const year =
                 date.getFullYear();
-
 
             const month =
                 String(
                     date.getMonth() + 1
                 ).padStart(2, "0");
 
-
             const day =
                 String(
                     date.getDate()
                 ).padStart(2, "0");
-
 
             dueDate.value =
                 `${year}-${month}-${day}`;
@@ -1350,12 +1339,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     "invoiceCustomer"
                 );
 
-
             const productSelect =
                 document.getElementById(
                     "invoiceProduct"
                 );
-
 
             if (
                 !customerSelect ||
@@ -1364,13 +1351,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
             customerSelect.innerHTML = `
                 <option value="">
                     Select a customer
                 </option>
             `;
-
 
             customers.forEach(customer => {
 
@@ -1382,13 +1367,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             });
 
-
             productSelect.innerHTML = `
                 <option value="">
                     Select a product
                 </option>
             `;
-
 
             products.forEach(product => {
 
@@ -1401,16 +1384,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
             });
 
-
             document
                 .getElementById("invoiceForm")
                 ?.reset();
 
-
             setInvoiceDefaults();
 
             updateInvoicePreview();
-
 
             document
                 .getElementById("invoiceModal")
@@ -1434,14 +1414,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 "invoiceProduct"
             )?.value;
 
-
         const quantity =
             Number(
                 document.getElementById(
                     "invoiceQuantity"
                 )?.value
             ) || 0;
-
 
         const discount =
             Number(
@@ -1450,14 +1428,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 )?.value
             ) || 0;
 
-
         const taxRate =
             Number(
                 document.getElementById(
                     "invoiceTax"
                 )?.value
             ) || 0;
-
 
         const product =
             products.find(
@@ -1466,13 +1442,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     String(productId)
             );
 
-
         const subtotal =
             product
                 ? Number(product.price) *
                   quantity
                 : 0;
-
 
         const validDiscount =
             Math.min(
@@ -1480,13 +1454,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 subtotal
             );
 
-
         const taxableAmount =
             Math.max(
                 subtotal - validDiscount,
                 0
             );
-
 
         const tax =
             taxableAmount *
@@ -1495,28 +1467,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 100
             );
 
-
         const total =
             taxableAmount + tax;
-
 
         text(
             "invoiceSubtotal",
             money(subtotal)
         );
 
-
         text(
             "invoiceDiscountDisplay",
             "-" + money(validDiscount)
         );
 
-
         text(
             "invoiceTaxDisplay",
             money(tax)
         );
-
 
         text(
             "invoiceTotal",
@@ -1565,24 +1532,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
-
                 const invoiceNumber =
                     document.getElementById(
                         "invoiceNumber"
                     )?.value.trim();
-
 
                 const customerId =
                     document.getElementById(
                         "invoiceCustomer"
                     )?.value;
 
-
                 const productId =
                     document.getElementById(
                         "invoiceProduct"
                     )?.value;
-
 
                 const quantity =
                     Number(
@@ -1591,12 +1554,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         )?.value
                     );
 
-
                 const dueDate =
                     document.getElementById(
                         "invoiceDueDate"
                     )?.value;
-
 
                 const discount =
                     Number(
@@ -1605,14 +1566,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         )?.value
                     ) || 0;
 
-
                 const taxRate =
                     Number(
                         document.getElementById(
                             "invoiceTax"
                         )?.value
                     ) || 0;
-
 
                 const customer =
                     customers.find(
@@ -1621,14 +1580,12 @@ document.addEventListener("DOMContentLoaded", () => {
                             String(customerId)
                     );
 
-
                 const product =
                     products.find(
                         p =>
                             String(p.id) ===
                             String(productId)
                     );
-
 
                 if (!customer) {
 
@@ -1639,7 +1596,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 if (!product) {
 
                     alert(
@@ -1648,7 +1604,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     return;
                 }
-
 
                 if (
                     !Number.isFinite(quantity) ||
@@ -1663,7 +1618,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 if (!dueDate) {
 
                     alert(
@@ -1672,7 +1626,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     return;
                 }
-
 
                 if (
                     discount < 0 ||
@@ -1686,18 +1639,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 const subtotal =
                     Number(product.price) *
                     quantity;
-
 
                 const validDiscount =
                     Math.min(
                         discount,
                         subtotal
                     );
-
 
                 const taxableAmount =
                     Math.max(
@@ -1706,15 +1656,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         0
                     );
 
-
                 const tax =
                     taxableAmount *
                     (taxRate / 100);
 
-
                 const total =
                     taxableAmount + tax;
-
 
                 invoices.push({
 
@@ -1759,13 +1706,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         new Date().toISOString()
                 });
 
-
                 saveData();
 
                 renderAll();
 
                 closeInvoiceModal();
-
 
                 alert(
                     "Invoice created successfully."
@@ -1783,11 +1728,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "invoicesList"
             );
 
-
         if (!list) {
             return;
         }
-
 
         if (!items.length) {
 
@@ -1824,7 +1767,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-
         list.innerHTML =
             [...items]
                 .sort(
@@ -1841,7 +1783,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     const paid =
                         invoice.status ===
                         "paid";
-
 
                     return `
                         <div class="invoice-card">
@@ -1886,7 +1827,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             </div>
 
-
                             <div class="invoice-card-right">
 
                                 <strong>
@@ -1910,7 +1850,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                 </span>
 
-
                                 <div
                                     class="invoice-actions">
 
@@ -1925,7 +1864,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                         }
 
                                     </button>
-
 
                                     <button
                                         class="delete-btn"
@@ -1957,17 +1895,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         String(invoiceId)
                 );
 
-
             if (!invoice) {
                 return;
             }
-
 
             invoice.status =
                 invoice.status === "paid"
                     ? "unpaid"
                     : "paid";
-
 
             saveData();
 
@@ -1986,14 +1921,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
             invoices =
                 invoices.filter(
                     invoice =>
                         String(invoice.id) !==
                         String(invoiceId)
                 );
-
 
             saveData();
 
@@ -2017,10 +1950,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 0
             );
 
-
         const today =
             todayString();
-
 
         const todayRevenue =
             sales
@@ -2030,12 +1961,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         return false;
                     }
 
-
                     const date =
                         new Date(
                             sale.date
                         );
-
 
                     if (
                         Number.isNaN(
@@ -2045,22 +1974,18 @@ document.addEventListener("DOMContentLoaded", () => {
                         return false;
                     }
 
-
                     const year =
                         date.getFullYear();
-
 
                     const month =
                         String(
                             date.getMonth() + 1
                         ).padStart(2, "0");
 
-
                     const day =
                         String(
                             date.getDate()
                         ).padStart(2, "0");
-
 
                     return (
                         `${year}-${month}-${day}` ===
@@ -2077,7 +2002,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     0
                 );
 
-
         const paidInvoices =
             invoices.filter(
                 invoice =>
@@ -2085,14 +2009,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     "paid"
             ).length;
 
-
         const unpaidInvoices =
             invoices.filter(
                 invoice =>
                     invoice.status !==
                     "paid"
             ).length;
-
 
         const lowStock =
             products.filter(
@@ -2102,48 +2024,40 @@ document.addEventListener("DOMContentLoaded", () => {
                     ) <= 5
             ).length;
 
-
         text(
             "totalRevenue",
             money(totalRevenue)
         );
-
 
         text(
             "todayRevenue",
             money(todayRevenue)
         );
 
-
         text(
             "totalProducts",
             products.length
         );
-
 
         text(
             "totalCustomers",
             customers.length
         );
 
-
         text(
             "totalSales",
             sales.length
         );
-
 
         text(
             "paidInvoices",
             paidInvoices
         );
 
-
         text(
             "unpaidInvoices",
             unpaidInvoices
         );
-
 
         text(
             "lowStockProducts",
@@ -2168,13 +2082,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 0
             );
 
-
         const averageSale =
             sales.length
                 ? totalRevenue /
                   sales.length
                 : 0;
-
 
         const unitsInStock =
             products.reduce(
@@ -2185,7 +2097,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     ),
                 0
             );
-
 
         const inventoryValue =
             products.reduce(
@@ -2202,18 +2113,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 0
             );
 
-
         text(
             "averageSale",
             money(averageSale)
         );
 
-
         text(
             "unitsInStock",
             unitsInStock
         );
-
 
         text(
             "inventoryValue",
@@ -2221,17 +2129,13 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        /* Best seller */
-
         const productSales = {};
-
 
         sales.forEach(sale => {
 
             const name =
                 sale.productName ||
                 "Unknown Product";
-
 
             productSales[name] =
                 (
@@ -2253,7 +2157,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     b[1] - a[1]
             )[0];
 
-
         text(
             "bestSeller",
             bestSeller
@@ -2261,8 +2164,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 : "—"
         );
 
-
-        /* Overview */
 
         const unitsSold =
             sales.reduce(
@@ -2294,18 +2195,15 @@ document.addEventListener("DOMContentLoaded", () => {
             money(totalRevenue)
         );
 
-
         text(
             "unitsSold",
             unitsSold
         );
 
-
         text(
             "overviewAverage",
             money(averageSale)
         );
-
 
         text(
             "largestSale",
@@ -2332,11 +2230,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "topProducts"
             );
 
-
         if (!container) {
             return;
         }
-
 
         if (!sales.length) {
 
@@ -2349,16 +2245,13 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-
         const totals = {};
-
 
         sales.forEach(sale => {
 
             const name =
                 sale.productName ||
                 "Unknown Product";
-
 
             totals[name] =
                 (
@@ -2371,7 +2264,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
         });
 
-
         const ranking =
             Object.entries(totals)
                 .sort(
@@ -2379,7 +2271,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         b[1] - a[1]
                 )
                 .slice(0, 5);
-
 
         container.innerHTML =
             ranking
@@ -2424,11 +2315,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "inventoryAlerts"
             );
 
-
         if (!container) {
             return;
         }
-
 
         const lowStockProducts =
             products.filter(
@@ -2437,7 +2326,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         product.stock
                     ) <= 5
             );
-
 
         if (!lowStockProducts.length) {
 
@@ -2450,7 +2338,6 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-
         container.innerHTML =
             lowStockProducts
                 .map(product => {
@@ -2459,7 +2346,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         Number(
                             product.stock
                         ) || 0;
-
 
                     return `
                         <div
@@ -2497,11 +2383,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "revenueChart"
             );
 
-
         if (!chart) {
             return;
         }
-
 
         if (!sales.length) {
 
@@ -2514,9 +2398,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-
         const daily = {};
-
 
         sales.forEach(sale => {
 
@@ -2524,7 +2406,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 new Date(
                     sale.date
                 );
-
 
             if (
                 Number.isNaN(
@@ -2534,7 +2415,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
             const key =
                 date.toLocaleDateString(
                     "en-US",
@@ -2543,7 +2423,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         day: "numeric"
                     }
                 );
-
 
             daily[key] =
                 (
@@ -2555,11 +2434,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
         });
 
-
         const entries =
             Object.entries(daily)
                 .slice(-7);
-
 
         const max =
             Math.max(
@@ -2569,7 +2446,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 ),
                 1
             );
-
 
         chart.innerHTML = `
             <div class="revenue-bars">
@@ -2587,7 +2463,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                             max
                                         ) * 100
                                     );
-
 
                                 return `
                                     <div
@@ -2626,11 +2501,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 "recentActivity"
             );
 
-
         if (!container) {
             return;
         }
-
 
         const activities = [];
 
@@ -2848,7 +2721,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "productSearch"
             );
 
-
         if (productSearch) {
 
             productSearch.addEventListener(
@@ -2860,7 +2732,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim()
                             .toLowerCase();
 
-
                     const filtered =
                         products.filter(
                             product =>
@@ -2870,7 +2741,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 .toLowerCase()
                                 .includes(query)
                         );
-
 
                     renderProductResults(
                         filtered
@@ -2885,7 +2755,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "customerSearch"
             );
 
-
         if (customerSearch) {
 
             customerSearch.addEventListener(
@@ -2896,7 +2765,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         customerSearch.value
                             .trim()
                             .toLowerCase();
-
 
                     const filtered =
                         customers.filter(
@@ -2923,7 +2791,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 .includes(query)
                         );
 
-
                     renderCustomerResults(
                         filtered
                     );
@@ -2937,7 +2804,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "salesSearch"
             );
 
-
         if (salesSearch) {
 
             salesSearch.addEventListener(
@@ -2948,7 +2814,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         salesSearch.value
                             .trim()
                             .toLowerCase();
-
 
                     const filtered =
                         sales.filter(
@@ -2968,7 +2833,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 .includes(query)
                         );
 
-
                     renderSales(
                         filtered
                     );
@@ -2981,7 +2845,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "invoiceSearch"
             );
-
 
         const invoiceStatusFilter =
             document.getElementById(
@@ -2997,11 +2860,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     .toLowerCase() ||
                 "";
 
-
             const status =
                 invoiceStatusFilter?.value ||
                 "all";
-
 
             const filtered =
                 invoices.filter(
@@ -3045,7 +2906,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 );
 
-
             renderInvoices(
                 filtered
             );
@@ -3057,7 +2917,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "input",
                 filterInvoices
             );
-
 
         invoiceStatusFilter
             ?.addEventListener(
@@ -3126,7 +2985,6 @@ document.addEventListener("DOMContentLoaded", () => {
             link.href =
                 url;
 
-
             link.download =
                 `businessos-backup-${todayString()}.json`;
 
@@ -3154,7 +3012,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!file) {
                 return;
             }
-
 
             const reader =
                 new FileReader();
@@ -3216,14 +3073,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         products =
                             data.products;
 
-
                         customers =
                             data.customers;
 
-
                         sales =
                             data.sales;
-
 
                         invoices =
                             data.invoices;
@@ -3300,16 +3154,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 "businessOSProducts"
             );
 
-
             localStorage.removeItem(
                 "businessOSCustomers"
             );
 
-
             localStorage.removeItem(
                 "businessOSSales"
             );
-
 
             localStorage.removeItem(
                 "businessOSInvoices"
@@ -3391,7 +3242,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "themeToggle"
             );
 
-
         if (!themeToggle) {
             return;
         }
@@ -3455,16 +3305,427 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       PRICING
+       PAYSTACK LOADER CHECK
+       ========================================================= */
+
+    function paystackReady() {
+
+        if (
+            typeof PaystackPop ===
+            "undefined"
+        ) {
+
+            alert(
+                "Paystack could not be loaded.\n\n" +
+                "Make sure the Paystack script is included " +
+                "before script.js, then refresh the page."
+            );
+
+            console.error(
+                "PaystackPop is undefined. " +
+                "Load https://js.paystack.co/v2/inline.js " +
+                "before script.js."
+            );
+
+            return false;
+        }
+
+        return true;
+    }
+
+
+    /* =========================================================
+       PAYSTACK PAYMENT
+       ========================================================= */
+
+    window.payWithPaystack =
+        function() {
+
+            const email =
+                prompt(
+                    "Enter your email address:"
+                );
+
+            if (!email) {
+                return;
+            }
+
+
+            if (!isValidEmail(email)) {
+
+                alert(
+                    "Please enter a valid email address."
+                );
+
+                return;
+            }
+
+
+            const amountInput =
+                prompt(
+                    "Enter payment amount in GHS:"
+                );
+
+
+            if (
+                amountInput ===
+                null
+            ) {
+                return;
+            }
+
+
+            const amount =
+                Number(
+                    amountInput
+                );
+
+
+            if (
+                !Number.isFinite(amount) ||
+                amount <= 0
+            ) {
+
+                alert(
+                    "Enter a valid payment amount."
+                );
+
+                return;
+            }
+
+
+            if (!paystackReady()) {
+                return;
+            }
+
+
+            try {
+
+                const paystack =
+                    new PaystackPop();
+
+
+                paystack.newTransaction({
+
+                    key:
+                        PAYSTACK_PUBLIC_KEY,
+
+                    email:
+                        email.trim(),
+
+                    amount:
+                        Math.round(
+                            amount * 100
+                        ),
+
+                    currency:
+                        PAYSTACK_CURRENCY,
+
+                    ref:
+                        createReference(
+                            "BOS-PAY"
+                        ),
+
+                    metadata: {
+
+                        product:
+                            "BusinessOS Payment",
+
+                        source:
+                            "BusinessOS Dashboard",
+
+                        currency:
+                            "GHS"
+                    },
+
+
+                    onLoad:
+                        function(response) {
+
+                            console.log(
+                                "Paystack loaded:",
+                                response
+                            );
+                        },
+
+
+                    onSuccess:
+                        function(transaction) {
+
+                            console.log(
+                                "Paystack payment successful:",
+                                transaction
+                            );
+
+
+                            alert(
+                                "🎉 Payment successful!\n\n" +
+                                "Amount: " +
+                                ghcMoney(amount) +
+                                "\n\n" +
+                                "Reference: " +
+                                transaction.reference
+                            );
+                        },
+
+
+                    onCancel:
+                        function() {
+
+                            alert(
+                                "Payment cancelled."
+                            );
+                        },
+
+
+                    onError:
+                        function(error) {
+
+                            console.error(
+                                "Paystack error:",
+                                error
+                            );
+
+
+                            const message =
+                                error?.message ||
+                                "The payment could not be completed.";
+
+
+                            alert(
+                                "Payment failed:\n\n" +
+                                message
+                            );
+                        }
+
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "Could not start Paystack:",
+                    error
+                );
+
+
+                alert(
+                    "Could not start Paystack.\n\n" +
+                    "Please refresh the page and try again."
+                );
+            }
+        };
+
+
+    /* =========================================================
+       BUSINESSOS PRO
+       ========================================================= */
+
+    const upgradeProBtn =
+        document.getElementById(
+            "upgradeProBtn"
+        );
+
+
+    if (upgradeProBtn) {
+
+        upgradeProBtn.addEventListener(
+            "click",
+            () => {
+
+                const email =
+                    prompt(
+                        "Enter your email address for BusinessOS Pro:"
+                    );
+
+
+                if (!email) {
+                    return;
+                }
+
+
+                if (!isValidEmail(email)) {
+
+                    alert(
+                        "Please enter a valid email address."
+                    );
+
+                    return;
+                }
+
+
+                if (!paystackReady()) {
+                    return;
+                }
+
+
+                const confirmed =
+                    confirm(
+                        `BusinessOS Pro costs ${ghcMoney(PRO_PRICE_GHS)} for this payment.\n\nContinue to Paystack?`
+                    );
+
+
+                if (!confirmed) {
+                    return;
+                }
+
+
+                try {
+
+                    const paystack =
+                        new PaystackPop();
+
+
+                    paystack.newTransaction({
+
+                        key:
+                            PAYSTACK_PUBLIC_KEY,
+
+                        email:
+                            email.trim(),
+
+                        amount:
+                            Math.round(
+                                PRO_PRICE_GHS *
+                                100
+                            ),
+
+                        currency:
+                            PAYSTACK_CURRENCY,
+
+                        ref:
+                            createReference(
+                                "BOS-PRO"
+                            ),
+
+
+                        metadata: {
+
+                            product:
+                                "BusinessOS Pro",
+
+                            plan:
+                                "Pro",
+
+                            source:
+                                "BusinessOS",
+
+                            currency:
+                                "GHS"
+                        },
+
+
+                        onLoad:
+                            function(response) {
+
+                                console.log(
+                                    "BusinessOS Pro payment loaded:",
+                                    response
+                                );
+                            },
+
+
+                        onSuccess:
+                            function(transaction) {
+
+                                console.log(
+                                    "BusinessOS Pro payment successful:",
+                                    transaction
+                                );
+
+
+                                /*
+                                 * This only unlocks the UI locally.
+                                 *
+                                 * For a REAL production SaaS,
+                                 * payment must also be verified
+                                 * server-side before granting access.
+                                 */
+
+                                localStorage.setItem(
+                                    "businessOSPro",
+                                    "true"
+                                );
+
+
+                                alert(
+                                    "🎉 Payment successful!\n\n" +
+                                    "Welcome to BusinessOS Pro!\n\n" +
+                                    "Amount paid: " +
+                                    ghcMoney(
+                                        PRO_PRICE_GHS
+                                    ) +
+                                    "\n\n" +
+                                    "Reference: " +
+                                    transaction.reference
+                                );
+                            },
+
+
+                        onCancel:
+                            function() {
+
+                                alert(
+                                    "Payment cancelled."
+                                );
+                            },
+
+
+                        onError:
+                            function(error) {
+
+                                console.error(
+                                    "Pro payment error:",
+                                    error
+                                );
+
+
+                                alert(
+                                    "Payment failed:\n\n" +
+                                    (
+                                        error?.message ||
+                                        "Unknown payment error."
+                                    )
+                                );
+                            }
+
+                    });
+
+                } catch (error) {
+
+                    console.error(
+                        "Paystack initialization error:",
+                        error
+                    );
+
+
+                    alert(
+                        "Could not start Paystack.\n\n" +
+                        "Please refresh the page and try again."
+                    );
+                }
+
+            }
+        );
+    }
+
+
+    /* =========================================================
+       PRICING FALLBACK BUTTONS
        ========================================================= */
 
     window.startProPlan =
         function() {
 
+            if (upgradeProBtn) {
+
+                upgradeProBtn.click();
+
+                return;
+            }
+
+
             alert(
-                "BusinessOS Pro is coming soon.\n\n" +
-                "You'll be able to unlock professional invoices, " +
-                "PDF exports, advanced analytics and more."
+                "BusinessOS Pro payment is available through the Upgrade button."
             );
         };
 
@@ -3479,257 +3740,6 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         };
 
-
-/* =========================================================
-   PAYSTACK PAYMENT
-   ========================================================= */
-
-window.payWithPaystack = function () {
-
-    const email = prompt("Enter your email address:");
-
-    if (!email) {
-        return;
-    }
-
-    const amountInput = prompt(
-        "Enter payment amount in USD:"
-    );
-
-    const amount = Number(amountInput);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-        alert("Enter a valid payment amount.");
-        return;
-    }
-
-    if (typeof PaystackPop === "undefined") {
-
-        alert(
-            "Paystack could not be loaded. " +
-            "Please check your internet connection and refresh the page."
-        );
-
-        console.error(
-            "PaystackPop is undefined. Make sure " +
-            "https://js.paystack.co/v2/inline.js " +
-            "is loaded BEFORE script.js."
-        );
-
-        return;
-    }
-
-    try {
-
-        const paystack = new PaystackPop();
-
-        paystack.newTransaction({
-
-            key: "pk_test_2321844583071969c00a747ba838b337df808a44",
-
-            email: email,
-
-            amount: Math.round(amount * 100),
-
-            currency: "USD",
-
-            onLoad: function (response) {
-
-                console.log(
-                    "Paystack loaded:",
-                    response
-                );
-
-            },
-
-            onSuccess: function (transaction) {
-
-                console.log(
-                    "Paystack payment successful:",
-                    transaction
-                );
-
-                alert(
-                    "🎉 Payment successful!\n\n" +
-                    "Reference: " +
-                    transaction.reference
-                );
-
-            },
-
-            onCancel: function () {
-
-                alert(
-                    "Payment cancelled."
-                );
-
-            },
-
-            onError: function (error) {
-
-                console.error(
-                    "Paystack error:",
-                    error
-                );
-
-                alert(
-                    "Payment failed:\n" +
-                    (error?.message || "Unknown error")
-                );
-
-            }
-
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Could not start Paystack:",
-            error
-        );
-
-        alert(
-            "Could not start Paystack. " +
-            "Please refresh the page and try again."
-        );
-    }
-};
-
-/* =========================================================
-   BUSINESSOS PRO
-   ========================================================= */
-
-const upgradeProBtn =
-    document.getElementById("upgradeProBtn");
-
-if (upgradeProBtn) {
-
-    upgradeProBtn.addEventListener("click", () => {
-
-        const email = prompt(
-            "Enter your email address for BusinessOS Pro:"
-        );
-
-        if (!email) {
-            return;
-        }
-
-        if (typeof PaystackPop === "undefined") {
-
-            alert(
-                "Paystack could not be loaded. " +
-                "Please refresh the page."
-            );
-
-            console.error(
-                "PaystackPop is undefined. " +
-                "Check the Paystack script in index.html."
-            );
-
-            return;
-        }
-
-        try {
-
-            const paystack =
-                new PaystackPop();
-
-            paystack.newTransaction({
-
-                key:
-                    "pk_test_2321844583071969c00a747ba838b337df808a44",
-
-                email: email,
-
-                /*
-                 * 900 GHS = 90000 pesewas
-                 */
-                amount: 90000,
-
-                currency: "GHS",
-
-                metadata: {
-
-                    product:
-                        "BusinessOS Pro",
-
-                    plan:
-                        "Pro"
-
-                },
-
-                onLoad: function (response) {
-
-                    console.log(
-                        "Pro payment loaded:",
-                        response
-                    );
-
-                },
-
-                onSuccess: function (transaction) {
-
-                    console.log(
-                        "Pro payment successful:",
-                        transaction
-                    );
-
-                    localStorage.setItem(
-                        "businessOSPro",
-                        "true"
-                    );
-
-                    alert(
-                        "🎉 Payment successful!\n\n" +
-                        "Welcome to BusinessOS Pro!\n\n" +
-                        "Reference: " +
-                        transaction.reference
-                    );
-
-                },
-
-                onCancel: function () {
-
-                    alert(
-                        "Payment cancelled."
-                    );
-
-                },
-
-                onError: function (error) {
-
-                    console.error(
-                        "Pro payment error:",
-                        error
-                    );
-
-                    alert(
-                        "Payment failed:\n" +
-                        (error?.message ||
-                         "Unknown error")
-                    );
-
-                }
-
-            });
-
-        } catch (error) {
-
-            console.error(
-                "Paystack initialization error:",
-                error
-            );
-
-            alert(
-                "Could not start Paystack. " +
-                "Please refresh the page and try again."
-            );
-
-        }
-
-    });
-
-}
 
     /* =========================================================
        RENDER EVERYTHING

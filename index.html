@@ -659,15 +659,14 @@
         placeholder="🔍 Search invoices..."
     >
 
-    <select id="invoiceStatusFilter">
+  <select id="invoiceFilter">
         <option value="all">All invoices</option>
         <option value="paid">Paid</option>
         <option value="unpaid">Unpaid</option>
     </select>
 </div>
 
-            <div id="invoicesList" class="invoice-list">
-
+          <div id="invoiceList" class="invoice-list">
                 <div class="empty-state">
 
                     <div class="empty-icon">
@@ -697,7 +696,9 @@
             BUSINESS DATA
         </p>
 
-        <h3>Manage Your Business Data</h3>
+        <h3>
+            Manage Your Business Data
+        </h3>
 
         <p>
             Backup, restore or reset all products,
@@ -712,34 +713,35 @@
         <button
             type="button"
             class="secondary-btn"
-            onclick="exportBusinessData()">
+            onclick="exportBackup()">
+
             📤 Export Backup
+
         </button>
 
-        <label
+
+        <button
+            type="button"
             class="secondary-btn"
-            style="cursor:pointer;">
+            onclick="importBackup()">
 
             📥 Import Backup
 
-            <input
-                type="file"
-                accept=".json,application/json"
-                onchange="importBusinessData(this.files[0])"
-                style="display:none;">
-        </label>
+        </button>
+
 
         <button
             type="button"
             class="danger-btn"
             onclick="resetBusinessData()">
+
             🗑️ Reset Business Data
+
         </button>
 
     </div>
 
 </section>
-    </main>
 
 
 
@@ -1091,60 +1093,60 @@
 
                 <!-- Invoice Preview -->
 
-                <div class="invoice-preview">
+               <div class="invoice-preview">
 
-                    <div class="invoice-preview-row">
+    <div class="invoice-preview-row">
 
-                        <span>
-                            Subtotal
-                        </span>
+        <span>
+            Subtotal
+        </span>
 
-                        <strong id="invoiceSubtotal">
-                            $0.00
-                        </strong>
+        <strong id="invoiceSubtotal">
+            $0.00
+        </strong>
 
-                    </div>
-
-
-                    <div class="invoice-preview-row">
-
-                        <span>
-                            Discount
-                        </span>
-
-                        <strong id="invoiceDiscountDisplay">
-                            -$0.00
-                        </strong>
-
-                    </div>
+    </div>
 
 
-                    <div class="invoice-preview-row">
+    <div class="invoice-preview-row">
 
-                        <span>
-                            Tax
-                        </span>
+        <span>
+            Discount
+        </span>
 
-                        <strong id="invoiceTaxDisplay">
-                            $0.00
-                        </strong>
+        <strong id="invoiceDiscountDisplay">
+            -$0.00
+        </strong>
 
-                    </div>
+    </div>
 
 
-                    <div class="invoice-total-row">
+    <div class="invoice-preview-row">
 
-                        <span>
-                            Total
-                        </span>
+        <span>
+            Tax
+        </span>
 
-                        <strong id="invoiceTotal">
-                            $0.00
-                        </strong>
+        <strong id="invoiceTaxAmount">
+            $0.00
+        </strong>
 
-                    </div>
+    </div>
 
-                </div>
+
+    <div class="invoice-total-row">
+
+        <span>
+            Total
+        </span>
+
+        <strong id="invoiceTotal">
+            $0.00
+        </strong>
+
+    </div>
+
+</div>
 
 
                 <div class="form-buttons">
@@ -1170,7 +1172,56 @@
 
     </div>
 
+<!-- ================================================= -->
+<!-- VIEW INVOICE MODAL -->
+<!-- ================================================= -->
 
+<div id="invoiceViewModal" class="modal">
+
+    <div class="modal-content invoice-modal">
+
+        <button
+            class="close-btn"
+            onclick="closeInvoiceViewModal()">
+
+            ×
+
+        </button>
+
+
+        <div id="invoiceViewContent">
+
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    🧾
+                </div>
+
+                <h3>
+                    Invoice
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <div class="form-buttons">
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="closeInvoiceViewModal()">
+
+                Close
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
     <!-- ================= FOOTER ================= -->
 

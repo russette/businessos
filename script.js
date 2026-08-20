@@ -2734,17 +2734,55 @@ document.addEventListener("DOMContentLoaded", () => {
         renderRecentActivity();
     }
 
+/* =========================================================
+   DARK MODE
+   ========================================================= */
 
+function setupDarkMode() {
+
+    const themeToggle =
+        document.getElementById("themeToggle");
+
+    if (!themeToggle) {
+        return;
+    }
+
+    const savedTheme =
+        localStorage.getItem("businessOSTheme");
+
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+        themeToggle.textContent = "☀️ Light Mode";
+    }
+
+    themeToggle.addEventListener("click", () => {
+
+        document.body.classList.toggle("dark-mode");
+
+        const darkMode =
+            document.body.classList.contains("dark-mode");
+
+        localStorage.setItem(
+            "businessOSTheme",
+            darkMode ? "dark" : "light"
+        );
+
+        themeToggle.textContent =
+            darkMode
+                ? "☀️ Light Mode"
+                : "🌙 Dark Mode";
+    });
+}
     /* =========================================================
        INITIALIZATION
        ========================================================= */
 
-    setupNavigation();
+ setupNavigation();
 
-    setupSearch();
+setupSearch();
 
-    setupModalBehavior();
+setupModalBehavior();
 
-    renderAll();
+setupDarkMode();
 
-});
+renderAll();

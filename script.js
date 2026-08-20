@@ -28,8 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
        ========================================================= */
 
     function createId() {
-        return Date.now().toString(36) +
-            Math.random().toString(36).slice(2);
+        return (
+            Date.now().toString(36) +
+            Math.random().toString(36).slice(2)
+        );
     }
 
 
@@ -52,7 +54,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     function text(id, value) {
-        const element = document.getElementById(id);
+
+        const element =
+            document.getElementById(id);
 
         if (element) {
             element.textContent = value;
@@ -84,9 +88,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const today = new Date();
 
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, "0");
-        const day = String(today.getDate()).padStart(2, "0");
+        const year =
+            today.getFullYear();
+
+        const month =
+            String(today.getMonth() + 1).padStart(2, "0");
+
+        const day =
+            String(today.getDate()).padStart(2, "0");
 
         return `${year}-${month}-${day}`;
     }
@@ -144,8 +153,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 link.addEventListener("click", event => {
 
+                    const href =
+                        link.getAttribute("href");
+
+                    if (!href) {
+                        return;
+                    }
+
                     const targetId =
-                        link.getAttribute("href")?.substring(1);
+                        href.substring(1);
 
                     const target =
                         document.getElementById(targetId);
@@ -181,12 +197,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             list.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📦</div>
-                    <h3>No products yet</h3>
+
+                    <div class="empty-icon">
+                        📦
+                    </div>
+
+                    <h3>
+                        No products yet
+                    </h3>
+
                     <p>
                         Add your first product to start
                         managing your inventory.
                     </p>
+
                 </div>
             `;
 
@@ -210,179 +234,104 @@ document.addEventListener("DOMContentLoaded", () => {
 
             list.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <h3>No products found</h3>
-                    <p>Try a different search.</p>
+
+                    <div class="empty-icon">
+                        🔍
+                    </div>
+
+                    <h3>
+                        No products found
+                    </h3>
+
+                    <p>
+                        Try a different search.
+                    </p>
+
                 </div>
             `;
 
             return;
         }
 
-        list.innerHTML = items.map(product => {
 
-            const stock =
-                Number(product.stock) || 0;
+        list.innerHTML =
+            items.map(product => {
 
-            return `
-                <div class="product-card">
+                const stock =
+                    Number(product.stock) || 0;
 
-                    <h3>${safe(product.name)}</h3>
+                return `
+                    <div class="product-card">
 
-                    <p class="product-price">
-                        ${money(product.price)}
-                    </p>
+                        <h3>
+                            ${safe(product.name)}
+                        </h3>
 
-                    <p>
-                        Stock: ${stock}
-                    </p>
+                        <p class="product-price">
+                            ${money(product.price)}
+                        </p>
 
-                    <span class="status">
-                        ${
-                            stock > 0
-                                ? "IN STOCK"
-                                : "OUT OF STOCK"
-                        }
-                    </span>
+                        <p>
+                            Stock: ${stock}
+                        </p>
 
-                    <div class="product-actions">
+                        <span class="status">
+                            ${
+                                stock > 0
+                                    ? "IN STOCK"
+                                    : "OUT OF STOCK"
+                            }
+                        </span>
 
-                        <button
-                            class="edit-btn"
-                            onclick="editProduct('${safe(product.id)}')">
-                            Edit
-                        </button>
+                        <div class="product-actions">
 
-                        <button
-                            class="delete-btn"
-                            onclick="deleteProduct('${safe(product.id)}')">
-                            Delete
-                        </button>
+                            <button
+                                class="edit-btn"
+                                onclick="editProduct('${safe(product.id)}')">
+                                Edit
+                            </button>
+
+                            <button
+                                class="delete-btn"
+                                onclick="deleteProduct('${safe(product.id)}')">
+                                Delete
+                            </button>
+
+                        </div>
 
                     </div>
+                `;
 
-                </div>
-            `;
-
-        }).join("");
+            }).join("");
     }
 
 
-    window.openProductModal = function(productId = null) {
+    window.openProductModal =
+        function(productId = null) {
 
-        const modal =
-            document.getElementById("productModal");
+            const modal =
+                document.getElementById("productModal");
 
-        if (!modal) {
-            return;
-        }
-
-        document
-            .getElementById("productForm")
-            ?.reset();
-
-        const title =
-            document.getElementById("productModalTitle");
-
-        const hidden =
-            document.getElementById("productId");
-
-        if (productId) {
-
-            const product =
-                products.find(
-                    p =>
-                        String(p.id) ===
-                        String(productId)
-                );
-
-            if (!product) {
+            if (!modal) {
                 return;
             }
 
-            if (title) {
-                title.textContent = "Edit Product";
-            }
-
-            if (hidden) {
-                hidden.value = product.id;
-            }
-
-            document.getElementById("productName").value =
-                product.name;
-
-            document.getElementById("productPrice").value =
-                product.price;
-
-            document.getElementById("productStock").value =
-                product.stock;
-
-        } else {
-
-            if (title) {
-                title.textContent = "Add Product";
-            }
-
-            if (hidden) {
-                hidden.value = "";
-            }
-        }
-
-        modal.classList.add("active");
-    };
+            document
+                .getElementById("productForm")
+                ?.reset();
 
 
-    window.closeProductModal = function() {
-
-        document
-            .getElementById("productModal")
-            ?.classList.remove("active");
-    };
-
-
-    window.editProduct = function(productId) {
-        openProductModal(productId);
-    };
-
-
-    document
-        .getElementById("productForm")
-        ?.addEventListener("submit", event => {
-
-            event.preventDefault();
-
-            const productId =
-                document.getElementById("productId")?.value;
-
-            const name =
-                document
-                    .getElementById("productName")
-                    ?.value.trim();
-
-            const price =
-                Number(
-                    document.getElementById("productPrice")?.value
+            const title =
+                document.getElementById(
+                    "productModalTitle"
                 );
 
-            const stock =
-                Number(
-                    document.getElementById("productStock")?.value
+
+            const hidden =
+                document.getElementById(
+                    "productId"
                 );
 
-            if (!name) {
-                alert("Enter a product name.");
-                return;
-            }
-
-            if (
-                !Number.isFinite(price) ||
-                !Number.isFinite(stock) ||
-                price < 0 ||
-                stock < 0
-            ) {
-                alert("Price and stock cannot be negative.");
-                return;
-            }
 
             if (productId) {
 
@@ -393,70 +342,266 @@ document.addEventListener("DOMContentLoaded", () => {
                             String(productId)
                     );
 
-                if (product) {
+                if (!product) {
+                    return;
+                }
 
-                    product.name = name;
-                    product.price = price;
-                    product.stock = stock;
+
+                if (title) {
+                    title.textContent =
+                        "Edit Product";
+                }
+
+
+                if (hidden) {
+                    hidden.value =
+                        product.id;
+                }
+
+
+                const nameInput =
+                    document.getElementById(
+                        "productName"
+                    );
+
+                const priceInput =
+                    document.getElementById(
+                        "productPrice"
+                    );
+
+                const stockInput =
+                    document.getElementById(
+                        "productStock"
+                    );
+
+
+                if (nameInput) {
+                    nameInput.value =
+                        product.name || "";
+                }
+
+
+                if (priceInput) {
+                    priceInput.value =
+                        product.price ?? "";
+                }
+
+
+                if (stockInput) {
+                    stockInput.value =
+                        product.stock ?? "";
                 }
 
             } else {
 
-                products.push({
-                    id: createId(),
-                    name,
-                    price,
-                    stock
-                });
+                if (title) {
+                    title.textContent =
+                        "Add Product";
+                }
+
+                if (hidden) {
+                    hidden.value = "";
+                }
             }
+
+
+            modal.classList.add("active");
+        };
+
+
+    window.closeProductModal =
+        function() {
+
+            document
+                .getElementById("productModal")
+                ?.classList.remove("active");
+        };
+
+
+    window.editProduct =
+        function(productId) {
+
+            window.openProductModal(productId);
+        };
+
+
+    document
+        .getElementById("productForm")
+        ?.addEventListener(
+            "submit",
+            event => {
+
+                event.preventDefault();
+
+
+                const productId =
+                    document.getElementById(
+                        "productId"
+                    )?.value;
+
+
+                const name =
+                    document
+                        .getElementById(
+                            "productName"
+                        )
+                        ?.value
+                        .trim();
+
+
+                const price =
+                    Number(
+                        document.getElementById(
+                            "productPrice"
+                        )?.value
+                    );
+
+
+                const stock =
+                    Number(
+                        document.getElementById(
+                            "productStock"
+                        )?.value
+                    );
+
+
+                if (!name) {
+
+                    alert(
+                        "Enter a product name."
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    !Number.isFinite(price) ||
+                    !Number.isFinite(stock) ||
+                    price < 0 ||
+                    stock < 0
+                ) {
+
+                    alert(
+                        "Price and stock cannot be negative."
+                    );
+
+                    return;
+                }
+
+
+                if (productId) {
+
+                    const product =
+                        products.find(
+                            p =>
+                                String(p.id) ===
+                                String(productId)
+                        );
+
+
+                    if (product) {
+
+                        product.name =
+                            name;
+
+                        product.price =
+                            price;
+
+                        product.stock =
+                            stock;
+
+                        product.updatedAt =
+                            new Date().toISOString();
+                    }
+
+                } else {
+
+                    products.push({
+
+                        id:
+                            createId(),
+
+                        name,
+
+                        price,
+
+                        stock,
+
+                        createdAt:
+                            new Date().toISOString(),
+
+                        updatedAt:
+                            new Date().toISOString()
+                    });
+                }
+
+
+                saveData();
+
+                renderAll();
+
+                closeProductModal();
+            }
+        );
+
+
+    window.deleteProduct =
+        function(productId) {
+
+            const usedInSales =
+                sales.some(
+                    sale =>
+                        String(sale.productId) ===
+                        String(productId)
+                );
+
+
+            const usedInInvoices =
+                invoices.some(
+                    invoice =>
+                        String(invoice.productId) ===
+                        String(productId)
+                );
+
+
+            if (
+                usedInSales ||
+                usedInInvoices
+            ) {
+
+                if (
+                    !confirm(
+                        "This product is connected to existing sales or invoices. Delete it anyway?"
+                    )
+                ) {
+                    return;
+                }
+
+            } else {
+
+                if (
+                    !confirm(
+                        "Delete this product?"
+                    )
+                ) {
+                    return;
+                }
+            }
+
+
+            products =
+                products.filter(
+                    product =>
+                        String(product.id) !==
+                        String(productId)
+                );
+
 
             saveData();
+
             renderAll();
-            closeProductModal();
-        });
-
-
-    window.deleteProduct = function(productId) {
-
-        const usedInSales =
-            sales.some(
-                sale =>
-                    String(sale.productId) ===
-                    String(productId)
-            );
-
-        const usedInInvoices =
-            invoices.some(
-                invoice =>
-                    String(invoice.productId) ===
-                    String(productId)
-            );
-
-        if (usedInSales || usedInInvoices) {
-
-            if (!confirm(
-                "This product is connected to existing sales or invoices. Delete it anyway?"
-            )) {
-                return;
-            }
-
-        } else {
-
-            if (!confirm("Delete this product?")) {
-                return;
-            }
-        }
-
-        products =
-            products.filter(
-                product =>
-                    String(product.id) !==
-                    String(productId)
-            );
-
-        saveData();
-        renderAll();
-    };
+        };
 
 
     /* =========================================================
@@ -472,11 +617,14 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderCustomerResults(items) {
 
         const list =
-            document.getElementById("customersList");
+            document.getElementById(
+                "customersList"
+            );
 
         if (!list) {
             return;
         }
+
 
         if (!items.length) {
 
@@ -513,6 +661,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+
         list.innerHTML =
             items.map(customer => {
 
@@ -527,7 +676,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             customer.email
                                 ? `
                                     <p>
-                                        📧 ${safe(customer.email)}
+                                        📧
+                                        ${safe(customer.email)}
                                     </p>
                                 `
                                 : ""
@@ -537,7 +687,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             customer.phone
                                 ? `
                                     <p>
-                                        📱 ${safe(customer.phone)}
+                                        📱
+                                        ${safe(customer.phone)}
                                     </p>
                                 `
                                 : ""
@@ -556,169 +707,234 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    window.openCustomerModal = function() {
+    window.openCustomerModal =
+        function() {
 
-        document
-            .getElementById("customerForm")
-            ?.reset();
+            document
+                .getElementById("customerForm")
+                ?.reset();
 
-        document
-            .getElementById("customerModal")
-            ?.classList.add("active");
-    };
+            document
+                .getElementById("customerModal")
+                ?.classList.add("active");
+        };
 
 
-    window.closeCustomerModal = function() {
+    window.closeCustomerModal =
+        function() {
 
-        document
-            .getElementById("customerModal")
-            ?.classList.remove("active");
-    };
+            document
+                .getElementById("customerModal")
+                ?.classList.remove("active");
+        };
 
 
     document
         .getElementById("customerForm")
-        ?.addEventListener("submit", event => {
+        ?.addEventListener(
+            "submit",
+            event => {
 
-            event.preventDefault();
+                event.preventDefault();
 
-            const name =
-                document
-                    .getElementById("customerName")
-                    ?.value.trim();
 
-            const email =
-                document
-                    .getElementById("customerEmail")
-                    ?.value.trim();
+                const name =
+                    document
+                        .getElementById(
+                            "customerName"
+                        )
+                        ?.value
+                        .trim();
 
-            const phone =
-                document
-                    .getElementById("customerPhone")
-                    ?.value.trim();
 
-            if (!name) {
-                alert("Enter customer name.");
-                return;
+                const email =
+                    document
+                        .getElementById(
+                            "customerEmail"
+                        )
+                        ?.value
+                        .trim();
+
+
+                const phone =
+                    document
+                        .getElementById(
+                            "customerPhone"
+                        )
+                        ?.value
+                        .trim();
+
+
+                if (!name) {
+
+                    alert(
+                        "Enter customer name."
+                    );
+
+                    return;
+                }
+
+
+                customers.push({
+
+                    id:
+                        createId(),
+
+                    name,
+
+                    email,
+
+                    phone,
+
+                    createdAt:
+                        new Date().toISOString()
+                });
+
+
+                saveData();
+
+                renderAll();
+
+                closeCustomerModal();
+            }
+        );
+
+
+    window.deleteCustomer =
+        function(customerId) {
+
+            const hasInvoices =
+                invoices.some(
+                    invoice =>
+                        String(invoice.customerId) ===
+                        String(customerId)
+                );
+
+
+            if (hasInvoices) {
+
+                if (
+                    !confirm(
+                        "This customer has invoices. Delete the customer anyway?"
+                    )
+                ) {
+                    return;
+                }
+
+            } else {
+
+                if (
+                    !confirm(
+                        "Delete this customer?"
+                    )
+                ) {
+                    return;
+                }
             }
 
-            customers.push({
-                id: createId(),
-                name,
-                email,
-                phone
-            });
+
+            customers =
+                customers.filter(
+                    customer =>
+                        String(customer.id) !==
+                        String(customerId)
+                );
+
 
             saveData();
+
             renderAll();
-            closeCustomerModal();
-        });
-
-
-    window.deleteCustomer = function(customerId) {
-
-        const hasInvoices =
-            invoices.some(
-                invoice =>
-                    String(invoice.customerId) ===
-                    String(customerId)
-            );
-
-        if (hasInvoices) {
-
-            if (!confirm(
-                "This customer has invoices. Delete the customer anyway?"
-            )) {
-                return;
-            }
-
-        } else {
-
-            if (!confirm("Delete this customer?")) {
-                return;
-            }
-        }
-
-        customers =
-            customers.filter(
-                customer =>
-                    String(customer.id) !==
-                    String(customerId)
-            );
-
-        saveData();
-        renderAll();
-    };
+        };
 
 
     /* =========================================================
        SALES
        ========================================================= */
 
-    window.openSaleModal = function() {
+    window.openSaleModal =
+        function() {
 
-        const select =
-            document.getElementById("saleProduct");
+            const select =
+                document.getElementById(
+                    "saleProduct"
+                );
 
-        if (!select) {
-            return;
-        }
 
-        select.innerHTML = `
-            <option value="">
-                Select a product
-            </option>
-        `;
+            if (!select) {
+                return;
+            }
 
-        products.forEach(product => {
 
-            const stock =
-                Number(product.stock) || 0;
-
-            select.innerHTML += `
-                <option
-                    value="${safe(product.id)}"
-                    ${stock <= 0 ? "disabled" : ""}
-                >
-                    ${safe(product.name)}
-                    — ${money(product.price)}
-                    — Stock: ${stock}
+            select.innerHTML = `
+                <option value="">
+                    Select a product
                 </option>
             `;
-        });
-
-        const quantity =
-            document.getElementById("saleQuantity");
-
-        if (quantity) {
-            quantity.value = 1;
-        }
-
-        updateSaleTotal();
-
-        document
-            .getElementById("saleModal")
-            ?.classList.add("active");
-    };
 
 
-    window.closeSaleModal = function() {
+            products.forEach(product => {
 
-        document
-            .getElementById("saleModal")
-            ?.classList.remove("active");
-    };
+                const stock =
+                    Number(product.stock) || 0;
+
+
+                select.innerHTML += `
+                    <option
+                        value="${safe(product.id)}"
+                        ${stock <= 0 ? "disabled" : ""}
+                    >
+                        ${safe(product.name)}
+                        — ${money(product.price)}
+                        — Stock: ${stock}
+                    </option>
+                `;
+            });
+
+
+            const quantity =
+                document.getElementById(
+                    "saleQuantity"
+                );
+
+
+            if (quantity) {
+                quantity.value = 1;
+            }
+
+
+            updateSaleTotal();
+
+
+            document
+                .getElementById("saleModal")
+                ?.classList.add("active");
+        };
+
+
+    window.closeSaleModal =
+        function() {
+
+            document
+                .getElementById("saleModal")
+                ?.classList.remove("active");
+        };
 
 
     function updateSaleTotal() {
 
         const productId =
-            document.getElementById("saleProduct")?.value;
+            document.getElementById(
+                "saleProduct"
+            )?.value;
+
 
         const quantity =
             Number(
-                document.getElementById("saleQuantity")?.value
+                document.getElementById(
+                    "saleQuantity"
+                )?.value
             ) || 0;
+
 
         const product =
             products.find(
@@ -727,108 +943,161 @@ document.addEventListener("DOMContentLoaded", () => {
                     String(productId)
             );
 
+
         const total =
             product
-                ? Number(product.price) * quantity
+                ? Number(product.price) *
+                  quantity
                 : 0;
 
-        text("saleTotal", money(total));
+
+        text(
+            "saleTotal",
+            money(total)
+        );
     }
 
 
     document
         .getElementById("saleProduct")
-        ?.addEventListener("change", updateSaleTotal);
+        ?.addEventListener(
+            "change",
+            updateSaleTotal
+        );
 
 
     document
         .getElementById("saleQuantity")
-        ?.addEventListener("input", updateSaleTotal);
+        ?.addEventListener(
+            "input",
+            updateSaleTotal
+        );
 
 
     document
         .getElementById("saleForm")
-        ?.addEventListener("submit", event => {
+        ?.addEventListener(
+            "submit",
+            event => {
 
-            event.preventDefault();
+                event.preventDefault();
 
-            const productId =
-                document.getElementById("saleProduct")?.value;
 
-            const quantity =
-                Number(
-                    document.getElementById("saleQuantity")?.value
-                );
+                const productId =
+                    document.getElementById(
+                        "saleProduct"
+                    )?.value;
 
-            const product =
-                products.find(
-                    p =>
-                        String(p.id) ===
-                        String(productId)
-                );
 
-            if (!product) {
-                alert("Select a product.");
-                return;
-            }
+                const quantity =
+                    Number(
+                        document.getElementById(
+                            "saleQuantity"
+                        )?.value
+                    );
 
-            if (
-                !Number.isFinite(quantity) ||
-                quantity <= 0
-            ) {
-                alert("Quantity must be at least 1.");
-                return;
-            }
 
-            const stock =
-                Number(product.stock) || 0;
+                const product =
+                    products.find(
+                        p =>
+                            String(p.id) ===
+                            String(productId)
+                    );
 
-            if (quantity > stock) {
+
+                if (!product) {
+
+                    alert(
+                        "Select a product."
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    !Number.isFinite(quantity) ||
+                    quantity <= 0 ||
+                    !Number.isInteger(quantity)
+                ) {
+
+                    alert(
+                        "Quantity must be a whole number greater than 0."
+                    );
+
+                    return;
+                }
+
+
+                const stock =
+                    Number(product.stock) || 0;
+
+
+                if (quantity > stock) {
+
+                    alert(
+                        `Only ${stock} units of ${product.name} are available.`
+                    );
+
+                    return;
+                }
+
+
+                const total =
+                    Number(product.price) *
+                    quantity;
+
+
+                sales.push({
+
+                    id:
+                        createId(),
+
+                    productId:
+                        product.id,
+
+                    productName:
+                        product.name,
+
+                    quantity,
+
+                    total,
+
+                    date:
+                        new Date().toISOString()
+                });
+
+
+                product.stock =
+                    stock - quantity;
+
+
+                saveData();
+
+                renderAll();
+
+                closeSaleModal();
+
 
                 alert(
-                    `Only ${stock} units of ${product.name} are available.`
+                    "Sale recorded successfully."
                 );
-
-                return;
             }
-
-            const total =
-                Number(product.price) * quantity;
-
-            sales.push({
-
-                id: createId(),
-
-                productId: product.id,
-
-                productName: product.name,
-
-                quantity,
-
-                total,
-
-                date: new Date().toISOString()
-            });
-
-            product.stock =
-                stock - quantity;
-
-            saveData();
-            renderAll();
-            closeSaleModal();
-
-            alert("Sale recorded successfully.");
-        });
+        );
 
 
     function renderSales(items = sales) {
 
         const list =
-            document.getElementById("salesList");
+            document.getElementById(
+                "salesList"
+            );
+
 
         if (!list) {
             return;
         }
+
 
         if (!items.length) {
 
@@ -865,6 +1134,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+
         list.innerHTML =
             [...items]
                 .sort(
@@ -894,11 +1164,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                     <p>
                                         Quantity:
-                                        ${Number(sale.quantity) || 0}
+                                        ${
+                                            Number(
+                                                sale.quantity
+                                            ) || 0
+                                        }
                                     </p>
 
                                     <p>
-                                        ${formatDate(sale.date)}
+                                        ${formatDate(
+                                            sale.date
+                                        )}
                                     </p>
 
                                 </div>
@@ -908,7 +1184,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div>
 
                                 <strong>
-                                    ${money(sale.total)}
+                                    ${money(
+                                        sale.total
+                                    )}
                                 </strong>
 
                                 <br>
@@ -929,52 +1207,69 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    window.deleteSale = function(saleId) {
+    window.deleteSale =
+        function(saleId) {
 
-        if (!confirm(
-            "Delete this sale and restore the inventory?"
-        )) {
-            return;
-        }
+            if (
+                !confirm(
+                    "Delete this sale and restore the inventory?"
+                )
+            ) {
+                return;
+            }
 
-        const sale =
-            sales.find(
-                s =>
-                    String(s.id) ===
-                    String(saleId)
+
+            const sale =
+                sales.find(
+                    s =>
+                        String(s.id) ===
+                        String(saleId)
+                );
+
+
+            if (!sale) {
+
+                alert(
+                    "Sale not found."
+                );
+
+                return;
+            }
+
+
+            const product =
+                products.find(
+                    p =>
+                        String(p.id) ===
+                        String(sale.productId)
+                );
+
+
+            if (product) {
+
+                product.stock =
+                    Number(product.stock || 0) +
+                    Number(sale.quantity || 0);
+            }
+
+
+            sales =
+                sales.filter(
+                    s =>
+                        String(s.id) !==
+                        String(saleId)
+                );
+
+
+            saveData();
+
+            renderAll();
+
+
+            alert(
+                "Sale deleted and inventory restored."
             );
-
-        if (!sale) {
-            alert("Sale not found.");
-            return;
-        }
-
-        const product =
-            products.find(
-                p =>
-                    String(p.id) ===
-                    String(sale.productId)
-            );
-
-        if (product) {
-
-            product.stock =
-                Number(product.stock || 0) +
-                Number(sale.quantity || 0);
-        }
-
-        sales =
-            sales.filter(
-                s =>
-                    String(s.id) !==
-                    String(saleId)
-            );
-
-        saveData();
-        renderAll();
-
-        alert("Sale deleted and inventory restored.");
-    };
+        };
 
 
     /* =========================================================
@@ -983,37 +1278,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function generateInvoiceNumber() {
 
-        return "INV-" +
+        return (
+            "INV-" +
             Math.floor(
                 100000 +
                 Math.random() * 900000
-            );
+            )
+        );
     }
 
 
     function setInvoiceDefaults() {
 
         const number =
-            document.getElementById("invoiceNumber");
+            document.getElementById(
+                "invoiceNumber"
+            );
+
 
         if (number) {
-            number.value = generateInvoiceNumber();
+
+            number.value =
+                generateInvoiceNumber();
         }
 
+
         const dueDate =
-            document.getElementById("invoiceDueDate");
+            document.getElementById(
+                "invoiceDueDate"
+            );
+
 
         if (dueDate) {
 
-            const date = new Date();
+            const date =
+                new Date();
 
-            date.setDate(date.getDate() + 7);
 
-            const year = date.getFullYear();
+            date.setDate(
+                date.getDate() + 7
+            );
+
+
+            const year =
+                date.getFullYear();
+
+
             const month =
-                String(date.getMonth() + 1).padStart(2, "0");
+                String(
+                    date.getMonth() + 1
+                ).padStart(2, "0");
+
+
             const day =
-                String(date.getDate()).padStart(2, "0");
+                String(
+                    date.getDate()
+                ).padStart(2, "0");
+
 
             dueDate.value =
                 `${year}-${month}-${day}`;
@@ -1021,92 +1342,122 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    window.openInvoiceModal = function() {
+    window.openInvoiceModal =
+        function() {
 
-        const customerSelect =
-            document.getElementById("invoiceCustomer");
+            const customerSelect =
+                document.getElementById(
+                    "invoiceCustomer"
+                );
 
-        const productSelect =
-            document.getElementById("invoiceProduct");
 
-        if (!customerSelect || !productSelect) {
-            return;
-        }
+            const productSelect =
+                document.getElementById(
+                    "invoiceProduct"
+                );
 
-        customerSelect.innerHTML = `
-            <option value="">
-                Select a customer
-            </option>
-        `;
 
-        customers.forEach(customer => {
+            if (
+                !customerSelect ||
+                !productSelect
+            ) {
+                return;
+            }
 
-            customerSelect.innerHTML += `
-                <option value="${safe(customer.id)}">
-                    ${safe(customer.name)}
+
+            customerSelect.innerHTML = `
+                <option value="">
+                    Select a customer
                 </option>
             `;
-        });
 
 
-        productSelect.innerHTML = `
-            <option value="">
-                Select a product
-            </option>
-        `;
+            customers.forEach(customer => {
 
-        products.forEach(product => {
+                customerSelect.innerHTML += `
+                    <option
+                        value="${safe(customer.id)}">
+                        ${safe(customer.name)}
+                    </option>
+                `;
+            });
 
-            productSelect.innerHTML += `
-                <option value="${safe(product.id)}">
-                    ${safe(product.name)}
-                    — ${money(product.price)}
+
+            productSelect.innerHTML = `
+                <option value="">
+                    Select a product
                 </option>
             `;
-        });
 
 
-        document
-            .getElementById("invoiceForm")
-            ?.reset();
+            products.forEach(product => {
 
-        setInvoiceDefaults();
-
-        updateInvoicePreview();
-
-        document
-            .getElementById("invoiceModal")
-            ?.classList.add("active");
-    };
+                productSelect.innerHTML += `
+                    <option
+                        value="${safe(product.id)}">
+                        ${safe(product.name)}
+                        — ${money(product.price)}
+                    </option>
+                `;
+            });
 
 
-    window.closeInvoiceModal = function() {
+            document
+                .getElementById("invoiceForm")
+                ?.reset();
 
-        document
-            .getElementById("invoiceModal")
-            ?.classList.remove("active");
-    };
+
+            setInvoiceDefaults();
+
+            updateInvoicePreview();
+
+
+            document
+                .getElementById("invoiceModal")
+                ?.classList.add("active");
+        };
+
+
+    window.closeInvoiceModal =
+        function() {
+
+            document
+                .getElementById("invoiceModal")
+                ?.classList.remove("active");
+        };
 
 
     function updateInvoicePreview() {
 
         const productId =
-            document.getElementById("invoiceProduct")?.value;
+            document.getElementById(
+                "invoiceProduct"
+            )?.value;
+
 
         const quantity =
             Number(
-                document.getElementById("invoiceQuantity")?.value
+                document.getElementById(
+                    "invoiceQuantity"
+                )?.value
             ) || 0;
+
 
         const discount =
             Number(
-                document.getElementById("invoiceDiscount")?.value
+                document.getElementById(
+                    "invoiceDiscount"
+                )?.value
             ) || 0;
+
 
         const taxRate =
             Number(
-                document.getElementById("invoiceTax")?.value
+                document.getElementById(
+                    "invoiceTax"
+                )?.value
             ) || 0;
+
 
         const product =
             products.find(
@@ -1115,10 +1466,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     String(productId)
             );
 
+
         const subtotal =
             product
-                ? Number(product.price) * quantity
+                ? Number(product.price) *
+                  quantity
                 : 0;
+
 
         const validDiscount =
             Math.min(
@@ -1126,33 +1480,43 @@ document.addEventListener("DOMContentLoaded", () => {
                 subtotal
             );
 
+
         const taxableAmount =
             Math.max(
                 subtotal - validDiscount,
                 0
             );
 
+
         const tax =
             taxableAmount *
-            (Math.max(taxRate, 0) / 100);
+            (
+                Math.max(taxRate, 0) /
+                100
+            );
+
 
         const total =
             taxableAmount + tax;
+
 
         text(
             "invoiceSubtotal",
             money(subtotal)
         );
 
+
         text(
             "invoiceDiscountDisplay",
             "-" + money(validDiscount)
         );
 
+
         text(
             "invoiceTaxDisplay",
             money(tax)
         );
+
 
         text(
             "invoiceTotal",
@@ -1201,20 +1565,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
+
                 const invoiceNumber =
                     document.getElementById(
                         "invoiceNumber"
                     )?.value.trim();
+
 
                 const customerId =
                     document.getElementById(
                         "invoiceCustomer"
                     )?.value;
 
+
                 const productId =
                     document.getElementById(
                         "invoiceProduct"
                     )?.value;
+
 
                 const quantity =
                     Number(
@@ -1223,10 +1591,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         )?.value
                     );
 
+
                 const dueDate =
                     document.getElementById(
                         "invoiceDueDate"
                     )?.value;
+
 
                 const discount =
                     Number(
@@ -1234,6 +1604,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             "invoiceDiscount"
                         )?.value
                     ) || 0;
+
 
                 const taxRate =
                     Number(
@@ -1260,42 +1631,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 if (!customer) {
-                    alert("Select a customer.");
+
+                    alert(
+                        "Select a customer."
+                    );
+
                     return;
                 }
 
 
                 if (!product) {
-                    alert("Select a product.");
+
+                    alert(
+                        "Select a product."
+                    );
+
                     return;
                 }
 
 
                 if (
                     !Number.isFinite(quantity) ||
-                    quantity <= 0
+                    quantity <= 0 ||
+                    !Number.isInteger(quantity)
                 ) {
-                    alert("Quantity must be at least 1.");
+
+                    alert(
+                        "Quantity must be a whole number greater than 0."
+                    );
+
                     return;
                 }
 
 
                 if (!dueDate) {
-                    alert("Select a due date.");
+
+                    alert(
+                        "Select a due date."
+                    );
+
                     return;
                 }
 
 
-                if (discount < 0 || taxRate < 0) {
+                if (
+                    discount < 0 ||
+                    taxRate < 0
+                ) {
+
                     alert(
                         "Discount and tax cannot be negative."
                     );
+
                     return;
                 }
 
 
                 const subtotal =
-                    Number(product.price) * quantity;
+                    Number(product.price) *
+                    quantity;
 
 
                 const validDiscount =
@@ -1307,7 +1701,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const taxableAmount =
                     Math.max(
-                        subtotal - validDiscount,
+                        subtotal -
+                        validDiscount,
                         0
                     );
 
@@ -1323,7 +1718,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 invoices.push({
 
-                    id: createId(),
+                    id:
+                        createId(),
 
                     invoiceNumber:
                         invoiceNumber ||
@@ -1356,7 +1752,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     dueDate,
 
-                    status: "unpaid",
+                    status:
+                        "unpaid",
 
                     createdAt:
                         new Date().toISOString()
@@ -1369,6 +1766,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 closeInvoiceModal();
 
+
                 alert(
                     "Invoice created successfully."
                 );
@@ -1376,14 +1774,20 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-    function renderInvoices(items = invoices) {
+    function renderInvoices(
+        items = invoices
+    ) {
 
         const list =
-            document.getElementById("invoicesList");
+            document.getElementById(
+                "invoicesList"
+            );
+
 
         if (!list) {
             return;
         }
+
 
         if (!items.length) {
 
@@ -1425,13 +1829,19 @@ document.addEventListener("DOMContentLoaded", () => {
             [...items]
                 .sort(
                     (a, b) =>
-                        new Date(b.createdAt) -
-                        new Date(a.createdAt)
+                        new Date(
+                            b.createdAt
+                        ) -
+                        new Date(
+                            a.createdAt
+                        )
                 )
                 .map(invoice => {
 
                     const paid =
-                        invoice.status === "paid";
+                        invoice.status ===
+                        "paid";
+
 
                     return `
                         <div class="invoice-card">
@@ -1460,9 +1870,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                         "Unknown Product"
                                     )}
                                     ×
-                                    ${Number(
-                                        invoice.quantity
-                                    ) || 0}
+                                    ${
+                                        Number(
+                                            invoice.quantity
+                                        ) || 0
+                                    }
                                 </p>
 
                                 <p>
@@ -1478,22 +1890,29 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div class="invoice-card-right">
 
                                 <strong>
-                                    ${money(invoice.total)}
+                                    ${money(
+                                        invoice.total
+                                    )}
                                 </strong>
 
-                                <span class="invoice-status ${
-                                    paid
-                                        ? "paid"
-                                        : "unpaid"
-                                }">
+                                <span
+                                    class="invoice-status ${
+                                        paid
+                                            ? "paid"
+                                            : "unpaid"
+                                    }">
+
                                     ${
                                         paid
                                             ? "PAID"
                                             : "UNPAID"
                                     }
+
                                 </span>
 
-                                <div class="invoice-actions">
+
+                                <div
+                                    class="invoice-actions">
 
                                     <button
                                         class="secondary-btn"
@@ -1506,6 +1925,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         }
 
                                     </button>
+
 
                                     <button
                                         class="delete-btn"
@@ -1537,16 +1957,20 @@ document.addEventListener("DOMContentLoaded", () => {
                         String(invoiceId)
                 );
 
+
             if (!invoice) {
                 return;
             }
+
 
             invoice.status =
                 invoice.status === "paid"
                     ? "unpaid"
                     : "paid";
 
+
             saveData();
+
             renderAll();
         };
 
@@ -1554,9 +1978,14 @@ document.addEventListener("DOMContentLoaded", () => {
     window.deleteInvoice =
         function(invoiceId) {
 
-            if (!confirm("Delete this invoice?")) {
+            if (
+                !confirm(
+                    "Delete this invoice?"
+                )
+            ) {
                 return;
             }
+
 
             invoices =
                 invoices.filter(
@@ -1565,7 +1994,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         String(invoiceId)
                 );
 
+
             saveData();
+
             renderAll();
         };
 
@@ -1579,7 +2010,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalRevenue =
             sales.reduce(
                 (sum, sale) =>
-                    sum + Number(sale.total || 0),
+                    sum +
+                    Number(
+                        sale.total || 0
+                    ),
                 0
             );
 
@@ -1596,28 +2030,50 @@ document.addEventListener("DOMContentLoaded", () => {
                         return false;
                     }
 
+
                     const date =
-                        new Date(sale.date);
+                        new Date(
+                            sale.date
+                        );
+
+
+                    if (
+                        Number.isNaN(
+                            date.getTime()
+                        )
+                    ) {
+                        return false;
+                    }
+
 
                     const year =
                         date.getFullYear();
+
 
                     const month =
                         String(
                             date.getMonth() + 1
                         ).padStart(2, "0");
 
+
                     const day =
                         String(
                             date.getDate()
                         ).padStart(2, "0");
 
-                    return `${year}-${month}-${day}` === today;
+
+                    return (
+                        `${year}-${month}-${day}` ===
+                        today
+                    );
 
                 })
                 .reduce(
                     (sum, sale) =>
-                        sum + Number(sale.total || 0),
+                        sum +
+                        Number(
+                            sale.total || 0
+                        ),
                     0
                 );
 
@@ -1625,21 +2081,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const paidInvoices =
             invoices.filter(
                 invoice =>
-                    invoice.status === "paid"
+                    invoice.status ===
+                    "paid"
             ).length;
 
 
         const unpaidInvoices =
             invoices.filter(
                 invoice =>
-                    invoice.status !== "paid"
+                    invoice.status !==
+                    "paid"
             ).length;
 
 
         const lowStock =
             products.filter(
                 product =>
-                    Number(product.stock) <= 5
+                    Number(
+                        product.stock
+                    ) <= 5
             ).length;
 
 
@@ -1648,35 +2108,42 @@ document.addEventListener("DOMContentLoaded", () => {
             money(totalRevenue)
         );
 
+
         text(
             "todayRevenue",
             money(todayRevenue)
         );
+
 
         text(
             "totalProducts",
             products.length
         );
 
+
         text(
             "totalCustomers",
             customers.length
         );
+
 
         text(
             "totalSales",
             sales.length
         );
 
+
         text(
             "paidInvoices",
             paidInvoices
         );
 
+
         text(
             "unpaidInvoices",
             unpaidInvoices
         );
+
 
         text(
             "lowStockProducts",
@@ -1694,21 +2161,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const totalRevenue =
             sales.reduce(
                 (sum, sale) =>
-                    sum + Number(sale.total || 0),
+                    sum +
+                    Number(
+                        sale.total || 0
+                    ),
                 0
             );
 
 
         const averageSale =
             sales.length
-                ? totalRevenue / sales.length
+                ? totalRevenue /
+                  sales.length
                 : 0;
 
 
         const unitsInStock =
             products.reduce(
                 (sum, product) =>
-                    sum + Number(product.stock || 0),
+                    sum +
+                    Number(
+                        product.stock || 0
+                    ),
                 0
             );
 
@@ -1718,8 +2192,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 (sum, product) =>
                     sum +
                     (
-                        Number(product.price || 0) *
-                        Number(product.stock || 0)
+                        Number(
+                            product.price || 0
+                        ) *
+                        Number(
+                            product.stock || 0
+                        )
                     ),
                 0
             );
@@ -1747,24 +2225,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const productSales = {};
 
+
         sales.forEach(sale => {
 
             const name =
                 sale.productName ||
                 "Unknown Product";
 
+
             productSales[name] =
-                (productSales[name] || 0) +
-                Number(sale.quantity || 0);
+                (
+                    productSales[name] ||
+                    0
+                ) +
+                Number(
+                    sale.quantity || 0
+                );
         });
 
 
         const bestSeller =
-            Object.entries(productSales)
-                .sort(
-                    (a, b) =>
-                        b[1] - a[1]
-                )[0];
+            Object.entries(
+                productSales
+            )
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            )[0];
 
 
         text(
@@ -1780,7 +2267,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const unitsSold =
             sales.reduce(
                 (sum, sale) =>
-                    sum + Number(sale.quantity || 0),
+                    sum +
+                    Number(
+                        sale.quantity || 0
+                    ),
                 0
             );
 
@@ -1790,7 +2280,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? Math.max(
                     ...sales.map(
                         sale =>
-                            Number(sale.total || 0)
+                            Number(
+                                sale.total ||
+                                0
+                            )
                     )
                 )
                 : 0;
@@ -1821,7 +2314,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         renderTopProducts();
+
         renderInventoryAlerts();
+
         renderRevenueChart();
     }
 
@@ -1833,7 +2328,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function renderTopProducts() {
 
         const container =
-            document.getElementById("topProducts");
+            document.getElementById(
+                "topProducts"
+            );
+
 
         if (!container) {
             return;
@@ -1861,9 +2359,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 sale.productName ||
                 "Unknown Product";
 
+
             totals[name] =
-                (totals[name] || 0) +
-                Number(sale.quantity || 0);
+                (
+                    totals[name] ||
+                    0
+                ) +
+                Number(
+                    sale.quantity ||
+                    0
+                );
         });
 
 
@@ -1877,29 +2382,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         container.innerHTML =
-            ranking.map(
-                ([name, quantity], index) => {
+            ranking
+                .map(
+                    (
+                        [name, quantity],
+                        index
+                    ) => {
 
-                    return `
-                        <div class="top-product-row">
+                        return `
+                            <div
+                                class="top-product-row">
 
-                            <span>
-                                #${index + 1}
-                            </span>
+                                <span>
+                                    #${index + 1}
+                                </span>
 
-                            <strong>
-                                ${safe(name)}
-                            </strong>
+                                <strong>
+                                    ${safe(name)}
+                                </strong>
 
-                            <span>
-                                ${quantity} sold
-                            </span>
+                                <span>
+                                    ${quantity} sold
+                                </span>
 
-                        </div>
-                    `;
-
-                }
-            ).join("");
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
     }
 
 
@@ -1914,6 +2424,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "inventoryAlerts"
             );
 
+
         if (!container) {
             return;
         }
@@ -1922,7 +2433,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const lowStockProducts =
             products.filter(
                 product =>
-                    Number(product.stock) <= 5
+                    Number(
+                        product.stock
+                    ) <= 5
             );
 
 
@@ -1939,26 +2452,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         container.innerHTML =
-            lowStockProducts.map(product => {
+            lowStockProducts
+                .map(product => {
 
-                const stock =
-                    Number(product.stock) || 0;
+                    const stock =
+                        Number(
+                            product.stock
+                        ) || 0;
 
-                return `
-                    <div class="inventory-alert">
 
-                        <strong>
-                            ⚠️ ${safe(product.name)}
-                        </strong>
+                    return `
+                        <div
+                            class="inventory-alert">
 
-                        <span>
-                            Only ${stock} left
-                        </span>
+                            <strong>
+                                ⚠️
+                                ${safe(
+                                    product.name
+                                )}
+                            </strong>
 
-                    </div>
-                `;
+                            <span>
+                                Only
+                                ${stock}
+                                left
+                            </span>
 
-            }).join("");
+                        </div>
+                    `;
+
+                })
+                .join("");
     }
 
 
@@ -1972,6 +2496,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "revenueChart"
             );
+
 
         if (!chart) {
             return;
@@ -1996,7 +2521,19 @@ document.addEventListener("DOMContentLoaded", () => {
         sales.forEach(sale => {
 
             const date =
-                new Date(sale.date);
+                new Date(
+                    sale.date
+                );
+
+
+            if (
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+                return;
+            }
+
 
             const key =
                 date.toLocaleDateString(
@@ -2007,9 +2544,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 );
 
+
             daily[key] =
-                (daily[key] || 0) +
-                Number(sale.total || 0);
+                (
+                    daily[key] ||
+                    0
+                ) +
+                Number(
+                    sale.total || 0
+                );
         });
 
 
@@ -2021,7 +2564,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const max =
             Math.max(
                 ...entries.map(
-                    entry => entry[1]
+                    entry =>
+                        entry[1]
                 ),
                 1
             );
@@ -2029,35 +2573,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
         chart.innerHTML = `
             <div class="revenue-bars">
+
                 ${
-                    entries.map(
-                        ([date, amount]) => {
+                    entries
+                        .map(
+                            ([date, amount]) => {
 
-                            const height =
-                                Math.max(
-                                    8,
-                                    (amount / max) * 100
-                                );
+                                const height =
+                                    Math.max(
+                                        8,
+                                        (
+                                            amount /
+                                            max
+                                        ) * 100
+                                    );
 
-                            return `
-                                <div class="revenue-bar-item">
 
+                                return `
                                     <div
-                                        class="revenue-bar"
-                                        style="height:${height}%"
-                                        title="${money(amount)}">
+                                        class="revenue-bar-item">
+
+                                        <div
+                                            class="revenue-bar"
+                                            style="height:${height}%"
+                                            title="${money(amount)}">
+                                        </div>
+
+                                        <span>
+                                            ${safe(date)}
+                                        </span>
+
                                     </div>
-
-                                    <span>
-                                        ${safe(date)}
-                                    </span>
-
-                                </div>
-                            `;
-
-                        }
-                    ).join("")
+                                `;
+                            }
+                        )
+                        .join("")
                 }
+
             </div>
         `;
     }
@@ -2074,6 +2626,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "recentActivity"
             );
 
+
         if (!container) {
             return;
         }
@@ -2086,15 +2639,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type: "sale",
+                type:
+                    "sale",
 
-                icon: "🛒",
+                icon:
+                    "🛒",
 
                 title:
-                    `Sale: ${sale.productName || "Product"}`,
+                    `Sale: ${
+                        sale.productName ||
+                        "Product"
+                    }`,
 
                 detail:
-                    `${money(sale.total)} • ${sale.quantity} unit(s)`,
+                    `${money(
+                        sale.total
+                    )} • ${
+                        sale.quantity
+                    } unit(s)`,
 
                 date:
                     sale.date
@@ -2106,15 +2668,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type: "invoice",
+                type:
+                    "invoice",
 
-                icon: "🧾",
+                icon:
+                    "🧾",
 
                 title:
-                    `Invoice ${invoice.invoiceNumber || ""}`,
+                    `Invoice ${
+                        invoice.invoiceNumber ||
+                        ""
+                    }`,
 
                 detail:
-                    `${invoice.customerName || "Customer"} • ${money(invoice.total)}`,
+                    `${
+                        invoice.customerName ||
+                        "Customer"
+                    } • ${
+                        money(
+                            invoice.total
+                        )
+                    }`,
 
                 date:
                     invoice.createdAt
@@ -2126,12 +2700,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type: "customer",
+                type:
+                    "customer",
 
-                icon: "👤",
+                icon:
+                    "👤",
 
                 title:
-                    `Customer added: ${customer.name}`,
+                    `Customer added: ${
+                        customer.name
+                    }`,
 
                 detail:
                     customer.email ||
@@ -2139,8 +2717,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     "New customer",
 
                 date:
-                    customer.createdAt
-                    || new Date().toISOString()
+                    customer.createdAt ||
+                    new Date().toISOString()
             });
         });
 
@@ -2149,19 +2727,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type: "product",
+                type:
+                    "product",
 
-                icon: "📦",
+                icon:
+                    "📦",
 
                 title:
-                    `Product: ${product.name}`,
+                    `Product: ${
+                        product.name
+                    }`,
 
                 detail:
-                    `${money(product.price)} • Stock: ${product.stock}`,
+                    `${money(
+                        product.price
+                    )} • Stock: ${
+                        product.stock
+                    }`,
 
                 date:
-                    product.createdAt
-                    || new Date().toISOString()
+                    product.createdAt ||
+                    new Date().toISOString()
             });
         });
 
@@ -2203,35 +2789,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         container.innerHTML =
-            recent.map(activity => {
+            recent
+                .map(activity => {
 
-                return `
-                    <div class="activity-item">
+                    return `
+                        <div
+                            class="activity-item">
 
-                        <div class="activity-icon">
-                            ${activity.icon}
+                            <div
+                                class="activity-icon">
+
+                                ${activity.icon}
+
+                            </div>
+
+                            <div
+                                class="activity-info">
+
+                                <strong>
+                                    ${safe(
+                                        activity.title
+                                    )}
+                                </strong>
+
+                                <p>
+                                    ${safe(
+                                        activity.detail
+                                    )}
+                                </p>
+
+                            </div>
+
+                            <span
+                                class="activity-date">
+
+                                ${formatDate(
+                                    activity.date
+                                )}
+
+                            </span>
+
                         </div>
+                    `;
 
-                        <div class="activity-info">
-
-                            <strong>
-                                ${safe(activity.title)}
-                            </strong>
-
-                            <p>
-                                ${safe(activity.detail)}
-                            </p>
-
-                        </div>
-
-                        <span class="activity-date">
-                            ${formatDate(activity.date)}
-                        </span>
-
-                    </div>
-                `;
-
-            }).join("");
+                })
+                .join("");
     }
 
 
@@ -2246,6 +2848,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "productSearch"
             );
 
+
         if (productSearch) {
 
             productSearch.addEventListener(
@@ -2257,17 +2860,21 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim()
                             .toLowerCase();
 
+
                     const filtered =
                         products.filter(
                             product =>
                                 String(
                                     product.name
                                 )
-                                    .toLowerCase()
-                                    .includes(query)
+                                .toLowerCase()
+                                .includes(query)
                         );
 
-                    renderProductResults(filtered);
+
+                    renderProductResults(
+                        filtered
+                    );
                 }
             );
         }
@@ -2277,6 +2884,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "customerSearch"
             );
+
 
         if (customerSearch) {
 
@@ -2289,29 +2897,36 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim()
                             .toLowerCase();
 
+
                     const filtered =
                         customers.filter(
                             customer =>
+
                                 String(
                                     customer.name
                                 )
-                                    .toLowerCase()
-                                    .includes(query) ||
+                                .toLowerCase()
+                                .includes(query) ||
 
                                 String(
-                                    customer.email || ""
+                                    customer.email ||
+                                    ""
                                 )
-                                    .toLowerCase()
-                                    .includes(query) ||
+                                .toLowerCase()
+                                .includes(query) ||
 
                                 String(
-                                    customer.phone || ""
+                                    customer.phone ||
+                                    ""
                                 )
-                                    .toLowerCase()
-                                    .includes(query)
+                                .toLowerCase()
+                                .includes(query)
                         );
 
-                    renderCustomerResults(filtered);
+
+                    renderCustomerResults(
+                        filtered
+                    );
                 }
             );
         }
@@ -2321,6 +2936,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "salesSearch"
             );
+
 
         if (salesSearch) {
 
@@ -2333,23 +2949,29 @@ document.addEventListener("DOMContentLoaded", () => {
                             .trim()
                             .toLowerCase();
 
+
                     const filtered =
                         sales.filter(
                             sale =>
 
                                 String(
-                                    sale.productName || ""
+                                    sale.productName ||
+                                    ""
                                 )
-                                    .toLowerCase()
-                                    .includes(query) ||
+                                .toLowerCase()
+                                .includes(query) ||
 
                                 String(
-                                    sale.total || ""
+                                    sale.total ||
+                                    ""
                                 )
-                                    .includes(query)
+                                .includes(query)
                         );
 
-                    renderSales(filtered);
+
+                    renderSales(
+                        filtered
+                    );
                 }
             );
         }
@@ -2359,6 +2981,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "invoiceSearch"
             );
+
 
         const invoiceStatusFilter =
             document.getElementById(
@@ -2371,7 +2994,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const query =
                 invoiceSearch?.value
                     .trim()
-                    .toLowerCase() || "";
+                    .toLowerCase() ||
+                "";
+
 
             const status =
                 invoiceStatusFilter?.value ||
@@ -2379,43 +3004,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             const filtered =
-                invoices.filter(invoice => {
+                invoices.filter(
+                    invoice => {
 
-                    const matchesSearch =
-                        !query ||
+                        const matchesSearch =
+                            !query ||
 
-                        String(
-                            invoice.invoiceNumber || ""
-                        )
+                            String(
+                                invoice.invoiceNumber ||
+                                ""
+                            )
                             .toLowerCase()
                             .includes(query) ||
 
-                        String(
-                            invoice.customerName || ""
-                        )
+                            String(
+                                invoice.customerName ||
+                                ""
+                            )
                             .toLowerCase()
                             .includes(query) ||
 
-                        String(
-                            invoice.productName || ""
-                        )
+                            String(
+                                invoice.productName ||
+                                ""
+                            )
                             .toLowerCase()
                             .includes(query);
 
 
-                    const matchesStatus =
-                        status === "all" ||
-                        invoice.status === status;
+                        const matchesStatus =
+                            status === "all" ||
+                            invoice.status ===
+                            status;
 
 
-                    return (
-                        matchesSearch &&
-                        matchesStatus
-                    );
-                });
+                        return (
+                            matchesSearch &&
+                            matchesStatus
+                        );
+                    }
+                );
 
 
-            renderInvoices(filtered);
+            renderInvoices(
+                filtered
+            );
         }
 
 
@@ -2447,7 +3080,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "BusinessOS",
 
                 version:
-                    "1.0",
+                    "2.0",
 
                 exportedAt:
                     new Date().toISOString(),
@@ -2479,24 +3112,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             const url =
-                URL.createObjectURL(blob);
+                URL.createObjectURL(
+                    blob
+                );
 
 
             const link =
-                document.createElement("a");
+                document.createElement(
+                    "a"
+                );
 
-            link.href = url;
+
+            link.href =
+                url;
+
 
             link.download =
                 `businessos-backup-${todayString()}.json`;
 
-            document.body.appendChild(link);
+
+            document.body.appendChild(
+                link
+            );
+
 
             link.click();
 
+
             link.remove();
 
-            URL.revokeObjectURL(url);
+
+            URL.revokeObjectURL(
+                url
+            );
         };
 
 
@@ -2525,8 +3173,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         if (
                             !data ||
-                            typeof data !== "object"
+                            typeof data !==
+                            "object"
                         ) {
+
                             throw new Error(
                                 "Invalid backup"
                             );
@@ -2547,6 +3197,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 data.invoices
                             )
                         ) {
+
                             throw new Error(
                                 "Invalid backup structure"
                             );
@@ -2565,11 +3216,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         products =
                             data.products;
 
+
                         customers =
                             data.customers;
 
+
                         sales =
                             data.sales;
+
 
                         invoices =
                             data.invoices;
@@ -2590,6 +3244,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             error
                         );
 
+
                         alert(
                             "Could not import this backup. Please select a valid BusinessOS JSON backup."
                         );
@@ -2597,7 +3252,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
 
-            reader.readAsText(file);
+            reader.readAsText(
+                file
+            );
         };
 
 
@@ -2613,6 +3270,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Are you sure you want to reset ALL BusinessOS data?"
                 );
 
+
             if (!firstConfirm) {
                 return;
             }
@@ -2623,14 +3281,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     "This will permanently delete your products, customers, sales and invoices from this browser. Continue?"
                 );
 
+
             if (!secondConfirm) {
                 return;
             }
 
 
             products = [];
+
             customers = [];
+
             sales = [];
+
             invoices = [];
 
 
@@ -2638,13 +3300,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 "businessOSProducts"
             );
 
+
             localStorage.removeItem(
                 "businessOSCustomers"
             );
 
+
             localStorage.removeItem(
                 "businessOSSales"
             );
+
 
             localStorage.removeItem(
                 "businessOSInvoices"
@@ -2678,6 +3343,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             event.target ===
                             modal
                         ) {
+
                             modal.classList.remove(
                                 "active"
                             );
@@ -2700,14 +3366,349 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 document
-                    .querySelectorAll(".modal.active")
+                    .querySelectorAll(
+                        ".modal.active"
+                    )
                     .forEach(modal => {
 
                         modal.classList.remove(
                             "active"
                         );
-
                     });
+            }
+        );
+    }
+
+
+    /* =========================================================
+       DARK MODE
+       ========================================================= */
+
+    function setupDarkMode() {
+
+        const themeToggle =
+            document.getElementById(
+                "themeToggle"
+            );
+
+
+        if (!themeToggle) {
+            return;
+        }
+
+
+        const savedTheme =
+            localStorage.getItem(
+                "businessOSTheme"
+            );
+
+
+        if (
+            savedTheme ===
+            "dark"
+        ) {
+
+            document.body.classList.add(
+                "dark-mode"
+            );
+
+            themeToggle.textContent =
+                "☀️ Light Mode";
+
+        } else {
+
+            themeToggle.textContent =
+                "🌙 Dark Mode";
+        }
+
+
+        themeToggle.addEventListener(
+            "click",
+            () => {
+
+                document.body.classList.toggle(
+                    "dark-mode"
+                );
+
+
+                const darkMode =
+                    document.body.classList.contains(
+                        "dark-mode"
+                    );
+
+
+                localStorage.setItem(
+                    "businessOSTheme",
+                    darkMode
+                        ? "dark"
+                        : "light"
+                );
+
+
+                themeToggle.textContent =
+                    darkMode
+                        ? "☀️ Light Mode"
+                        : "🌙 Dark Mode";
+            }
+        );
+    }
+
+
+    /* =========================================================
+       PRICING
+       ========================================================= */
+
+    window.startProPlan =
+        function() {
+
+            alert(
+                "BusinessOS Pro is coming soon.\n\n" +
+                "You'll be able to unlock professional invoices, " +
+                "PDF exports, advanced analytics and more."
+            );
+        };
+
+
+    window.startBusinessPlan =
+        function() {
+
+            alert(
+                "BusinessOS Business is coming soon.\n\n" +
+                "This plan will include multiple users, " +
+                "advanced reports and priority support."
+            );
+        };
+
+
+    /* =========================================================
+       PAYSTACK
+       ========================================================= */
+
+    window.payWithPaystack =
+        function() {
+
+            const email =
+                prompt(
+                    "Enter your email address:"
+                );
+
+
+            if (!email) {
+                return;
+            }
+
+
+            const amount =
+                prompt(
+                    "Enter payment amount in USD:"
+                );
+
+
+            if (
+                !amount ||
+                Number(amount) <= 0
+            ) {
+
+                alert(
+                    "Enter a valid amount."
+                );
+
+                return;
+            }
+
+
+            if (
+                typeof PaystackPop ===
+                "undefined"
+            ) {
+
+                alert(
+                    "Payment system is not loaded yet."
+                );
+
+                return;
+            }
+
+
+            const paystack =
+                new PaystackPop();
+
+
+            paystack.newTransaction({
+
+                key:
+                    "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+                email:
+
+                    email,
+
+                amount:
+
+                    Math.round(
+                        Number(amount) *
+                        100
+                    ),
+
+                currency:
+                    "USD",
+
+                onSuccess:
+                    function(transaction) {
+
+                        alert(
+                            "Payment successful!\nReference: " +
+                            transaction.reference
+                        );
+
+
+                        console.log(
+                            "Paystack payment:",
+                            transaction
+                        );
+                    },
+
+
+                onCancel:
+                    function() {
+
+                        alert(
+                            "Payment cancelled."
+                        );
+                    },
+
+
+                onError:
+                    function(error) {
+
+                        console.error(
+                            error
+                        );
+
+
+                        alert(
+                            "Payment failed: " +
+                            (
+                                error.message ||
+                                "Unknown error"
+                            )
+                        );
+                    }
+            });
+        };
+
+
+    /* =========================================================
+       BUSINESSOS PRO PAYMENT
+       ========================================================= */
+
+    const upgradeProBtn =
+        document.getElementById(
+            "upgradeProBtn"
+        );
+
+
+    if (upgradeProBtn) {
+
+        upgradeProBtn.addEventListener(
+            "click",
+            () => {
+
+                const email =
+                    prompt(
+                        "Enter your email address for BusinessOS Pro:"
+                    );
+
+
+                if (!email) {
+                    return;
+                }
+
+
+                if (
+                    typeof PaystackPop ===
+                    "undefined"
+                ) {
+
+                    alert(
+                        "Payment system is not loaded yet."
+                    );
+
+                    return;
+                }
+
+
+                const paystack =
+                    new PaystackPop();
+
+
+                paystack.newTransaction({
+
+                    key:
+                        "pk_test_2321844583071969c00a747ba838b337df808a44",
+
+                    email:
+                        email,
+
+                    amount:
+                        900,
+
+                    currency:
+                        "GHS",
+
+                    metadata: {
+
+                        product:
+                            "BusinessOS Pro",
+
+                        plan:
+                            "Pro"
+                    },
+
+
+                    onSuccess:
+                        transaction => {
+
+                            console.log(
+                                "Paystack transaction:",
+                                transaction
+                            );
+
+
+                            alert(
+                                "🎉 Payment successful! Welcome to BusinessOS Pro."
+                            );
+
+
+                            localStorage.setItem(
+                                "businessOSPro",
+                                "true"
+                            );
+                        },
+
+
+                    onCancel:
+                        () => {
+
+                            alert(
+                                "Payment cancelled."
+                            );
+                        },
+
+
+                    onError:
+                        error => {
+
+                            console.error(
+                                error
+                            );
+
+
+                            alert(
+                                "Payment failed."
+                            );
+                        }
+                });
             }
         );
     }
@@ -2733,257 +3734,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         renderRecentActivity();
     }
-/* =========================================================
-   DARK MODE
-   ========================================================= */
 
-function setupDarkMode() {
 
-    const themeToggle =
-        document.getElementById("themeToggle");
+    /* =========================================================
+       INITIALIZATION
+       ========================================================= */
 
-    if (!themeToggle) {
-        return;
-    }
+    setupNavigation();
 
-    const savedTheme =
-        localStorage.getItem("businessOSTheme");
+    setupSearch();
 
-    if (savedTheme === "dark") {
-        document.body.classList.add("dark-mode");
-        themeToggle.textContent = "☀️ Light Mode";
-    }
+    setupModalBehavior();
 
-    themeToggle.addEventListener("click", () => {
+    setupDarkMode();
 
-        document.body.classList.toggle("dark-mode");
+    renderAll();
 
-        const darkMode =
-            document.body.classList.contains("dark-mode");
-
-        localStorage.setItem(
-            "businessOSTheme",
-            darkMode ? "dark" : "light"
-        );
-
-        themeToggle.textContent =
-            darkMode
-                ? "☀️ Light Mode"
-                : "🌙 Dark Mode";
-
-    });
-}
-
-
-/* =========================================================
-   BUSINESSOS PRICING
-   ========================================================= */
-
-window.startProPlan = function () {
-
-    alert(
-        "BusinessOS Pro is coming soon.\n\n" +
-        "You'll be able to unlock professional invoices, " +
-        "PDF exports, advanced analytics and more."
-    );
-
-};
-
-
-window.startBusinessPlan = function () {
-
-    alert(
-        "BusinessOS Business is coming soon.\n\n" +
-        "This plan will include multiple users, " +
-        "advanced reports and priority support."
-    );
-
-};
-
-
-/* =========================================================
-   INITIALIZATION
-   ========================================================= */
-
-setupNavigation();
-
-setupSearch();
-
-setupModalBehavior();
-
-setupDarkMode();
-
-renderAll();
-
-
-/* =========================================================
-   PAYSTACK PAYMENT
-   ========================================================= */
-
-window.payWithPaystack = function () {
-
-    const email = prompt(
-        "Enter your email address:"
-    );
-
-    if (!email) {
-        return;
-    }
-
-    const amount = prompt(
-        "Enter payment amount in USD:"
-    );
-
-    if (!amount || Number(amount) <= 0) {
-        alert("Enter a valid amount.");
-        return;
-    }
-
-    if (typeof PaystackPop === "undefined") {
-
-        alert(
-            "Payment system is not loaded yet."
-        );
-
-        return;
-    }
-
-    const paystack = new PaystackPop();
-
-    paystack.newTransaction({
-
-        key: "pk_test_2321844583071969c00a747ba838b337df808a44",
-
-        email: email,
-
-        amount:
-            Math.round(
-                Number(amount) * 100
-            ),
-
-        currency: "USD",
-
-        onSuccess: function (transaction) {
-
-            alert(
-                "Payment successful!\nReference: " +
-                transaction.reference
-            );
-
-            console.log(
-                "Paystack payment:",
-                transaction
-            );
-        },
-
-        onCancel: function () {
-
-            alert(
-                "Payment cancelled."
-            );
-
-        },
-
-        onError: function (error) {
-
-            console.error(error);
-
-            alert(
-                "Payment failed: " +
-                (error.message ||
-                 "Unknown error")
-            );
-        }
-
-    });
-};
-
-
-/* =========================================================
-   BUSINESSOS PRO
-   ========================================================= */
-
-const upgradeProBtn =
-    document.getElementById("upgradeProBtn");
-
-if (upgradeProBtn) {
-
-    upgradeProBtn.addEventListener(
-        "click",
-        () => {
-
-            const email = prompt(
-                "Enter your email address for BusinessOS Pro:"
-            );
-
-            if (!email) {
-                return;
-            }
-
-            if (typeof PaystackPop === "undefined") {
-
-                alert(
-                    "Payment system is not loaded yet."
-                );
-
-                return;
-            }
-
-            const paystack =
-                new PaystackPop();
-
-            paystack.newTransaction({
-
-                key:
-                    "pk_test_2321844583071969c00a747ba838b337df808a44",
-
-                email: email,
-
-                amount: 900,
-
-                currency: "GHS",
-
-                metadata: {
-
-                    product:
-                        "BusinessOS Pro",
-
-                    plan:
-                        "Pro"
-
-                },
-
-                onSuccess:
-                    (transaction) => {
-
-                        console.log(
-                            "Paystack transaction:",
-                            transaction
-                        );
-
-                        alert(
-                            "🎉 Payment successful! " +
-                            "Welcome to BusinessOS Pro."
-                        );
-
-                        localStorage.setItem(
-                            "businessOSPro",
-                            "true"
-                        );
-
-                    },
-
-                onCancel: () => {
-
-                    alert(
-                        "Payment cancelled."
-                    );
-
-                }
-
-            });
-
-        }
-    );
-
-}
+});

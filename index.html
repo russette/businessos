@@ -5,40 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>BusinessOS | Business Management Dashboard</title>
-<button type="button" onclick="payWithPaystack()">
-    💳 Test Paystack Payment
-</button>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- ================= HEADER ================= -->
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-    <header class="topbar">
+<header class="topbar">
 
-        <div class="logo">
-            Business<span>OS</span>
-        </div>
+    <div class="logo">
+        Business<span>OS</span>
+    </div>
 
-        <nav>
-            <a href="#dashboard">Dashboard</a>
-            <a href="#analytics">Analytics</a>
-            <a href="#products">Products</a>
-            <a href="#customers">Customers</a>
-            <a href="#sales">Sales</a>
-            <a href="#invoices">Invoices</a>
-        </nav>
+    <nav>
+        <a href="#dashboard">Dashboard</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#products">Products</a>
+        <a href="#customers">Customers</a>
+        <a href="#sales">Sales</a>
+        <a href="#invoices">Invoices</a>
+    </nav>
 
-    </header>
-<button id="themeToggle" class="theme-toggle" type="button">
-    🌙 Dark Mode
-</button>
+    <button id="themeToggle" class="theme-toggle" type="button">
+        🌙 Dark Mode
+    </button>
 
-    <!-- ================= MAIN ================= -->
+</header>
 
-    <main class="container">
-<!-- ================= BUSINESSOS LANDING ================= -->
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main class="container">
+
+
+<!-- =========================================================
+     LANDING
+========================================================= -->
 
 <section id="landing" class="landing-section">
 
@@ -60,11 +68,16 @@
 
         <div class="landing-buttons">
 
-            <button onclick="scrollToSection('dashboard')">
+            <button
+                type="button"
+                onclick="scrollToSection('dashboard')">
+
                 🚀 Start Managing
+
             </button>
 
             <button
+                type="button"
                 class="secondary-btn"
                 onclick="scrollToSection('pricing')">
 
@@ -77,11 +90,8 @@
         <div class="landing-trust">
 
             <span>📦 Inventory</span>
-
             <span>🧾 Invoices</span>
-
             <span>💰 Sales</span>
-
             <span>📊 Analytics</span>
 
         </div>
@@ -140,7 +150,9 @@
 </section>
 
 
-<!-- ================= WHY BUSINESSOS ================= -->
+<!-- =========================================================
+     FEATURES
+========================================================= -->
 
 <section class="features-section">
 
@@ -228,7 +240,9 @@
 </section>
 
 
-<!-- ================= PRICING ================= -->
+<!-- =========================================================
+     PRICING
+========================================================= -->
 
 <section id="pricing" class="pricing-section">
 
@@ -257,6 +271,8 @@
     <div class="pricing-grid">
 
 
+        <!-- FREE -->
+
         <div class="pricing-card">
 
             <p class="pricing-label">
@@ -282,6 +298,7 @@
             </ul>
 
             <button
+                type="button"
                 onclick="scrollToSection('dashboard')">
 
                 Get Started
@@ -290,6 +307,8 @@
 
         </div>
 
+
+        <!-- PRO -->
 
         <div class="pricing-card featured">
 
@@ -321,14 +340,18 @@
             </ul>
 
             <button
-                onclick="startProPlan()">
+                id="upgradeProBtn"
+                type="button"
+                onclick="startBusinessOSProPayment()">
 
-                Start Pro
+                Start Pro — $9/month
 
             </button>
 
         </div>
 
+
+        <!-- BUSINESS -->
 
         <div class="pricing-card">
 
@@ -355,6 +378,7 @@
             </ul>
 
             <button
+                type="button"
                 onclick="startBusinessPlan()">
 
                 Choose Business
@@ -368,7 +392,9 @@
 </section>
 
 
-<!-- ================= CTA ================= -->
+<!-- =========================================================
+     FINAL CTA
+========================================================= -->
 
 <section class="final-cta">
 
@@ -384,7 +410,9 @@
         Start managing your business with BusinessOS today.
     </p>
 
-    <button onclick="scrollToSection('dashboard')">
+    <button
+        type="button"
+        onclick="scrollToSection('dashboard')">
 
         🚀 Start Using BusinessOS
 
@@ -392,13 +420,20 @@
 
 </section>
 
-        <!-- ================= DASHBOARD ================= -->
 
-    <section id="dashboard" class="hero">
+<!-- =========================================================
+     DASHBOARD
+========================================================= -->
 
-    <p class="eyebrow">BUSINESSOS • CONTROL CENTER</p>
+<section id="dashboard" class="hero">
 
-    <h1>Run your business smarter.</h1>
+    <p class="eyebrow">
+        BUSINESSOS • CONTROL CENTER
+    </p>
+
+    <h1>
+        Run your business smarter.
+    </h1>
 
     <p class="hero-text">
         Manage your products, customers, sales and invoices
@@ -407,86 +442,137 @@
 
     <div class="hero-buttons">
 
-        <button onclick="scrollToSection('products')">
+        <button
+            type="button"
+            onclick="scrollToSection('products')">
+
             📦 Manage Products
+
         </button>
 
-        <button class="secondary-btn"
-                onclick="scrollToSection('analytics')">
+        <button
+            type="button"
+            class="secondary-btn"
+            onclick="scrollToSection('analytics')">
+
             📊 View Analytics
+
         </button>
 
     </div>
 
-    <!-- Quick Actions -->
+
+    <!-- QUICK ACTIONS -->
 
     <div class="quick-actions">
 
         <div class="quick-actions-heading">
+
             <div>
-                <p class="eyebrow">QUICK ACTIONS</p>
-                <h2>Get things done faster.</h2>
+
+                <p class="eyebrow">
+                    QUICK ACTIONS
+                </p>
+
+                <h2>
+                    Get things done faster.
+                </h2>
+
             </div>
+
         </div>
+
 
         <div class="quick-actions-grid">
 
-            <button class="quick-action"
-                    onclick="openProductModal()">
+            <button
+                type="button"
+                class="quick-action"
+                onclick="openProductModal()">
 
-                <span class="quick-action-icon">📦</span>
+                <span class="quick-action-icon">
+                    📦
+                </span>
 
                 <span>
                     <strong>Add Product</strong>
-                    <small>Add something to your inventory</small>
+                    <small>
+                        Add something to your inventory
+                    </small>
                 </span>
 
-                <span class="quick-action-arrow">→</span>
+                <span class="quick-action-arrow">
+                    →
+                </span>
 
             </button>
 
 
-            <button class="quick-action"
-                    onclick="openCustomerModal()">
+            <button
+                type="button"
+                class="quick-action"
+                onclick="openCustomerModal()">
 
-                <span class="quick-action-icon">👤</span>
+                <span class="quick-action-icon">
+                    👤
+                </span>
 
                 <span>
                     <strong>Add Customer</strong>
-                    <small>Add a new customer</small>
+                    <small>
+                        Add a new customer
+                    </small>
                 </span>
 
-                <span class="quick-action-arrow">→</span>
+                <span class="quick-action-arrow">
+                    →
+                </span>
 
             </button>
 
 
-            <button class="quick-action"
-                    onclick="openSaleModal()">
+            <button
+                type="button"
+                class="quick-action"
+                onclick="openSaleModal()">
 
-                <span class="quick-action-icon">🛒</span>
+                <span class="quick-action-icon">
+                    🛒
+                </span>
 
                 <span>
                     <strong>Record Sale</strong>
-                    <small>Record a new transaction</small>
+                    <small>
+                        Record a new transaction
+                    </small>
                 </span>
 
-                <span class="quick-action-arrow">→</span>
+                <span class="quick-action-arrow">
+                    →
+                </span>
 
             </button>
 
 
-            <button class="quick-action"
-                    onclick="openInvoiceModal()">
+            <button
+                type="button"
+                class="quick-action"
+                onclick="openInvoiceModal()">
 
-                <span class="quick-action-icon">🧾</span>
+                <span class="quick-action-icon">
+                    🧾
+                </span>
 
                 <span>
                     <strong>Create Invoice</strong>
-                    <small>Send a professional invoice</small>
+                    <small>
+                        Send a professional invoice
+                    </small>
                 </span>
 
-                <span class="quick-action-arrow">→</span>
+                <span class="quick-action-arrow">
+                    →
+                </span>
 
             </button>
 
@@ -496,127 +582,150 @@
 
 </section>
 
-        <!-- ================= STATS ================= -->
 
-       <!-- ================= STATS ================= -->
+<!-- =========================================================
+     STATS
+========================================================= -->
 
 <section class="stats-grid">
 
-    <!-- Total Revenue -->
     <div class="stat-card">
 
         <div class="stat-icon">💰</div>
 
         <p>Total Revenue</p>
 
-        <h2 id="totalRevenue">$0.00</h2>
+        <h2 id="totalRevenue">
+            $0.00
+        </h2>
 
     </div>
 
 
-    <!-- Today's Revenue -->
     <div class="stat-card">
 
         <div class="stat-icon">📅</div>
 
         <p>Today's Revenue</p>
 
-        <h2 id="todayRevenue">$0.00</h2>
+        <h2 id="todayRevenue">
+            $0.00
+        </h2>
 
     </div>
 
 
-    <!-- Products -->
     <div class="stat-card">
 
         <div class="stat-icon">📦</div>
 
         <p>Products</p>
 
-        <h2 id="totalProducts">0</h2>
+        <h2 id="totalProducts">
+            0
+        </h2>
 
     </div>
 
 
-    <!-- Customers -->
     <div class="stat-card">
 
         <div class="stat-icon">👥</div>
 
         <p>Customers</p>
 
-        <h2 id="totalCustomers">0</h2>
+        <h2 id="totalCustomers">
+            0
+        </h2>
 
     </div>
 
 
-    <!-- Total Sales -->
     <div class="stat-card">
 
         <div class="stat-icon">🛒</div>
 
         <p>Total Sales</p>
 
-        <h2 id="totalSales">0</h2>
+        <h2 id="totalSales">
+            0
+        </h2>
 
     </div>
 
 
-    <!-- Paid Invoices -->
     <div class="stat-card">
 
         <div class="stat-icon">✅</div>
 
         <p>Paid Invoices</p>
 
-        <h2 id="paidInvoices">0</h2>
+        <h2 id="paidInvoices">
+            0
+        </h2>
 
     </div>
 
 
-    <!-- Unpaid Invoices -->
     <div class="stat-card">
 
         <div class="stat-icon">⏳</div>
 
         <p>Unpaid Invoices</p>
 
-        <h2 id="unpaidInvoices">0</h2>
+        <h2 id="unpaidInvoices">
+            0
+        </h2>
 
     </div>
 
 
-    <!-- Low Stock -->
     <div class="stat-card">
 
         <div class="stat-icon">⚠️</div>
 
         <p>Low Stock</p>
 
-        <h2 id="lowStockProducts">0</h2>
+        <h2 id="lowStockProducts">
+            0
+        </h2>
 
     </div>
 
 </section>
-<!-- ================= RECENT ACTIVITY ================= -->
+
+
+<!-- =========================================================
+     RECENT ACTIVITY
+========================================================= -->
 
 <div class="recent-activity">
 
     <div class="recent-activity-header">
 
         <div>
-            <p class="eyebrow">ACTIVITY</p>
 
-            <h2>Recent Activity</h2>
+            <p class="eyebrow">
+                ACTIVITY
+            </p>
+
+            <h2>
+                Recent Activity
+            </h2>
 
             <p>
                 Keep track of what's happening in your business.
             </p>
+
         </div>
 
-        <button class="secondary-btn"
-                onclick="scrollToSection('sales')">
+        <button
+            type="button"
+            class="secondary-btn"
+            onclick="scrollToSection('sales')">
+
             View All Sales →
+
         </button>
 
     </div>
@@ -626,9 +735,13 @@
 
         <div class="empty-state">
 
-            <div class="empty-icon">📊</div>
+            <div class="empty-icon">
+                📊
+            </div>
 
-            <h3>No recent activity</h3>
+            <h3>
+                No recent activity
+            </h3>
 
             <p>
                 Your latest business activity will appear here.
@@ -639,410 +752,510 @@
     </div>
 
 </div>
-        <!-- ================= ANALYTICS ================= -->
 
-        <section id="analytics" class="section">
 
-            <div class="section-heading">
+<!-- =========================================================
+     ANALYTICS
+========================================================= -->
 
-                <div>
-                    <p class="eyebrow">BUSINESS INTELLIGENCE</p>
-                    <h2>Analytics</h2>
+<section id="analytics" class="section">
 
-                    <p>
-                        Understand how your business is performing.
-                    </p>
-                </div>
+    <div class="section-heading">
 
+        <div>
+
+            <p class="eyebrow">
+                BUSINESS INTELLIGENCE
+            </p>
+
+            <h2>
+                Analytics
+            </h2>
+
+            <p>
+                Understand how your business is performing.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="analytics-grid">
+
+        <div class="analytics-card">
+
+            <span>💵</span>
+
+            <p>Average Sale</p>
+
+            <strong id="averageSale">
+                $0.00
+            </strong>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <span>📦</span>
+
+            <p>Units In Stock</p>
+
+            <strong id="unitsInStock">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <span>💼</span>
+
+            <p>Inventory Value</p>
+
+            <strong id="inventoryValue">
+                $0.00
+            </strong>
+
+        </div>
+
+
+        <div class="analytics-card">
+
+            <span>🏆</span>
+
+            <p>Best Seller</p>
+
+            <strong id="bestSeller">
+                —
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <div class="chart-card">
+
+        <h3>
+            📈 Revenue Trend
+        </h3>
+
+        <p>
+            Your revenue over time.
+        </p>
+
+        <div id="revenueChart" class="chart">
+
+            <div class="empty-chart">
+                Make your first sale to see your revenue trend.
             </div>
 
+        </div>
 
-            <div class="analytics-grid">
+    </div>
 
 
-                <div class="analytics-card">
+    <div class="analytics-two-column">
 
-                    <span>💵</span>
+        <div class="chart-card">
 
-                    <p>Average Sale</p>
+            <h3>
+                🏆 Top Products
+            </h3>
 
-                    <strong id="averageSale">
-                        $0.00
-                    </strong>
-
-                </div>
-
-
-                <div class="analytics-card">
-
-                    <span>📦</span>
-
-                    <p>Units In Stock</p>
-
-                    <strong id="unitsInStock">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="analytics-card">
-
-                    <span>💼</span>
-
-                    <p>Inventory Value</p>
-
-                    <strong id="inventoryValue">
-                        $0.00
-                    </strong>
-
-                </div>
-
-
-                <div class="analytics-card">
-
-                    <span>🏆</span>
-
-                    <p>Best Seller</p>
-
-                    <strong id="bestSeller">
-                        —
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- Revenue -->
-
-            <div class="chart-card">
-
-                <h3>📈 Revenue Trend</h3>
-
-                <p>
-                    Your revenue over time.
-                </p>
-
-                <div id="revenueChart" class="chart">
-
-                    <div class="empty-chart">
-                        Make your first sale to see your revenue trend.
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Top Products -->
-
-            <div class="analytics-two-column">
-
-                <div class="chart-card">
-
-                    <h3>🏆 Top Products</h3>
-
-                    <div id="topProducts">
-
-                        <div class="empty-state">
-                            No sales yet.
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="chart-card">
-
-                    <h3>⚠️ Inventory Alerts</h3>
-
-                    <div id="inventoryAlerts">
-
-                        <div class="success-message">
-                            ✅ All products have healthy stock levels.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- Sales Overview -->
-
-            <div class="chart-card">
-
-                <h3>📊 Sales Overview</h3>
-
-                <div class="overview-grid">
-
-                    <div>
-                        <span>Total revenue</span>
-                        <strong id="overviewRevenue">
-                            $0.00
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Units sold</span>
-                        <strong id="unitsSold">
-                            0
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Average sale</span>
-                        <strong id="overviewAverage">
-                            $0.00
-                        </strong>
-                    </div>
-
-                    <div>
-                        <span>Largest sale</span>
-                        <strong id="largestSale">
-                            $0.00
-                        </strong>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- ================= PRODUCTS ================= -->
-
-        <section id="products" class="section">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <p class="eyebrow">
-                        INVENTORY
-                    </p>
-
-                    <h2>Products</h2>
-
-                    <p>
-                        Manage what your business sells.
-                    </p>
-
-                </div>
-
-                <button onclick="openProductModal()">
-                    + Add Product
-                </button>
-
-            </div>
-<div class="search-bar">
-    <input
-        type="search"
-        id="productSearch"
-        placeholder="🔍 Search products..."
-    >
-</div>
-
-            <div id="productsList" class="items-grid">
+            <div id="topProducts">
 
                 <div class="empty-state">
-
-                    <div class="empty-icon">
-                        📦
-                    </div>
-
-                    <h3>No products yet</h3>
-
-                    <p>
-                        Add your first product to start
-                        managing your inventory.
-                    </p>
-
+                    No sales yet.
                 </div>
 
             </div>
 
-        </section>
+        </div>
 
 
+        <div class="chart-card">
 
-        <!-- ================= CUSTOMERS ================= -->
+            <h3>
+                ⚠️ Inventory Alerts
+            </h3>
 
-        <section id="customers" class="section">
+            <div id="inventoryAlerts">
 
-            <div class="section-heading">
-
-                <div>
-
-                    <p class="eyebrow">
-                        CUSTOMERS
-                    </p>
-
-                    <h2>Customers</h2>
-
-                    <p>
-                        Keep track of the people you serve.
-                    </p>
-
-                </div>
-
-                <button onclick="openCustomerModal()">
-                    + Add Customer
-                </button>
-
-            </div>
-<div class="search-bar">
-    <input
-        type="search"
-        id="customerSearch"
-        placeholder="🔍 Search customers..."
-    >
-</div>
-
-            <div id="customersList" class="items-grid">
-
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        👥
-                    </div>
-
-                    <h3>No customers yet</h3>
-
-                    <p>
-                        Add your first customer to start
-                        building your customer list.
-                    </p>
-
+                <div class="success-message">
+                    ✅ All products have healthy stock levels.
                 </div>
 
             </div>
 
-        </section>
+        </div>
+
+    </div>
 
 
+    <div class="chart-card">
 
-        <!-- ================= SALES ================= -->
+        <h3>
+            📊 Sales Overview
+        </h3>
 
-        <section id="sales" class="section">
+        <div class="overview-grid">
 
-            <div class="section-heading">
+            <div>
 
-                <div>
+                <span>
+                    Total revenue
+                </span>
 
-                    <p class="eyebrow">
-                        SALES
-                    </p>
-
-                    <h2>Recent Sales</h2>
-
-                    <p>
-                        Track your completed transactions.
-                    </p>
-
-                </div>
-
-                <button onclick="openSaleModal()">
-                    + Record Sale
-                </button>
+                <strong id="overviewRevenue">
+                    $0.00
+                </strong>
 
             </div>
 
-<div class="search-bar">
-    <input
-        type="search"
-        id="salesSearch"
-        placeholder="🔍 Search sales..."
-    >
-</div>
-            <div id="salesList" class="sales-list">
 
-                <div class="empty-state">
+            <div>
 
-                    <div class="empty-icon">
-                        🧾
-                    </div>
+                <span>
+                    Units sold
+                </span>
 
-                    <h3>No sales yet</h3>
-
-                    <p>
-                        Your recorded sales will appear here.
-                    </p>
-
-                </div>
+                <strong id="unitsSold">
+                    0
+                </strong>
 
             </div>
 
-        </section>
 
+            <div>
 
+                <span>
+                    Average sale
+                </span>
 
-        <!-- ================= INVOICES ================= -->
-
-        <section id="invoices" class="section">
-
-            <div class="section-heading">
-
-                <div>
-
-                    <p class="eyebrow">
-                        BILLING
-                    </p>
-
-                    <h2>Invoices</h2>
-
-                    <p>
-                        Create professional invoices
-                        for your customers.
-                    </p>
-
-                </div>
-
-                <button onclick="openInvoiceModal()">
-                    + Create Invoice
-                </button>
-
-            </div>
-<div class="search-bar">
-    <input
-        type="search"
-        id="invoiceSearch"
-        placeholder="🔍 Search invoices..."
-    >
-
-  <select id="invoiceFilter">
-        <option value="all">All invoices</option>
-        <option value="paid">Paid</option>
-        <option value="unpaid">Unpaid</option>
-    </select>
-</div>
-
-          <div id="invoiceList" class="invoice-list">
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        🧾
-                    </div>
-
-                    <h3>No invoices yet</h3>
-
-                    <p>
-                        Create your first invoice for a customer.
-                    </p>
-
-                </div>
+                <strong id="overviewAverage">
+                    $0.00
+                </strong>
 
             </div>
 
-        </section>
+
+            <div>
+
+                <span>
+                    Largest sale
+                </span>
+
+                <strong id="largestSale">
+                    $0.00
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
 
 
-<!-- ================= BUSINESS DATA ================= -->
+<!-- =========================================================
+     PRODUCTS
+========================================================= -->
+
+<section id="products" class="section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                INVENTORY
+            </p>
+
+            <h2>
+                Products
+            </h2>
+
+            <p>
+                Manage what your business sells.
+            </p>
+
+        </div>
+
+        <button
+            type="button"
+            onclick="openProductModal()">
+
+            + Add Product
+
+        </button>
+
+    </div>
+
+
+    <div class="search-bar">
+
+        <input
+            type="search"
+            id="productSearch"
+            placeholder="🔍 Search products...">
+
+    </div>
+
+
+    <div id="productsList" class="items-grid">
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                📦
+            </div>
+
+            <h3>
+                No products yet
+            </h3>
+
+            <p>
+                Add your first product to start
+                managing your inventory.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     CUSTOMERS
+========================================================= -->
+
+<section id="customers" class="section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                CUSTOMERS
+            </p>
+
+            <h2>
+                Customers
+            </h2>
+
+            <p>
+                Keep track of the people you serve.
+            </p>
+
+        </div>
+
+        <button
+            type="button"
+            onclick="openCustomerModal()">
+
+            + Add Customer
+
+        </button>
+
+    </div>
+
+
+    <div class="search-bar">
+
+        <input
+            type="search"
+            id="customerSearch"
+            placeholder="🔍 Search customers...">
+
+    </div>
+
+
+    <div id="customersList" class="items-grid">
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                👥
+            </div>
+
+            <h3>
+                No customers yet
+            </h3>
+
+            <p>
+                Add your first customer to start
+                building your customer list.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     SALES
+========================================================= -->
+
+<section id="sales" class="section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                SALES
+            </p>
+
+            <h2>
+                Recent Sales
+            </h2>
+
+            <p>
+                Track your completed transactions.
+            </p>
+
+        </div>
+
+        <button
+            type="button"
+            onclick="openSaleModal()">
+
+            + Record Sale
+
+        </button>
+
+    </div>
+
+
+    <div class="search-bar">
+
+        <input
+            type="search"
+            id="salesSearch"
+            placeholder="🔍 Search sales...">
+
+    </div>
+
+
+    <div id="salesList" class="sales-list">
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                🧾
+            </div>
+
+            <h3>
+                No sales yet
+            </h3>
+
+            <p>
+                Your recorded sales will appear here.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     INVOICES
+========================================================= -->
+
+<section id="invoices" class="section">
+
+    <div class="section-heading">
+
+        <div>
+
+            <p class="eyebrow">
+                BILLING
+            </p>
+
+            <h2>
+                Invoices
+            </h2>
+
+            <p>
+                Create professional invoices
+                for your customers.
+            </p>
+
+        </div>
+
+        <button
+            type="button"
+            onclick="openInvoiceModal()">
+
+            + Create Invoice
+
+        </button>
+
+    </div>
+
+
+    <div class="search-bar">
+
+        <input
+            type="search"
+            id="invoiceSearch"
+            placeholder="🔍 Search invoices...">
+
+        <select id="invoiceFilter">
+
+            <option value="all">
+                All invoices
+            </option>
+
+            <option value="paid">
+                Paid
+            </option>
+
+            <option value="unpaid">
+                Unpaid
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div id="invoiceList" class="invoice-list">
+
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                🧾
+            </div>
+
+            <h3>
+                No invoices yet
+            </h3>
+
+            <p>
+                Create your first invoice for a customer.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================================================
+     BUSINESS DATA
+========================================================= -->
 
 <section class="danger-zone">
 
@@ -1063,6 +1276,7 @@
         </p>
 
     </div>
+
 
     <div class="data-actions">
 
@@ -1100,443 +1314,442 @@
 </section>
 
 
+<!-- =========================================================
+     PRODUCT MODAL
+========================================================= -->
 
-    <!-- ================================================= -->
-    <!-- PRODUCT MODAL -->
-    <!-- ================================================= -->
+<div id="productModal" class="modal">
 
-    <div id="productModal" class="modal">
+    <div class="modal-content">
 
-        <div class="modal-content">
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeProductModal()">
 
-            <button class="close-btn"
-                    onclick="closeProductModal()">
-                ×
+            ×
+
+        </button>
+
+        <h2 id="productModalTitle">
+            Add Product
+        </h2>
+
+
+        <form id="productForm">
+
+            <input
+                type="hidden"
+                id="productId">
+
+
+            <label>
+                Product Name
+            </label>
+
+            <input
+                type="text"
+                id="productName"
+                placeholder="e.g. MacBook Pro"
+                required>
+
+
+            <label>
+                Price (USD)
+            </label>
+
+            <input
+                type="number"
+                id="productPrice"
+                placeholder="1956"
+                min="0"
+                step="0.01"
+                required>
+
+
+            <label>
+                Stock
+            </label>
+
+            <input
+                type="number"
+                id="productStock"
+                placeholder="10"
+                min="0"
+                required>
+
+
+            <button type="submit">
+                Save Product
             </button>
 
-            <h2 id="productModalTitle">
-                Add Product
-            </h2>
-
-            <form id="productForm">
-
-                <input type="hidden" id="productId">
-
-                <label>
-                    Product Name
-                </label>
-
-                <input
-                    type="text"
-                    id="productName"
-                    placeholder="e.g. MacBook Pro"
-                    required
-                >
-
-
-                <label>
-                    Price (USD)
-                </label>
-
-                <input
-                    type="number"
-                    id="productPrice"
-                    placeholder="1956"
-                    min="0"
-                    step="0.01"
-                    required
-                >
-
-
-                <label>
-                    Stock
-                </label>
-
-                <input
-                    type="number"
-                    id="productStock"
-                    placeholder="10"
-                    min="0"
-                    required
-                >
-
-
-                <button type="submit">
-                    Save Product
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ================================================= -->
-    <!-- CUSTOMER MODAL -->
-    <!-- ================================================= -->
-
-    <div id="customerModal" class="modal">
-
-        <div class="modal-content">
-
-            <button class="close-btn"
-                    onclick="closeCustomerModal()">
-                ×
-            </button>
-
-            <h2>Add Customer</h2>
-
-            <form id="customerForm">
-
-                <label>
-                    Customer Name
-                </label>
-
-                <input
-                    type="text"
-                    id="customerName"
-                    placeholder="John Smith"
-                    required
-                >
-
-
-                <label>
-                    Email
-                </label>
-
-                <input
-                    type="email"
-                    id="customerEmail"
-                    placeholder="john@example.com"
-                >
-
-
-                <label>
-                    Phone
-                </label>
-
-                <input
-                    type="tel"
-                    id="customerPhone"
-                    placeholder="+1 555 123 4567"
-                >
-
-
-                <button type="submit">
-                    Save Customer
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ================================================= -->
-    <!-- SALE MODAL -->
-    <!-- ================================================= -->
-
-    <div id="saleModal" class="modal">
-
-        <div class="modal-content">
-
-            <button class="close-btn"
-                    onclick="closeSaleModal()">
-                ×
-            </button>
-
-            <h2>Record Sale</h2>
-
-            <form id="saleForm">
-
-                <label>
-                    Product
-                </label>
-
-                <select id="saleProduct" required>
-
-                    <option value="">
-                        Select a product
-                    </option>
-
-                </select>
-
-
-                <label>
-                    Quantity
-                </label>
-
-                <input
-                    type="number"
-                    id="saleQuantity"
-                    value="1"
-                    min="1"
-                    required
-                >
-
-
-                <div class="sale-total">
-
-                    <span>
-                        Total (USD)
-                    </span>
-
-                    <strong id="saleTotal">
-                        $0.00
-                    </strong>
-
-                </div>
-
-
-                <button type="submit">
-                    Record Sale
-                </button>
-
-                <button
-                    type="button"
-                    class="secondary-btn"
-                    onclick="closeSaleModal()">
-
-                    Cancel
-
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ================================================= -->
-    <!-- INVOICE MODAL -->
-    <!-- ================================================= -->
-
-    <div id="invoiceModal" class="modal">
-
-        <div class="modal-content invoice-modal">
-
-            <button class="close-btn"
-                    onclick="closeInvoiceModal()">
-                ×
-            </button>
-
-
-            <div class="invoice-modal-header">
-
-                <p class="eyebrow">
-                    BUSINESSOS BILLING
-                </p>
-
-                <h2>Create Invoice</h2>
-
-                <p>
-                    Create a professional invoice
-                    for your customer.
-                </p>
-
-            </div>
-
-
-            <form id="invoiceForm">
-
-
-                <!-- Invoice Number -->
-
-                <label>
-                    Invoice Number
-                </label>
-
-                <input
-                    type="text"
-                    id="invoiceNumber"
-                    readonly
-                >
-
-
-                <!-- Customer -->
-
-                <label>
-                    Customer
-                </label>
-
-                <select id="invoiceCustomer" required>
-
-                    <option value="">
-                        Select a customer
-                    </option>
-
-                </select>
-
-
-                <!-- Product -->
-
-                <label>
-                    Product
-                </label>
-
-                <select id="invoiceProduct" required>
-
-                    <option value="">
-                        Select a product
-                    </option>
-
-                </select>
-
-
-                <!-- Quantity -->
-
-                <label>
-                    Quantity
-                </label>
-
-                <input
-                    type="number"
-                    id="invoiceQuantity"
-                    value="1"
-                    min="1"
-                    required
-                >
-
-
-                <!-- Due Date -->
-
-                <label>
-                    Due Date
-                </label>
-
-                <input
-                    type="date"
-                    id="invoiceDueDate"
-                    required
-                >
-
-
-                <!-- Discount -->
-
-                <label>
-                    Discount (USD)
-                </label>
-
-                <input
-                    type="number"
-                    id="invoiceDiscount"
-                    value="0"
-                    min="0"
-                    step="0.01"
-                >
-
-
-                <!-- Tax -->
-
-                <label>
-                    Tax (%)
-                </label>
-
-                <input
-                    type="number"
-                    id="invoiceTax"
-                    value="0"
-                    min="0"
-                    step="0.01"
-                >
-
-
-                <!-- Invoice Preview -->
-
-               <div class="invoice-preview">
-
-    <div class="invoice-preview-row">
-
-        <span>
-            Subtotal
-        </span>
-
-        <strong id="invoiceSubtotal">
-            $0.00
-        </strong>
-
-    </div>
-
-
-    <div class="invoice-preview-row">
-
-        <span>
-            Discount
-        </span>
-
-        <strong id="invoiceDiscountDisplay">
-            -$0.00
-        </strong>
-
-    </div>
-
-
-    <div class="invoice-preview-row">
-
-        <span>
-            Tax
-        </span>
-
-        <strong id="invoiceTaxAmount">
-            $0.00
-        </strong>
-
-    </div>
-
-
-    <div class="invoice-total-row">
-
-        <span>
-            Total
-        </span>
-
-        <strong id="invoiceTotal">
-            $0.00
-        </strong>
+        </form>
 
     </div>
 
 </div>
 
 
-                <div class="form-buttons">
+<!-- =========================================================
+     CUSTOMER MODAL
+========================================================= -->
 
-                    <button type="submit">
-                        Create Invoice
-                    </button>
+<div id="customerModal" class="modal">
 
-                    <button
-                        type="button"
-                        class="secondary-btn"
-                        onclick="closeInvoiceModal()">
+    <div class="modal-content">
 
-                        Cancel
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeCustomerModal()">
 
-                    </button>
+            ×
 
-                </div>
+        </button>
 
-            </form>
+        <h2>
+            Add Customer
+        </h2>
 
-        </div>
+
+        <form id="customerForm">
+
+            <label>
+                Customer Name
+            </label>
+
+            <input
+                type="text"
+                id="customerName"
+                placeholder="John Smith"
+                required>
+
+
+            <label>
+                Email
+            </label>
+
+            <input
+                type="email"
+                id="customerEmail"
+                placeholder="john@example.com">
+
+
+            <label>
+                Phone
+            </label>
+
+            <input
+                type="tel"
+                id="customerPhone"
+                placeholder="+1 555 123 4567">
+
+
+            <button type="submit">
+                Save Customer
+            </button>
+
+        </form>
 
     </div>
 
-<!-- ================================================= -->
-<!-- VIEW INVOICE MODAL -->
-<!-- ================================================= -->
+</div>
+
+
+<!-- =========================================================
+     SALE MODAL
+========================================================= -->
+
+<div id="saleModal" class="modal">
+
+    <div class="modal-content">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeSaleModal()">
+
+            ×
+
+        </button>
+
+        <h2>
+            Record Sale
+        </h2>
+
+
+        <form id="saleForm">
+
+            <label>
+                Product
+            </label>
+
+            <select id="saleProduct" required>
+
+                <option value="">
+                    Select a product
+                </option>
+
+            </select>
+
+
+            <label>
+                Quantity
+            </label>
+
+            <input
+                type="number"
+                id="saleQuantity"
+                value="1"
+                min="1"
+                required>
+
+
+            <div class="sale-total">
+
+                <span>
+                    Total (USD)
+                </span>
+
+                <strong id="saleTotal">
+                    $0.00
+                </strong>
+
+            </div>
+
+
+            <button type="submit">
+                Record Sale
+            </button>
+
+
+            <button
+                type="button"
+                class="secondary-btn"
+                onclick="closeSaleModal()">
+
+                Cancel
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     INVOICE MODAL
+========================================================= -->
+
+<div id="invoiceModal" class="modal">
+
+    <div class="modal-content invoice-modal">
+
+        <button
+            type="button"
+            class="close-btn"
+            onclick="closeInvoiceModal()">
+
+            ×
+
+        </button>
+
+
+        <div class="invoice-modal-header">
+
+            <p class="eyebrow">
+                BUSINESSOS BILLING
+            </p>
+
+            <h2>
+                Create Invoice
+            </h2>
+
+            <p>
+                Create a professional invoice
+                for your customer.
+            </p>
+
+        </div>
+
+
+        <form id="invoiceForm">
+
+
+            <label>
+                Invoice Number
+            </label>
+
+            <input
+                type="text"
+                id="invoiceNumber"
+                readonly>
+
+
+            <label>
+                Customer
+            </label>
+
+            <select id="invoiceCustomer" required>
+
+                <option value="">
+                    Select a customer
+                </option>
+
+            </select>
+
+
+            <label>
+                Product
+            </label>
+
+            <select id="invoiceProduct" required>
+
+                <option value="">
+                    Select a product
+                </option>
+
+            </select>
+
+
+            <label>
+                Quantity
+            </label>
+
+            <input
+                type="number"
+                id="invoiceQuantity"
+                value="1"
+                min="1"
+                required>
+
+
+            <label>
+                Due Date
+            </label>
+
+            <input
+                type="date"
+                id="invoiceDueDate"
+                required>
+
+
+            <label>
+                Discount (USD)
+            </label>
+
+            <input
+                type="number"
+                id="invoiceDiscount"
+                value="0"
+                min="0"
+                step="0.01">
+
+
+            <label>
+                Tax (%)
+            </label>
+
+            <input
+                type="number"
+                id="invoiceTax"
+                value="0"
+                min="0"
+                step="0.01">
+
+
+            <div class="invoice-preview">
+
+                <div class="invoice-preview-row">
+
+                    <span>
+                        Subtotal
+                    </span>
+
+                    <strong id="invoiceSubtotal">
+                        $0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="invoice-preview-row">
+
+                    <span>
+                        Discount
+                    </span>
+
+                    <strong id="invoiceDiscountDisplay">
+                        -$0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="invoice-preview-row">
+
+                    <span>
+                        Tax
+                    </span>
+
+                    <strong id="invoiceTaxAmount">
+                        $0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="invoice-total-row">
+
+                    <span>
+                        Total
+                    </span>
+
+                    <strong id="invoiceTotal">
+                        $0.00
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="form-buttons">
+
+                <button type="submit">
+                    Create Invoice
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    onclick="closeInvoiceModal()">
+
+                    Cancel
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     VIEW INVOICE MODAL
+========================================================= -->
 
 <div id="invoiceViewModal" class="modal">
 
     <div class="modal-content invoice-modal">
 
         <button
+            type="button"
             class="close-btn"
             onclick="closeInvoiceViewModal()">
 
@@ -1579,132 +1792,202 @@
 
 </div>
 
-    <!-- ================= FOOTER ================= -->
 
-    <footer>
-
-        <p>
-            BusinessOS
-        </p>
-
-        <p>
-            Built by Russette with HTML, CSS & JavaScript.
-        </p>
-
-        <p>
-            © 2026 BusinessOS
-        </p>
-
-    </footer>
+</main>
 
 
+<!-- =========================================================
+     FOOTER
+========================================================= -->
 
-    <!-- JAVASCRIPT -->
-<!-- PAYSTACK -->
-<script src="https://js.paystack.co/v2/inline.js"></script>
-
-<section class="pricing-section" id="pricing">
-
-    <p class="eyebrow">BUSINESSOS PRO</p>
-
-    <h2>Take your business to the next level.</h2>
+<footer>
 
     <p>
-        Unlock invoices, analytics, revenue tracking,
-        inventory alerts and more.
+        BusinessOS
     </p>
 
-    <div class="pricing-card">
+    <p>
+        Built by Russette with HTML, CSS & JavaScript.
+    </p>
 
-        <div class="pricing-icon">🚀</div>
+    <p>
+        © 2026 BusinessOS
+    </p>
 
-        <h3>BusinessOS Pro</h3>
+</footer>
 
-        <div class="pricing-price">
-            $9 <span>/ month</span>
-        </div>
 
-        <ul>
-            <li>✅ Advanced analytics</li>
-            <li>✅ Professional invoices</li>
-            <li>✅ Revenue tracking</li>
-            <li>✅ Inventory alerts</li>
-            <li>✅ Business reports</li>
-            <li>✅ Priority support</li>
-        </ul>
+<!-- =========================================================
+     PAYSTACK
+========================================================= -->
 
-     <button id="upgradeProBtn" class="pro-button" type="button">
-    Upgrade to Pro — $9/month
-</button>
+<script src="https://js.paystack.co/v2/inline.js"></script>
 
-    </div>
-
-</section>
 
 <script>
+/*
+=========================================================
+BUSINESSOS PRO — PAYSTACK
+=========================================================
+*/
+
 function startBusinessOSProPayment() {
+
+    if (typeof Paystack === "undefined") {
+
+        alert(
+            "Paystack could not be loaded. Please refresh the page and try again."
+        );
+
+        return;
+    }
+
 
     const email = prompt(
         "Enter your email address to continue:"
     );
 
+
     if (!email) {
         return;
     }
 
-    const popup = new Paystack();
 
-    popup.checkout({
+    const cleanEmail = email.trim();
 
-        key: "pk_test_2321844583071969c00a747ba838b337df808a44",
 
-        email: email,
+    if (!cleanEmail || !cleanEmail.includes("@")) {
 
-        amount: 900,
+        alert(
+            "Please enter a valid email address."
+        );
 
-        currency: "USD",
+        return;
+    }
 
-        metadata: {
-            product: "BusinessOS Pro",
-            plan: "Pro",
-            billing: "monthly"
-        },
 
-        onSuccess: function(transaction) {
+    try {
 
-            alert(
-                "Payment successful! Reference: " +
-                transaction.reference
-            );
+        const popup = new Paystack();
 
-            console.log(
-                "BusinessOS Pro payment:",
-                transaction
-            );
-        },
 
-        onCancel: function() {
+        popup.checkout({
 
-            alert("Payment cancelled.");
+            key: "pk_test_2321844583071969c00a747ba838b337df808a44",
 
-        },
+            email: cleanEmail,
 
-        onError: function(error) {
+            amount: 900,
 
-            alert(
-                "Payment could not be completed: " +
-                error.message
-            );
+            currency: "USD",
 
-            console.error(error);
-        }
+            metadata: {
 
-    });
+                product: "BusinessOS Pro",
+
+                plan: "Pro",
+
+                billing: "monthly"
+
+            },
+
+
+            onSuccess: function(transaction) {
+
+                alert(
+                    "🎉 Payment successful!\n\nReference: " +
+                    transaction.reference
+                );
+
+
+                console.log(
+                    "BusinessOS Pro payment:",
+                    transaction
+                );
+
+            },
+
+
+            onCancel: function() {
+
+                alert(
+                    "Payment cancelled."
+                );
+
+            },
+
+
+            onError: function(error) {
+
+                alert(
+                    "Payment could not be completed.\n\n" +
+                    (error && error.message
+                        ? error.message
+                        : "Please try again.")
+                );
+
+
+                console.error(
+                    "Paystack error:",
+                    error
+                );
+
+            }
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Paystack initialization error:",
+            error
+        );
+
+
+        alert(
+            "Something went wrong while opening Paystack."
+        );
+
+    }
+
+}
+
+
+/*
+=========================================================
+COMPATIBILITY FUNCTIONS
+=========================================================
+*/
+
+function startProPlan() {
+
+    startBusinessOSProPayment();
+
+}
+
+
+function payWithPaystack() {
+
+    startBusinessOSProPayment();
+
+}
+
+
+function startBusinessPlan() {
+
+    alert(
+        "Business Plan payments are coming soon."
+    );
+
 }
 </script>
-<script src="https://js.paystack.co/v2/inline.js"></script>
+
+
+<!-- =========================================================
+     BUSINESSOS JAVASCRIPT
+========================================================= -->
+
 <script src="script.js"></script>
 
 </body>
-
 </html>

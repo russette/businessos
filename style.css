@@ -1941,7 +1941,7 @@ footer p:first-child {
     }
 }
 /* =========================================================
-   BUSINESSOS DARK MODE
+   BUSINESSOS — FULL DARK MODE
    ========================================================= */
 
 body.dark-mode {
@@ -1949,39 +1949,75 @@ body.dark-mode {
     color: #f8fafc !important;
 }
 
-/* Main page areas */
+/* EVERYTHING */
+
+body.dark-mode * {
+    border-color: #334155;
+}
+
+/* PAGE BACKGROUND */
 
 body.dark-mode main,
 body.dark-mode section,
-body.dark-mode .section,
-body.dark-mode .dashboard,
-body.dark-mode .content,
-body.dark-mode .container {
-    background: #0b1120 !important;
+body.dark-mode footer,
+body.dark-mode .hero,
+body.dark-mode .quick-actions,
+body.dark-mode .stats,
+body.dark-mode .analytics,
+body.dark-mode .inventory,
+body.dark-mode .customers,
+body.dark-mode .sales,
+body.dark-mode .billing,
+body.dark-mode .business-data {
+    background-color: #0b1120 !important;
     color: #f8fafc !important;
 }
 
-/* Header / Navigation */
+/* NAVBAR */
 
-body.dark-mode header,
-body.dark-mode nav,
-body.dark-mode .navbar,
-body.dark-mode .topbar {
+body.dark-mode header {
     background: #111827 !important;
     color: #f8fafc !important;
+    border-color: #334155 !important;
 }
 
-/* Cards */
+body.dark-mode header a,
+body.dark-mode nav a {
+    color: #f8fafc !important;
+}
+
+/* MAIN HEADINGS */
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6 {
+    color: #f8fafc !important;
+}
+
+/* NORMAL TEXT */
+
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode label,
+body.dark-mode strong {
+    color: #cbd5e1 !important;
+}
+
+/* CARDS */
 
 body.dark-mode .card,
+body.dark-mode .stat-card,
+body.dark-mode .dashboard-card,
+body.dark-mode .quick-action,
+body.dark-mode .quick-action-card,
 body.dark-mode .product-card,
 body.dark-mode .customer-card,
 body.dark-mode .sale-card,
 body.dark-mode .invoice-card,
-body.dark-mode .dashboard-card,
 body.dark-mode .analytics-card,
-body.dark-mode .stat-card,
-body.dark-mode .section-card,
 body.dark-mode .activity-item,
 body.dark-mode .top-product-row,
 body.dark-mode .inventory-alert {
@@ -1990,29 +2026,40 @@ body.dark-mode .inventory-alert {
     border-color: #334155 !important;
 }
 
-/* Text */
+/* QUICK ACTIONS */
 
-body.dark-mode h1,
-body.dark-mode h2,
-body.dark-mode h3,
-body.dark-mode h4,
-body.dark-mode h5,
-body.dark-mode h6,
-body.dark-mode p,
-body.dark-mode span,
-body.dark-mode strong,
-body.dark-mode label {
+body.dark-mode .action-card,
+body.dark-mode .quick-action-card,
+body.dark-mode .quick-card {
+    background: #111827 !important;
     color: #f8fafc !important;
 }
 
-/* Inputs */
+/* STAT NUMBERS */
+
+body.dark-mode .stat-card h2,
+body.dark-mode .stat-card h3,
+body.dark-mode .stat-card strong {
+    color: #ffffff !important;
+}
+
+/* EMPTY STATES */
+
+body.dark-mode .empty-state,
+body.dark-mode .empty-chart {
+    background: #111827 !important;
+    color: #cbd5e1 !important;
+    border-color: #334155 !important;
+}
+
+/* INPUTS */
 
 body.dark-mode input,
 body.dark-mode select,
 body.dark-mode textarea {
     background: #0f172a !important;
-    color: #f8fafc !important;
-    border-color: #475569 !important;
+    color: #ffffff !important;
+    border: 1px solid #475569 !important;
 }
 
 body.dark-mode input::placeholder,
@@ -2020,35 +2067,34 @@ body.dark-mode textarea::placeholder {
     color: #94a3b8 !important;
 }
 
-/* Modals */
+/* SELECT OPTIONS */
+
+body.dark-mode option {
+    background: #0f172a;
+    color: #ffffff;
+}
+
+/* MODALS */
 
 body.dark-mode .modal {
-    background: rgba(0, 0, 0, 0.75) !important;
+    background: rgba(0, 0, 0, 0.8) !important;
 }
 
 body.dark-mode .modal-content {
     background: #111827 !important;
-    color: #f8fafc !important;
+    color: #ffffff !important;
     border-color: #334155 !important;
 }
 
-/* Empty states */
+/* BUTTONS */
 
-body.dark-mode .empty-state,
-body.dark-mode .empty-chart {
-    background: #111827 !important;
-    color: #cbd5e1 !important;
-}
-
-/* Buttons */
-
-body.dark-mode .secondary-btn {
+body.dark-mode button.secondary-btn {
     background: #334155 !important;
-    color: #f8fafc !important;
+    color: #ffffff !important;
     border-color: #475569 !important;
 }
 
-/* Theme button */
+/* THEME BUTTON */
 
 .theme-toggle {
     background: #111827;
@@ -2067,5 +2113,32 @@ body.dark-mode .secondary-btn {
 
 body.dark-mode .theme-toggle {
     background: #f8fafc !important;
-    color: #111827 !important;
+    color: #0f172a !important;
+}
+
+/* FOOTER */
+
+body.dark-mode footer {
+    background: #111827 !important;
+    color: #cbd5e1 !important;
+    border-color: #334155 !important;
+}
+
+/* LINKS */
+
+body.dark-mode a {
+    color: #93c5fd;
+}
+
+/* SUCCESS MESSAGE */
+
+body.dark-mode .success-message {
+    background: #052e16 !important;
+    color: #bbf7d0 !important;
+}
+
+/* INVOICE STATUS */
+
+body.dark-mode .invoice-status {
+    border-color: #475569 !important;
 }

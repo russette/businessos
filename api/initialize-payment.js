@@ -1,12 +1,56 @@
 export default async function handler(req, res) {
-    if (req.method !== "POST") {
-        return res.status(405).json({
-            status: false,
-            error: "Method not allowed"
-        });
+
+    // ---------------------------------------------------------
+    // CORS
+    // ---------------------------------------------------------
+
+    res.setHeader(
+        "Access-Control-Allow-Origin",
+        "*"
+    );
+
+    res.setHeader(
+        "Access-Control-Allow-Methods",
+        "POST, OPTIONS"
+    );
+
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type"
+    );
+
+
+    // ---------------------------------------------------------
+    // Handle browser CORS preflight
+    // ---------------------------------------------------------
+
+    if (req.method === "OPTIONS") {
+
+        return res.status(204).end();
+
     }
 
+
+    // ---------------------------------------------------------
+    // Only POST is allowed after preflight
+    // ---------------------------------------------------------
+
+    if (req.method !== "POST") {
+
+        return res.status(405).json({
+
+            status: false,
+
+            error:
+                "Method not allowed"
+
+        });
+
+    }
+
+
     try {
+
         const {
             email,
             amount,
@@ -14,118 +58,194 @@ export default async function handler(req, res) {
             callback_url
         } = req.body || {};
 
+
+        // -----------------------------------------------------
+        // Validate email
+        // -----------------------------------------------------
+
         if (!email) {
+
             return res.status(400).json({
+
                 status: false,
-                error: "Email is required"
+
+                error:
+                    "Email is required"
+
             });
+
         }
 
-        const numericAmount = Number(amount);
+
+        // -----------------------------------------------------
+        // Validate amount
+        // -----------------------------------------------------
+
+        const numericAmount =
+            Number(amount);
+
 
         if (
-            !Number.isFinite(numericAmount) ||
+            !Number.isFinite(
+                numericAmount
+            ) ||
             numericAmount <= 0
         ) {
+
             return res.status(400).json({
+
                 status: false,
-                error: "Invalid payment amount"
+
+                error:
+                    "Invalid payment amount"
+
             });
+
         }
+
+
+        // -----------------------------------------------------
+        // Paystack secret key
+        // -----------------------------------------------------
 
         const secretKey =
             process.env.PAYSTACK_SECRET_KEY;
 
+
         if (!secretKey) {
+
             console.error(
                 "PAYSTACK_SECRET_KEY is missing"
             );
 
             return res.status(500).json({
+
                 status: false,
+
                 error:
                     "PAYSTACK_SECRET_KEY is not configured on Vercel"
+
             });
+
         }
 
-        // BusinessOS sends GHS amounts.
-        // Paystack expects pesewas.
+
+        // -----------------------------------------------------
+        // Convert GHS to pesewas
+        // -----------------------------------------------------
+
         const amountInPesewas =
-            Math.round(numericAmount * 100);
+            Math.round(
+                numericAmount * 100
+            );
+
+
+        // -----------------------------------------------------
+        // Initialize Paystack transaction
+        // -----------------------------------------------------
 
         const paystackResponse =
             await fetch(
                 "https://api.paystack.co/transaction/initialize",
                 {
+
                     method: "POST",
 
                     headers: {
+
                         Authorization:
                             `Bearer ${secretKey}`,
 
                         "Content-Type":
                             "application/json"
+
                     },
 
-                    body: JSON.stringify({
-                        email:
-                            String(email).trim(),
+                    body:
+                        JSON.stringify({
 
-                        amount:
-                            amountInPesewas,
+                            email:
+                                String(email).trim(),
 
-                        currency:
-                            "GHS",
+                            amount:
+                                amountInPesewas,
 
-                        ...(reference
-                            ? {
-                                reference:
-                                    String(reference)
-                            }
-                            : {}),
+                            currency:
+                                "GHS",
 
-                        ...(callback_url
-                            ? {
-                                callback_url
-                            }
-                            : {})
-                    })
+                            ...(reference
+                                ? {
+                                    reference:
+                                        String(reference)
+                                }
+                                : {}),
+
+                            ...(callback_url
+                                ? {
+                                    callback_url
+                                }
+                                : {})
+
+                        })
+
                 }
             );
+
 
         const data =
             await paystackResponse.json();
 
+
         console.log(
             "Paystack initialization:",
             {
-                status: data.status,
-                message: data.message
+                status:
+                    data.status,
+
+                message:
+                    data.message
             }
         );
+
+
+        // -----------------------------------------------------
+        // Paystack rejected request
+        // -----------------------------------------------------
 
         if (
             !paystackResponse.ok ||
             !data.status
         ) {
+
             return res.status(
                 paystackResponse.status || 400
             ).json({
+
                 status: false,
+
                 error:
                     data.message ||
                     "Paystack payment initialization failed"
+
             });
+
         }
 
+
+        // -----------------------------------------------------
+        // Success
+        // -----------------------------------------------------
+
         return res.status(200).json({
+
             status: true,
 
             message:
                 data.message ||
-                "Payment initialized",
+                "Payment initialized successfully",
 
             data: {
+
                 authorization_url:
                     data.data.authorization_url,
 
@@ -134,8 +254,11 @@ export default async function handler(req, res) {
 
                 reference:
                     data.data.reference
+
             }
+
         });
+
 
     } catch (error) {
 
@@ -144,12 +267,17 @@ export default async function handler(req, res) {
             error
         );
 
+
         return res.status(500).json({
+
             status: false,
 
             error:
                 error.message ||
                 "Server error while initializing payment"
+
         });
+
     }
+
 }

@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
-    // Only allow POST requests
     if (req.method !== "POST") {
         return res.status(405).json({
+            status: false,
             error: "Method not allowed"
         });
     }
@@ -12,71 +12,107 @@ export default async function handler(req, res) {
             amount,
             reference,
             callback_url
-        } = req.body;
+        } = req.body || {};
 
-        // Validate required information
-        if (!email || !amount) {
+        if (!email) {
             return res.status(400).json({
-                error: "Email and amount are required"
+                status: false,
+                error: "Email is required"
             });
         }
 
-        // Paystack expects amount in the smallest currency unit
-        // Example: $10.00 = 1000 cents
-        const amountInCents = Math.round(Number(amount) * 100);
+        const numericAmount = Number(amount);
 
-        if (!Number.isFinite(amountInCents) || amountInCents <= 0) {
+        if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
             return res.status(400).json({
+                status: false,
                 error: "Invalid payment amount"
             });
         }
 
-        // Your Paystack SECRET key stays on Vercel.
-        // NEVER put this key inside script.js.
         const secretKey = process.env.PAYSTACK_SECRET_KEY;
 
         if (!secretKey) {
+            console.error("PAYSTACK_SECRET_KEY is missing");
+
             return res.status(500).json({
-                error: "PAYSTACK_SECRET_KEY is not configured"
+                status: false,
+                error: "PAYSTACK_SECRET_KEY is not configured on Vercel"
             });
         }
 
-        const response = await fetch(
+        const amountInPesewas = Math.round(numericAmount * 100);
+
+        const paystackResponse = await fetch(
             "https://api.paystack.co/transaction/initialize",
             {
                 method: "POST",
+
                 headers: {
                     Authorization: `Bearer ${secretKey}`,
                     "Content-Type": "application/json"
                 },
+
                 body: JSON.stringify({
-                    email: email,
-                    amount: amountInCents,
-                    ...(reference ? { reference } : {}),
-                    ...(callback_url ? { callback_url } : {})
+                    email: String(email).trim(),
+                    amount: amountInPesewas,
+                    currency: "GHS",
+
+                    ...(reference
+                        ? { reference: String(reference) }
+                        : {}),
+
+                    ...(callback_url
+                        ? { callback_url }
+                        : {})
                 })
             }
         );
 
-        const data = await response.json();
+        const data = await paystackResponse.json();
 
-        if (!response.ok || !data.status) {
-            return res.status(response.status || 400).json({
-                error: data.message || "Unable to initialize payment"
+        console.log("Paystack response:", {
+            status: data.status,
+            message: data.message
+        });
+
+        if (!paystackResponse.ok || !data.status) {
+            return res.status(
+                paystackResponse.status || 400
+            ).json({
+                status: false,
+                error:
+                    data.message ||
+                    "Paystack payment initialization failed"
             });
         }
 
         return res.status(200).json({
             status: true,
-            message: data.message,
-            data: data.data
+            message: data.message || "Payment initialized",
+            data: {
+                authorization_url:
+                    data.data.authorization_url,
+
+                access_code:
+                    data.data.access_code,
+
+                reference:
+                    data.data.reference
+            }
         });
 
     } catch (error) {
-        console.error("Payment initialization error:", error);
+        console.error(
+            "Payment initialization error:",
+            error
+        );
 
         return res.status(500).json({
-            error: "Server error while initializing payment"
+            status: false,
+            error:
+                error.message ||
+                "Server error while initializing payment"
         });
     }
 }

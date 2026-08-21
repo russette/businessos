@@ -36,9 +36,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================================================
        PAYMENT CONFIGURATION
        ========================================================= */
-
 const PAYMENT_API_URL =
-    "https://businessos-emx2wptew-business-os11.vercel.app";
+    "https://businessos-wine-eight.vercel.app";
 
 const PAYSTACK_PUBLIC_KEY =
     "pk_test_2321844583071969c00a747ba838b337df808a44";

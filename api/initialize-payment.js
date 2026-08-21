@@ -21,29 +21,23 @@ export default async function handler(req, res) {
 
 
     // ---------------------------------------------------------
-    // Handle browser CORS preflight
+    // CORS PREFLIGHT
     // ---------------------------------------------------------
 
     if (req.method === "OPTIONS") {
-
         return res.status(204).end();
-
     }
 
 
     // ---------------------------------------------------------
-    // Only POST is allowed after preflight
+    // ONLY POST
     // ---------------------------------------------------------
 
     if (req.method !== "POST") {
 
         return res.status(405).json({
-
             status: false,
-
-            error:
-                "Method not allowed"
-
+            error: "Method not allowed"
         });
 
     }
@@ -60,52 +54,40 @@ export default async function handler(req, res) {
 
 
         // -----------------------------------------------------
-        // Validate email
+        // VALIDATE EMAIL
         // -----------------------------------------------------
 
         if (!email) {
 
             return res.status(400).json({
-
                 status: false,
-
-                error:
-                    "Email is required"
-
+                error: "Email is required"
             });
 
         }
 
 
         // -----------------------------------------------------
-        // Validate amount
+        // VALIDATE AMOUNT
         // -----------------------------------------------------
 
-        const numericAmount =
-            Number(amount);
-
+        const numericAmount = Number(amount);
 
         if (
-            !Number.isFinite(
-                numericAmount
-            ) ||
+            !Number.isFinite(numericAmount) ||
             numericAmount <= 0
         ) {
 
             return res.status(400).json({
-
                 status: false,
-
-                error:
-                    "Invalid payment amount"
-
+                error: "Invalid payment amount"
             });
 
         }
 
 
         // -----------------------------------------------------
-        // Paystack secret key
+        // PAYSTACK SECRET KEY
         // -----------------------------------------------------
 
         const secretKey =
@@ -119,29 +101,36 @@ export default async function handler(req, res) {
             );
 
             return res.status(500).json({
-
                 status: false,
-
                 error:
                     "PAYSTACK_SECRET_KEY is not configured on Vercel"
-
             });
 
         }
 
 
         // -----------------------------------------------------
-        // Convert GHS to pesewas
+        // CONVERT GHS TO PESEWAS
         // -----------------------------------------------------
 
         const amountInPesewas =
-            Math.round(
-                numericAmount * 100
-            );
+            Math.round(numericAmount * 100);
 
 
         // -----------------------------------------------------
-        // Initialize Paystack transaction
+        // BUSINESSOS CALLBACK URL
+        //
+        // If the frontend doesn't send one, use the
+        // official BusinessOS GitHub Pages URL.
+        // -----------------------------------------------------
+
+        const finalCallbackUrl =
+            callback_url ||
+            "https://russette.github.io/business-os/";
+
+
+        // -----------------------------------------------------
+        // INITIALIZE PAYSTACK TRANSACTION
         // -----------------------------------------------------
 
         const paystackResponse =
@@ -173,16 +162,13 @@ export default async function handler(req, res) {
                             currency:
                                 "GHS",
 
+                            callback_url:
+                                finalCallbackUrl,
+
                             ...(reference
                                 ? {
                                     reference:
                                         String(reference)
-                                }
-                                : {}),
-
-                            ...(callback_url
-                                ? {
-                                    callback_url
                                 }
                                 : {})
 
@@ -191,6 +177,10 @@ export default async function handler(req, res) {
                 }
             );
 
+
+        // -----------------------------------------------------
+        // READ PAYSTACK RESPONSE
+        // -----------------------------------------------------
 
         const data =
             await paystackResponse.json();
@@ -203,13 +193,16 @@ export default async function handler(req, res) {
                     data.status,
 
                 message:
-                    data.message
+                    data.message,
+
+                reference:
+                    data?.data?.reference
             }
         );
 
 
         // -----------------------------------------------------
-        // Paystack rejected request
+        // PAYSTACK ERROR
         // -----------------------------------------------------
 
         if (
@@ -233,7 +226,7 @@ export default async function handler(req, res) {
 
 
         // -----------------------------------------------------
-        // Success
+        // SUCCESS
         // -----------------------------------------------------
 
         return res.status(200).json({

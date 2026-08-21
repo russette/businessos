@@ -3337,18 +3337,22 @@ const PRO_PRICE_GHS =
                             "application/json"
                     },
 
-                    body:
-                        JSON.stringify({
+                  body:
+    JSON.stringify({
 
-                            email:
-                                email.trim(),
+        email:
+            email.trim(),
 
-                            amount:
-                                Number(amountGHS),
+        amount:
+            Number(amountGHS),
 
-                            reference
+        reference,
 
-                        })
+        callback_url:
+            window.location.origin +
+            window.location.pathname
+
+    })
                 }
             );
 

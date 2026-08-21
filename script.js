@@ -3649,177 +3649,573 @@ const PRO_PRICE_GHS =
         };
 
 
-    /* =========================================================
-       PAYMENT RETURN / VERIFICATION
-       ========================================================= */
+  /* =========================================================
+   PAYMENT RETURN / VERIFICATION
+   ========================================================= */
 
-    async function verifyReturnedPayment() {
+async function verifyReturnedPayment() {
 
-        const params =
-            new URLSearchParams(
-                window.location.search
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const reference =
+        params.get("reference") ||
+        params.get("trxref");
+
+    /*
+     * User did not return from Paystack.
+     */
+    if (!reference) {
+        return;
+    }
+
+    console.log(
+        "Paystack reference detected:",
+        reference
+    );
+
+    const pending =
+        JSON.parse(
+            localStorage.getItem(
+                "businessOSPendingPayment"
+            ) || "null"
+        );
+
+    try {
+
+        /*
+         * Make sure our backend exists.
+         */
+        if (!PAYMENT_API_URL) {
+
+            throw new Error(
+                "Payment server is not configured."
             );
-
-
-        const reference =
-            params.get("reference") ||
-            params.get("trxref");
-
-
-        if (!reference) {
-            return;
         }
 
 
-        const pending =
-            JSON.parse(
-                localStorage.getItem(
-                    "businessOSPendingPayment"
-                ) || "null"
+        /*
+         * Verify payment with our Vercel backend.
+         */
+        const response =
+            await fetch(
+                `${PAYMENT_API_URL}/api/verify-payment`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            reference
+                        })
+                }
             );
 
 
+        let result;
+
         try {
 
+            result =
+                await response.json();
+
+        } catch (error) {
+
+            throw new Error(
+                "The payment server returned an invalid response."
+            );
+        }
+
+
+        console.log(
+            "Payment verification response:",
+            result
+        );
+
+
+        /*
+         * Backend returned an HTTP error.
+         */
+        if (!response.ok) {
+
+            throw new Error(
+                result.error ||
+                "Payment verification failed."
+            );
+        }
+
+
+        /*
+         * Backend must confirm success.
+         */
+        if (
+            !result.status ||
+            !result.data
+        ) {
+
+            throw new Error(
+                result.error ||
+                "Paystack verification failed."
+            );
+        }
+
+
+        const payment =
+            result.data;
+
+
+        console.log(
+            "Verified Paystack payment:",
+            payment
+        );
+
+
+        /*
+         * Payment must actually be successful.
+         */
+        if (
+            payment.status !==
+            "success"
+        ) {
+
+            throw new Error(
+                `Payment status is "${payment.status}".`
+            );
+        }
+
+
+        /*
+         * -----------------------------------------------------
+         * BUSINESSOS PRO PAYMENT CHECK
+         * -----------------------------------------------------
+         */
+
+        if (
+            pending?.plan ===
+            "Pro"
+        ) {
+
             /*
-             * Our verify-payment.js expects
-             * a POST request with the reference
-             * in the request body.
+             * Paystack normally returns the amount
+             * in the smallest currency unit.
+             *
+             * GHS 900 = 90000 pesewas.
              */
 
-            const response =
-                await fetch(
-                    `${PAYMENT_API_URL}/api/verify-payment`,
-                    {
+            const expectedAmount =
+                PRO_PRICE_GHS * 100;
 
-                        method: "POST",
 
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-                                reference
-                            })
-                    }
+            const paidAmount =
+                Number(
+                    payment.amount || 0
                 );
 
 
-            let result;
-
-            try {
-
-                result =
-                    await response.json();
-
-            } catch (error) {
-
-                throw new Error(
-                    "The verification server returned an invalid response."
-                );
-            }
-
-
-            if (!response.ok) {
-
-                throw new Error(
-                    result.error ||
-                    "Payment verification failed."
-                );
-            }
-
-
+            /*
+             * Verify the amount.
+             */
             if (
-                !result.status ||
-                !result.data
+                paidAmount !==
+                expectedAmount
             ) {
 
                 throw new Error(
-                    result.error ||
-                    "Payment verification failed."
-                );
-            }
-
-
-            const payment =
-                result.data;
-
-
-            if (
-                payment.status !==
-                "success"
-            ) {
-
-                throw new Error(
-                    "Paystack has not confirmed this payment."
+                    `Payment amount mismatch. Expected GHS ${PRO_PRICE_GHS}, but Paystack returned ${paidAmount / 100}.`
                 );
             }
 
 
             /*
-             * Only after server-side verification
-             * do we activate BusinessOS Pro.
+             * Verify currency.
              */
-
             if (
-                pending?.plan ===
-                "Pro"
+                payment.currency &&
+                payment.currency !== "GHS"
             ) {
 
-                localStorage.setItem(
-                    "businessOSPro",
-                    "true"
+                throw new Error(
+                    "Payment currency does not match GHS."
                 );
             }
 
+
+            /*
+             * ACTIVATE BUSINESSOS PRO
+             */
+            localStorage.setItem(
+                "businessOSPro",
+                "true"
+            );
+
+
+            /*
+             * Store useful subscription information.
+             */
+            localStorage.setItem(
+                "businessOSProPayment",
+                JSON.stringify({
+
+                    reference,
+
+                    email:
+                        pending.email ||
+                        payment.customer?.email ||
+                        "",
+
+                    amount:
+                        PRO_PRICE_GHS,
+
+                    currency:
+                        "GHS",
+
+                    product:
+                        "BusinessOS Pro",
+
+                    paidAt:
+                        payment.paid_at ||
+                        new Date().toISOString()
+
+                })
+            );
+
+
+            /*
+             * Remove pending payment.
+             */
+            localStorage.removeItem(
+                "businessOSPendingPayment"
+            );
+
+
+            /*
+             * Show success message.
+             */
+            showPaymentSuccess(
+                "BusinessOS Pro Activated!",
+                `Your GHS ${PRO_PRICE_GHS} payment was successfully verified by Paystack.`,
+                reference
+            );
+
+
+            /*
+             * Refresh the BusinessOS interface.
+             */
+            updateProUI();
+        }
+
+
+        /*
+         * General BusinessOS payment.
+         */
+        else {
 
             localStorage.removeItem(
                 "businessOSPendingPayment"
             );
 
 
-            alert(
-                "🎉 PAYMENT SUCCESSFUL!\n\n" +
-                "Your payment has been verified by Paystack.\n\n" +
-                "Reference:\n" +
+            showPaymentSuccess(
+                "Payment Successful!",
+                "Your payment has been successfully verified by Paystack.",
                 reference
             );
-
-
-            /*
-             * Remove payment parameters
-             * from the browser URL.
-             */
-
-            window.history.replaceState(
-                {},
-                document.title,
-                window.location.pathname +
-                window.location.hash
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Payment verification error:",
-                error
-            );
-
-
-            alert(
-                "Payment verification failed.\n\n" +
-                (
-                    error.message ||
-                    "Do not pay again yet. Check the transaction status."
-                )
-            );
         }
+
+
+        /*
+         * Remove ?reference=... from URL.
+         */
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname +
+            window.location.hash
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Payment verification error:",
+            error
+        );
+
+
+        /*
+         * Show a visible error instead of
+         * silently failing.
+         */
+        showPaymentError(
+            error.message ||
+            "Payment verification failed."
+        );
+    }
+}
+
+
+/* =========================================================
+   PAYMENT SUCCESS UI
+   ========================================================= */
+
+function showPaymentSuccess(
+    title,
+    message,
+    reference
+) {
+
+    /*
+     * Remove existing payment message.
+     */
+    document
+        .getElementById(
+            "businessOSPaymentMessage"
+        )
+        ?.remove();
+
+
+    const messageBox =
+        document.createElement("div");
+
+
+    messageBox.id =
+        "businessOSPaymentMessage";
+
+
+    messageBox.innerHTML = `
+
+        <div class="payment-success-overlay">
+
+            <div class="payment-success-card">
+
+                <div class="payment-success-icon">
+                    ✓
+                </div>
+
+                <h2>
+                    ${safe(title)}
+                </h2>
+
+                <p>
+                    ${safe(message)}
+                </p>
+
+                <div class="payment-reference">
+
+                    <strong>
+                        Payment Reference
+                    </strong>
+
+                    <span>
+                        ${safe(reference)}
+                    </span>
+
+                </div>
+
+                <button
+                    id="closePaymentSuccess"
+                    class="primary-btn">
+
+                    Continue to BusinessOS
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    document.body.appendChild(
+        messageBox
+    );
+
+
+    document
+        .getElementById(
+            "closePaymentSuccess"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                messageBox.remove();
+
+            }
+        );
+}
+
+
+/* =========================================================
+   PAYMENT ERROR UI
+   ========================================================= */
+
+function showPaymentError(
+    message
+) {
+
+    document
+        .getElementById(
+            "businessOSPaymentMessage"
+        )
+        ?.remove();
+
+
+    const messageBox =
+        document.createElement("div");
+
+
+    messageBox.id =
+        "businessOSPaymentMessage";
+
+
+    messageBox.innerHTML = `
+
+        <div class="payment-error-overlay">
+
+            <div class="payment-error-card">
+
+                <div class="payment-error-icon">
+                    !
+                </div>
+
+                <h2>
+                    Payment Verification Failed
+                </h2>
+
+                <p>
+                    ${safe(message)}
+                </p>
+
+                <p>
+                    <strong>
+                        Do not pay again yet.
+                    </strong>
+                    Check your Paystack transaction
+                    before trying again.
+                </p>
+
+                <button
+                    id="closePaymentError"
+                    class="primary-btn">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    `;
+
+
+    document.body.appendChild(
+        messageBox
+    );
+
+
+    document
+        .getElementById(
+            "closePaymentError"
+        )
+        ?.addEventListener(
+            "click",
+            () => {
+
+                messageBox.remove();
+
+            }
+        );
+}
+
+
+/* =========================================================
+   BUSINESSOS PRO UI
+   ========================================================= */
+
+function updateProUI() {
+
+    const isPro =
+        localStorage.getItem(
+            "businessOSPro"
+        ) === "true";
+
+
+    if (!isPro) {
+        return;
     }
 
 
+    /*
+     * Upgrade button.
+     */
+    const upgradeButton =
+        document.getElementById(
+            "upgradeProBtn"
+        );
+
+
+    if (upgradeButton) {
+
+        upgradeButton.textContent =
+            "✓ BusinessOS Pro Active";
+
+        upgradeButton.disabled =
+            true;
+
+        upgradeButton.classList.add(
+            "pro-active"
+        );
+    }
+
+
+    /*
+     * Any element using
+     * data-pro-status will be updated.
+     */
+    document
+        .querySelectorAll(
+            "[data-pro-status]"
+        )
+        .forEach(element => {
+
+            element.textContent =
+                "✓ Pro Active";
+
+            element.classList.add(
+                "pro-active"
+            );
+        });
+
+
+    /*
+     * Any element using
+     * #proStatus will be updated.
+     */
+    const proStatus =
+        document.getElementById(
+            "proStatus"
+        );
+
+
+    if (proStatus) {
+
+        proStatus.textContent =
+            "✓ BusinessOS Pro Active";
+
+        proStatus.classList.add(
+            "pro-active"
+        );
+    }
+}
     /* =========================================================
        RENDER EVERYTHING
        ========================================================= */
@@ -3846,20 +4242,22 @@ const PRO_PRICE_GHS =
        INITIALIZATION
        ========================================================= */
 
-    setupNavigation();
+  setupNavigation();
 
-    setupSearch();
+setupSearch();
 
-    setupModalBehavior();
+setupModalBehavior();
 
-    setupDarkMode();
+setupDarkMode();
 
-    setupContactForm();
+setupContactForm();
 
-    setupBusinessContactLinks();
+setupBusinessContactLinks();
 
-    renderAll();
+renderAll();
 
-    verifyReturnedPayment();
+updateProUI();
+
+verifyReturnedPayment();
 
 });

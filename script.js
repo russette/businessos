@@ -37,16 +37,15 @@ document.addEventListener("DOMContentLoaded", () => {
        PAYMENT CONFIGURATION
        ========================================================= */
 
-    const PAYMENT_API_URL =
-        "https://businessos-wine-eight.vercel.app";
+const PAYMENT_API_URL =
+    "https://businessos-emx2wptew-business-os11.vercel.app";
 
-    const PAYSTACK_PUBLIC_KEY =
-        "pk_test_2321844583071969c00a747ba838b337df808a44";
+const PAYSTACK_PUBLIC_KEY =
+    "pk_test_2321844583071969c00a747ba838b337df808a44";
 
-    const PAYSTACK_CURRENCY = "GHS";
+const PAYSTACK_CURRENCY = "GHS";
 
-    const PRO_PRICE_GHS = 900;
-
+const PRO_PRICE_GHS = 900;
 
     /* =========================================================
        HELPERS

@@ -42,10 +42,11 @@ const PAYMENT_API_URL =
 const PAYSTACK_PUBLIC_KEY =
     "pk_test_2321844583071969c00a747ba838b337df808a44";
 
-const PAYSTACK_CURRENCY = "GHS";
+const PAYSTACK_CURRENCY =
+    "GHS";
 
-const PRO_PRICE_GHS = 900;
-
+const PRO_PRICE_GHS =
+    900;
     /* =========================================================
        HELPERS
        ========================================================= */

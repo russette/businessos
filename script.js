@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================================================
        BUSINESSOS
        COMPLETE BUSINESS MANAGEMENT SYSTEM
-       REAL MONEY / PAYSTACK + VERCEL BACKEND
+       PAYSTACK + VERCEL BACKEND
        ========================================================= */
 
 
@@ -34,31 +34,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       REAL PAYMENT CONFIGURATION
-       =========================================================
-
-       IMPORTANT:
-
-       1. Replace YOUR_VERCEL_URL with your actual Vercel URL.
-
-       Example:
-       https://business-os-api.vercel.app
-
-       2. Replace YOUR_LIVE_PUBLIC_KEY with your actual
-          Paystack LIVE public key.
-
-       It starts with:
-
-       pk_live_...
-
-       NEVER put sk_live_... in this file.
+       PAYMENT CONFIGURATION
        ========================================================= */
 
     const PAYMENT_API_URL =
-        "https://YOUR_VERCEL_URL.vercel.app";
+        "https://businessos-wine-eight.vercel.app";
 
     const PAYSTACK_PUBLIC_KEY =
-        "pk_live_YOUR_LIVE_PUBLIC_KEY";
+        "pk_test_2321844583071969c00a747ba838b337df808a44";
 
     const PAYSTACK_CURRENCY = "GHS";
 
@@ -3275,7 +3258,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       REAL PAYMENT CONNECTION
+       PAYMENT BACKEND
        ========================================================= */
 
     function paymentBackendReady() {
@@ -3288,7 +3271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ) {
 
             alert(
-                "Your Vercel payment URL has not been added yet."
+                "Your Vercel payment URL has not been configured."
             );
 
             return false;
@@ -3297,16 +3280,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (
             !PAYSTACK_PUBLIC_KEY ||
-            PAYSTACK_PUBLIC_KEY.includes(
-                "YOUR_LIVE_PUBLIC_KEY"
-            ) ||
-            !PAYSTACK_PUBLIC_KEY.startsWith(
-                "pk_live_"
-            )
+            !PAYSTACK_PUBLIC_KEY.startsWith("pk_")
         ) {
 
             alert(
-                "Your Paystack LIVE public key has not been added yet."
+                "Your Paystack public key has not been configured."
             );
 
             return false;
@@ -3318,7 +3296,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       INITIALIZE REAL PAYSTACK PAYMENT
+       INITIALIZE PAYSTACK PAYMENT
        ========================================================= */
 
     async function initializeRealPayment({
@@ -3336,14 +3314,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         const reference =
-            createReference(
-                "BOS"
-            );
+            createReference("BOS");
 
+
+        /*
+         * IMPORTANT:
+         *
+         * We send the amount as GHS.
+         *
+         * Our Vercel backend converts the amount
+         * to the smallest currency unit.
+         */
 
         const response =
             await fetch(
-                `${PAYMENT_API_URL}/api/paystack/initialize`,
+                `${PAYMENT_API_URL}/api/initialize-payment`,
                 {
 
                     method: "POST",
@@ -3360,53 +3345,56 @@ document.addEventListener("DOMContentLoaded", () => {
                                 email.trim(),
 
                             amount:
-                                Math.round(
-                                    Number(amountGHS) *
-                                    100
-                                ),
+                                Number(amountGHS),
 
-                            currency:
-                                "GHS",
-
-                            reference,
-
-                            metadata: {
-
-                                product,
-
-                                plan,
-
-                                source:
-                                    "BusinessOS",
-
-                                reference
-
-                            }
+                            reference
 
                         })
                 }
             );
 
 
-        const result =
-            await response.json();
+        let result;
 
+        try {
 
-        if (
-            !response.ok ||
-            !result.success
-        ) {
+            result =
+                await response.json();
+
+        } catch (error) {
 
             throw new Error(
-                result.message ||
+                "The payment server returned an invalid response."
+            );
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.error ||
                 "Unable to initialize payment."
             );
         }
 
 
         if (
-            !result.authorization_url
+            !result.status ||
+            !result.data
         ) {
+
+            throw new Error(
+                result.error ||
+                "Payment initialization failed."
+            );
+        }
+
+
+        const authorizationUrl =
+            result.data.authorization_url;
+
+
+        if (!authorizationUrl) {
 
             throw new Error(
                 "Paystack did not return a checkout URL."
@@ -3423,7 +3411,7 @@ document.addEventListener("DOMContentLoaded", () => {
             JSON.stringify({
 
                 reference:
-                    result.reference ||
+                    result.data.reference ||
                     reference,
 
                 email:
@@ -3444,16 +3432,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /*
-         * Redirect user to REAL Paystack checkout.
+         * Redirect to Paystack checkout.
          */
 
         window.location.href =
-            result.authorization_url;
+            authorizationUrl;
     }
 
 
     /* =========================================================
-       GENERAL REAL-MONEY PAYMENT
+       GENERAL PAYMENT
        ========================================================= */
 
     window.payWithPaystack =
@@ -3527,7 +3515,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } catch (error) {
 
                 console.error(
-                    "Real payment error:",
+                    "Payment initialization error:",
                     error
                 );
 
@@ -3544,7 +3532,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       BUSINESSOS PRO — REAL MONEY
+       BUSINESSOS PRO
        ========================================================= */
 
     const upgradeProBtn =
@@ -3582,7 +3570,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const confirmed =
                     confirm(
-                        `BusinessOS Pro costs ${ghcMoney(PRO_PRICE_GHS)}.\n\nContinue to secure Paystack checkout?`
+                        `BusinessOS Pro costs ${ghcMoney(PRO_PRICE_GHS)}.\n\nContinue to Paystack checkout?`
                     );
 
 
@@ -3694,30 +3682,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
+            /*
+             * Our verify-payment.js expects
+             * a POST request with the reference
+             * in the request body.
+             */
+
             const response =
                 await fetch(
-                    `${PAYMENT_API_URL}/api/paystack/verify?reference=${encodeURIComponent(reference)}`
+                    `${PAYMENT_API_URL}/api/verify-payment`,
+                    {
+
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                reference
+                            })
+                    }
                 );
 
 
-            const result =
-                await response.json();
+            let result;
 
+            try {
 
-            if (
-                !response.ok ||
-                !result.success
-            ) {
+                result =
+                    await response.json();
+
+            } catch (error) {
 
                 throw new Error(
-                    result.message ||
+                    "The verification server returned an invalid response."
+                );
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.error ||
                     "Payment verification failed."
                 );
             }
 
 
             if (
-                result.status !==
+                !result.status ||
+                !result.data
+            ) {
+
+                throw new Error(
+                    result.error ||
+                    "Payment verification failed."
+                );
+            }
+
+
+            const payment =
+                result.data;
+
+
+            if (
+                payment.status !==
                 "success"
             ) {
 
@@ -3729,7 +3761,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             /*
              * Only after server-side verification
-             * do we mark the payment successful.
+             * do we activate BusinessOS Pro.
              */
 
             if (
@@ -3758,7 +3790,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             /*
-             * Remove payment parameters from URL.
+             * Remove payment parameters
+             * from the browser URL.
              */
 
             window.history.replaceState(
@@ -3779,7 +3812,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             alert(
                 "Payment verification failed.\n\n" +
-                "Do not pay again yet. Check your Paystack transaction status."
+                (
+                    error.message ||
+                    "Do not pay again yet. Check the transaction status."
+                )
             );
         }
     }

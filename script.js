@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================================================
        BUSINESSOS
        COMPLETE BUSINESS MANAGEMENT SYSTEM
+       REAL MONEY / PAYSTACK + VERCEL BACKEND
        ========================================================= */
+
 
     /* =========================================================
        DATA
@@ -23,22 +25,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       BUSINESSOS CONTACT DETAILS
+       BUSINESS CONTACT DETAILS
        ========================================================= */
 
     const BUSINESS_EMAIL = "crarcss@gmail.com";
-
     const BUSINESS_PHONE = "0205346707";
-
     const WHATSAPP_NUMBER = "233205346707";
 
 
     /* =========================================================
-       PAYSTACK CONFIGURATION
+       REAL PAYMENT CONFIGURATION
+       =========================================================
+
+       IMPORTANT:
+
+       1. Replace YOUR_VERCEL_URL with your actual Vercel URL.
+
+       Example:
+       https://business-os-api.vercel.app
+
+       2. Replace YOUR_LIVE_PUBLIC_KEY with your actual
+          Paystack LIVE public key.
+
+       It starts with:
+
+       pk_live_...
+
+       NEVER put sk_live_... in this file.
        ========================================================= */
 
+    const PAYMENT_API_URL =
+        "https://YOUR_VERCEL_URL.vercel.app";
+
     const PAYSTACK_PUBLIC_KEY =
-        "pk_test_2321844583071969c00a747ba838b337df808a44";
+        "pk_live_YOUR_LIVE_PUBLIC_KEY";
 
     const PAYSTACK_CURRENCY = "GHS";
 
@@ -104,7 +124,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function text(id, value) {
 
-        const element = document.getElementById(id);
+        const element =
+            document.getElementById(id);
 
         if (element) {
             element.textContent = value;
@@ -139,10 +160,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const year = today.getFullYear();
 
         const month =
-            String(today.getMonth() + 1).padStart(2, "0");
+            String(today.getMonth() + 1)
+                .padStart(2, "0");
 
         const day =
-            String(today.getDate()).padStart(2, "0");
+            String(today.getDate())
+                .padStart(2, "0");
 
         return `${year}-${month}-${day}`;
     }
@@ -181,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       CONTACT / COMMUNICATION
+       CONTACT
        ========================================================= */
 
     window.openBusinessEmail = function () {
@@ -207,12 +230,6 @@ document.addEventListener("DOMContentLoaded", () => {
             `tel:${BUSINESS_PHONE}`;
     };
 
-
-    /*
-     * Automatically fix common contact links in the HTML.
-     * This means your HTML does not have to contain the
-     * correct email/WhatsApp number manually.
-     */
 
     function setupBusinessContactLinks() {
 
@@ -245,51 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 link.href =
                     `tel:${BUSINESS_PHONE}`;
-            });
-
-
-        /*
-         * Replace placeholder email text if it exists.
-         */
-
-        document
-            .querySelectorAll("*")
-            .forEach(element => {
-
-                if (
-                    element.children.length === 0 &&
-                    element.textContent
-                ) {
-
-                    const currentText =
-                        element.textContent;
-
-                    if (
-                        currentText.includes(
-                            "your-email@example.com"
-                        )
-                    ) {
-
-                        element.textContent =
-                            currentText.replace(
-                                "your-email@example.com",
-                                BUSINESS_EMAIL
-                            );
-                    }
-
-                    if (
-                        currentText.includes(
-                            "your-email@"
-                        )
-                    ) {
-
-                        element.textContent =
-                            currentText.replace(
-                                /your-email@[^\s<]+/gi,
-                                BUSINESS_EMAIL
-                            );
-                    }
-                }
             });
     }
 
@@ -365,20 +337,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const emailBody =
                 encodeURIComponent(
                     "Hello BusinessOS,\n\n" +
-
                     "Name: " +
                     name +
                     "\n" +
-
                     "Email: " +
                     email +
                     "\n\n" +
-
                     "Message:\n" +
-
                     message +
                     "\n\n" +
-
                     "Sent from BusinessOS."
                 );
 
@@ -399,7 +366,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "contactForm"
             );
-
 
         if (form) {
 
@@ -449,12 +415,9 @@ document.addEventListener("DOMContentLoaded", () => {
                             return;
                         }
 
-                        const targetId =
-                            href.substring(1);
-
                         const target =
                             document.getElementById(
-                                targetId
+                                href.substring(1)
                             );
 
                         if (target) {
@@ -491,20 +454,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             list.innerHTML = `
                 <div class="empty-state">
-
-                    <div class="empty-icon">
-                        📦
-                    </div>
-
-                    <h3>
-                        No products yet
-                    </h3>
-
+                    <div class="empty-icon">📦</div>
+                    <h3>No products yet</h3>
                     <p>
                         Add your first product to start
                         managing your inventory.
                     </p>
-
                 </div>
             `;
 
@@ -530,24 +485,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
             list.innerHTML = `
                 <div class="empty-state">
-
-                    <div class="empty-icon">
-                        🔍
-                    </div>
-
-                    <h3>
-                        No products found
-                    </h3>
-
-                    <p>
-                        Try a different search.
-                    </p>
-
+                    <div class="empty-icon">🔍</div>
+                    <h3>No products found</h3>
+                    <p>Try a different search.</p>
                 </div>
             `;
 
             return;
         }
+
 
         list.innerHTML =
             items.map(product => {
@@ -645,18 +591,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-
                 if (title) {
                     title.textContent =
                         "Edit Product";
                 }
 
-
                 if (hidden) {
                     hidden.value =
                         product.id;
                 }
-
 
                 const nameInput =
                     document.getElementById(
@@ -673,18 +616,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         "productStock"
                     );
 
-
                 if (nameInput) {
                     nameInput.value =
                         product.name || "";
                 }
 
-
                 if (priceInput) {
                     priceInput.value =
                         product.price ?? "";
                 }
-
 
                 if (stockInput) {
                     stockInput.value =
@@ -702,7 +642,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     hidden.value = "";
                 }
             }
-
 
             modal.classList.add("active");
         };
@@ -732,12 +671,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
-
                 const productId =
                     document.getElementById(
                         "productId"
                     )?.value;
-
 
                 const name =
                     document
@@ -747,14 +684,12 @@ document.addEventListener("DOMContentLoaded", () => {
                         ?.value
                         .trim();
 
-
                 const price =
                     Number(
                         document.getElementById(
                             "productPrice"
                         )?.value
                     );
-
 
                 const stock =
                     Number(
@@ -798,17 +733,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                 String(productId)
                         );
 
-
                     if (product) {
 
-                        product.name =
-                            name;
-
-                        product.price =
-                            price;
-
-                        product.stock =
-                            stock;
+                        product.name = name;
+                        product.price = price;
+                        product.stock = stock;
 
                         product.updatedAt =
                             new Date().toISOString();
@@ -837,9 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 saveData();
-
                 renderAll();
-
                 closeProductModal();
             }
         );
@@ -848,48 +775,27 @@ document.addEventListener("DOMContentLoaded", () => {
     window.deleteProduct =
         function(productId) {
 
-            const usedInSales =
+            const used =
                 sales.some(
                     sale =>
-                        String(
-                            sale.productId
-                        ) ===
+                        String(sale.productId) ===
                         String(productId)
-                );
-
-
-            const usedInInvoices =
+                ) ||
                 invoices.some(
                     invoice =>
-                        String(
-                            invoice.productId
-                        ) ===
+                        String(invoice.productId) ===
                         String(productId)
                 );
 
 
             if (
-                usedInSales ||
-                usedInInvoices
+                !confirm(
+                    used
+                        ? "This product is connected to existing records. Delete it anyway?"
+                        : "Delete this product?"
+                )
             ) {
-
-                if (
-                    !confirm(
-                        "This product is connected to existing sales or invoices. Delete it anyway?"
-                    )
-                ) {
-                    return;
-                }
-
-            } else {
-
-                if (
-                    !confirm(
-                        "Delete this product?"
-                    )
-                ) {
-                    return;
-                }
+                return;
             }
 
 
@@ -902,7 +808,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             saveData();
-
             renderAll();
         };
 
@@ -935,11 +840,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="empty-state">
 
                     <div class="empty-icon">
-                        ${
-                            customers.length
-                                ? "🔍"
-                                : "👥"
-                        }
+                        ${customers.length ? "🔍" : "👥"}
                     </div>
 
                     <h3>
@@ -954,7 +855,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         ${
                             customers.length
                                 ? "Try a different search."
-                                : "Add your first customer to start building your customer list."
+                                : "Add your first customer."
                         }
                     </p>
 
@@ -977,23 +878,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         ${
                             customer.email
-                                ? `
-                                    <p>
-                                        📧
-                                        ${safe(customer.email)}
-                                    </p>
-                                `
+                                ? `<p>📧 ${safe(customer.email)}</p>`
                                 : ""
                         }
 
                         ${
                             customer.phone
-                                ? `
-                                    <p>
-                                        📱
-                                        ${safe(customer.phone)}
-                                    </p>
-                                `
+                                ? `<p>📱 ${safe(customer.phone)}</p>`
                                 : ""
                         }
 
@@ -1042,7 +933,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 event.preventDefault();
 
-
                 const name =
                     document
                         .getElementById(
@@ -1051,7 +941,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         ?.value
                         .trim();
 
-
                 const email =
                     document
                         .getElementById(
@@ -1059,7 +948,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         )
                         ?.value
                         .trim();
-
 
                 const phone =
                     document
@@ -1110,9 +998,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 saveData();
-
                 renderAll();
-
                 closeCustomerModal();
             }
         );
@@ -1121,35 +1007,12 @@ document.addEventListener("DOMContentLoaded", () => {
     window.deleteCustomer =
         function(customerId) {
 
-            const hasInvoices =
-                invoices.some(
-                    invoice =>
-                        String(
-                            invoice.customerId
-                        ) ===
-                        String(customerId)
-                );
-
-
-            if (hasInvoices) {
-
-                if (
-                    !confirm(
-                        "This customer has invoices. Delete the customer anyway?"
-                    )
-                ) {
-                    return;
-                }
-
-            } else {
-
-                if (
-                    !confirm(
-                        "Delete this customer?"
-                    )
-                ) {
-                    return;
-                }
+            if (
+                !confirm(
+                    "Delete this customer?"
+                )
+            ) {
+                return;
             }
 
 
@@ -1162,7 +1025,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             saveData();
-
             renderAll();
         };
 
@@ -1178,7 +1040,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById(
                     "saleProduct"
                 );
-
 
             if (!select) {
                 return;
@@ -1196,7 +1057,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const stock =
                     Number(product.stock) || 0;
-
 
                 select.innerHTML += `
                     <option
@@ -1217,14 +1077,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     "saleQuantity"
                 );
 
-
             if (quantity) {
                 quantity.value = 1;
             }
 
 
             updateSaleTotal();
-
 
             document
                 .getElementById("saleModal")
@@ -1247,7 +1105,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById(
                 "saleProduct"
             )?.value;
-
 
         const quantity =
             Number(
@@ -1337,9 +1194,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 if (
-                    !Number.isFinite(quantity) ||
-                    quantity <= 0 ||
-                    !Number.isInteger(quantity)
+                    !Number.isInteger(quantity) ||
+                    quantity <= 0
                 ) {
 
                     alert(
@@ -1394,9 +1250,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 saveData();
-
                 renderAll();
-
                 closeSaleModal();
 
 
@@ -1414,7 +1268,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "salesList"
             );
 
-
         if (!list) {
             return;
         }
@@ -1426,11 +1279,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="empty-state">
 
                     <div class="empty-icon">
-                        ${
-                            sales.length
-                                ? "🔍"
-                                : "🧾"
-                        }
+                        ${sales.length ? "🔍" : "🧾"}
                     </div>
 
                     <h3>
@@ -1442,11 +1291,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </h3>
 
                     <p>
-                        ${
-                            sales.length
-                                ? "Try a different search."
-                                : "Your recorded sales will appear here."
-                        }
+                        Your recorded sales will appear here.
                     </p>
 
                 </div>
@@ -1485,11 +1330,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                     <p>
                                         Quantity:
-                                        ${
-                                            Number(
-                                                sale.quantity
-                                            ) || 0
-                                        }
+                                        ${Number(
+                                            sale.quantity
+                                        ) || 0}
                                     </p>
 
                                     <p>
@@ -1505,9 +1348,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div>
 
                                 <strong>
-                                    ${money(
-                                        sale.total
-                                    )}
+                                    ${money(sale.total)}
                                 </strong>
 
                                 <br>
@@ -1551,11 +1392,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             if (!sale) {
-
-                alert(
-                    "Sale not found."
-                );
-
                 return;
             }
 
@@ -1571,12 +1407,8 @@ document.addEventListener("DOMContentLoaded", () => {
             if (product) {
 
                 product.stock =
-                    Number(
-                        product.stock || 0
-                    ) +
-                    Number(
-                        sale.quantity || 0
-                    );
+                    Number(product.stock || 0) +
+                    Number(sale.quantity || 0);
             }
 
 
@@ -1589,7 +1421,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             saveData();
-
             renderAll();
 
 
@@ -1622,9 +1453,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "invoiceNumber"
             );
 
-
         if (number) {
-
             number.value =
                 generateInvoiceNumber();
         }
@@ -1635,36 +1464,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 "invoiceDueDate"
             );
 
-
         if (dueDate) {
 
-            const date =
-                new Date();
-
+            const date = new Date();
 
             date.setDate(
                 date.getDate() + 7
             );
 
-
-            const year =
-                date.getFullYear();
-
-
-            const month =
-                String(
-                    date.getMonth() + 1
-                ).padStart(2, "0");
-
-
-            const day =
-                String(
-                    date.getDate()
-                ).padStart(2, "0");
-
-
             dueDate.value =
-                `${year}-${month}-${day}`;
+                date.toISOString()
+                    .split("T")[0];
         }
     }
 
@@ -1676,7 +1486,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById(
                     "invoiceCustomer"
                 );
-
 
             const productSelect =
                 document.getElementById(
@@ -1739,7 +1548,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             setInvoiceDefaults();
-
             updateInvoicePreview();
 
 
@@ -1765,7 +1573,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 "invoiceProduct"
             )?.value;
 
-
         const quantity =
             Number(
                 document.getElementById(
@@ -1773,14 +1580,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 )?.value
             ) || 0;
 
-
         const discount =
             Number(
                 document.getElementById(
                     "invoiceDiscount"
                 )?.value
             ) || 0;
-
 
         const taxRate =
             Number(
@@ -1814,23 +1619,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const taxableAmount =
             Math.max(
-                subtotal -
-                validDiscount,
+                subtotal - validDiscount,
                 0
             );
 
 
         const tax =
             taxableAmount *
-            (
-                Math.max(taxRate, 0) /
-                100
-            );
+            Math.max(taxRate, 0) /
+            100;
 
 
         const total =
-            taxableAmount +
-            tax;
+            taxableAmount + tax;
 
 
         text(
@@ -1838,19 +1639,15 @@ document.addEventListener("DOMContentLoaded", () => {
             money(subtotal)
         );
 
-
         text(
             "invoiceDiscountDisplay",
-            "-" +
-            money(validDiscount)
+            "-" + money(validDiscount)
         );
-
 
         text(
             "invoiceTaxDisplay",
             money(tax)
         );
-
 
         text(
             "invoiceTotal",
@@ -1985,9 +1782,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 if (
-                    !Number.isFinite(quantity) ||
-                    quantity <= 0 ||
-                    !Number.isInteger(quantity)
+                    !Number.isInteger(quantity) ||
+                    quantity <= 0
                 ) {
 
                     alert(
@@ -2008,19 +1804,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                if (
-                    discount < 0 ||
-                    taxRate < 0
-                ) {
-
-                    alert(
-                        "Discount and tax cannot be negative."
-                    );
-
-                    return;
-                }
-
-
                 const subtotal =
                     Number(product.price) *
                     quantity;
@@ -2028,7 +1811,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const validDiscount =
                     Math.min(
-                        discount,
+                        Math.max(discount, 0),
                         subtotal
                     );
 
@@ -2043,12 +1826,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const tax =
                     taxableAmount *
-                    (taxRate / 100);
+                    Math.max(taxRate, 0) /
+                    100;
 
 
                 const total =
-                    taxableAmount +
-                    tax;
+                    taxableAmount + tax;
 
 
                 invoices.push({
@@ -2096,9 +1879,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 saveData();
-
                 renderAll();
-
                 closeInvoiceModal();
 
 
@@ -2109,15 +1890,12 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-    function renderInvoices(
-        items = invoices
-    ) {
+    function renderInvoices(items = invoices) {
 
         const list =
             document.getElementById(
                 "invoicesList"
             );
-
 
         if (!list) {
             return;
@@ -2130,11 +1908,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="empty-state">
 
                     <div class="empty-icon">
-                        ${
-                            invoices.length
-                                ? "🔍"
-                                : "🧾"
-                        }
+                        ${invoices.length ? "🔍" : "🧾"}
                     </div>
 
                     <h3>
@@ -2146,11 +1920,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </h3>
 
                     <p>
-                        ${
-                            invoices.length
-                                ? "Try a different search or filter."
-                                : "Create your first invoice for a customer."
-                        }
+                        Create your first invoice.
                     </p>
 
                 </div>
@@ -2164,18 +1934,13 @@ document.addEventListener("DOMContentLoaded", () => {
             [...items]
                 .sort(
                     (a, b) =>
-                        new Date(
-                            b.createdAt
-                        ) -
-                        new Date(
-                            a.createdAt
-                        )
+                        new Date(b.createdAt) -
+                        new Date(a.createdAt)
                 )
                 .map(invoice => {
 
                     const paid =
-                        invoice.status ===
-                        "paid";
+                        invoice.status === "paid";
 
 
                     return `
@@ -2205,11 +1970,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                         "Unknown Product"
                                     )}
                                     ×
-                                    ${
-                                        Number(
-                                            invoice.quantity
-                                        ) || 0
-                                    }
+                                    ${Number(
+                                        invoice.quantity
+                                    ) || 0}
                                 </p>
 
                                 <p>
@@ -2224,9 +1987,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <div class="invoice-card-right">
 
                                 <strong>
-                                    ${money(
-                                        invoice.total
-                                    )}
+                                    ${money(invoice.total)}
                                 </strong>
 
                                 <span
@@ -2244,8 +2005,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                 </span>
 
-                                <div
-                                    class="invoice-actions">
+                                <div class="invoice-actions">
 
                                     <button
                                         class="secondary-btn"
@@ -2302,7 +2062,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             saveData();
-
             renderAll();
         };
 
@@ -2328,13 +2087,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             saveData();
-
             renderAll();
         };
 
 
     /* =========================================================
-       DASHBOARD STATS
+       DASHBOARD
        ========================================================= */
 
     function updateDashboardStats() {
@@ -2343,9 +2101,7 @@ document.addEventListener("DOMContentLoaded", () => {
             sales.reduce(
                 (sum, sale) =>
                     sum +
-                    Number(
-                        sale.total || 0
-                    ),
+                    Number(sale.total || 0),
                 0
             );
 
@@ -2362,12 +2118,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         return false;
                     }
 
-
                     const date =
-                        new Date(
-                            sale.date
-                        );
-
+                        new Date(sale.date);
 
                     if (
                         Number.isNaN(
@@ -2377,25 +2129,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         return false;
                     }
 
-
-                    const year =
-                        date.getFullYear();
-
-
-                    const month =
-                        String(
-                            date.getMonth() + 1
-                        ).padStart(2, "0");
-
-
-                    const day =
-                        String(
-                            date.getDate()
-                        ).padStart(2, "0");
-
-
                     return (
-                        `${year}-${month}-${day}` ===
+                        date.toISOString()
+                            .slice(0, 10) ===
                         today
                     );
 
@@ -2413,74 +2149,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const paidInvoices =
             invoices.filter(
                 invoice =>
-                    invoice.status ===
-                    "paid"
+                    invoice.status === "paid"
             ).length;
 
 
         const unpaidInvoices =
             invoices.filter(
                 invoice =>
-                    invoice.status !==
-                    "paid"
+                    invoice.status !== "paid"
             ).length;
 
 
         const lowStock =
             products.filter(
                 product =>
-                    Number(
-                        product.stock
-                    ) <= 5
+                    Number(product.stock) <= 5
             ).length;
 
 
-        text(
-            "totalRevenue",
-            money(totalRevenue)
-        );
-
-
-        text(
-            "todayRevenue",
-            money(todayRevenue)
-        );
-
-
-        text(
-            "totalProducts",
-            products.length
-        );
-
-
-        text(
-            "totalCustomers",
-            customers.length
-        );
-
-
-        text(
-            "totalSales",
-            sales.length
-        );
-
-
-        text(
-            "paidInvoices",
-            paidInvoices
-        );
-
-
-        text(
-            "unpaidInvoices",
-            unpaidInvoices
-        );
-
-
-        text(
-            "lowStockProducts",
-            lowStock
-        );
+        text("totalRevenue", money(totalRevenue));
+        text("todayRevenue", money(todayRevenue));
+        text("totalProducts", products.length);
+        text("totalCustomers", customers.length);
+        text("totalSales", sales.length);
+        text("paidInvoices", paidInvoices);
+        text("unpaidInvoices", unpaidInvoices);
+        text("lowStockProducts", lowStock);
     }
 
 
@@ -2494,17 +2188,14 @@ document.addEventListener("DOMContentLoaded", () => {
             sales.reduce(
                 (sum, sale) =>
                     sum +
-                    Number(
-                        sale.total || 0
-                    ),
+                    Number(sale.total || 0),
                 0
             );
 
 
         const averageSale =
             sales.length
-                ? totalRevenue /
-                  sales.length
+                ? totalRevenue / sales.length
                 : 0;
 
 
@@ -2512,9 +2203,7 @@ document.addEventListener("DOMContentLoaded", () => {
             products.reduce(
                 (sum, product) =>
                     sum +
-                    Number(
-                        product.stock || 0
-                    ),
+                    Number(product.stock || 0),
                 0
             );
 
@@ -2523,14 +2212,8 @@ document.addEventListener("DOMContentLoaded", () => {
             products.reduce(
                 (sum, product) =>
                     sum +
-                    (
-                        Number(
-                            product.price || 0
-                        ) *
-                        Number(
-                            product.stock || 0
-                        )
-                    ),
+                    Number(product.price || 0) *
+                    Number(product.stock || 0),
                 0
             );
 
@@ -2540,12 +2223,10 @@ document.addEventListener("DOMContentLoaded", () => {
             money(averageSale)
         );
 
-
         text(
             "unitsInStock",
             unitsInStock
         );
-
 
         text(
             "inventoryValue",
@@ -2564,24 +2245,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             productSales[name] =
-                (
-                    productSales[name] ||
-                    0
-                ) +
-                Number(
-                    sale.quantity || 0
-                );
+                (productSales[name] || 0) +
+                Number(sale.quantity || 0);
         });
 
 
         const bestSeller =
-            Object.entries(
-                productSales
-            )
-            .sort(
-                (a, b) =>
-                    b[1] - a[1]
-            )[0];
+            Object.entries(productSales)
+                .sort(
+                    (a, b) =>
+                        b[1] - a[1]
+                )[0];
 
 
         text(
@@ -2596,9 +2270,7 @@ document.addEventListener("DOMContentLoaded", () => {
             sales.reduce(
                 (sum, sale) =>
                     sum +
-                    Number(
-                        sale.quantity || 0
-                    ),
+                    Number(sale.quantity || 0),
                 0
             );
 
@@ -2609,8 +2281,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ...sales.map(
                         sale =>
                             Number(
-                                sale.total ||
-                                0
+                                sale.total || 0
                             )
                     )
                 )
@@ -2622,18 +2293,15 @@ document.addEventListener("DOMContentLoaded", () => {
             money(totalRevenue)
         );
 
-
         text(
             "unitsSold",
             unitsSold
         );
 
-
         text(
             "overviewAverage",
             money(averageSale)
         );
-
 
         text(
             "largestSale",
@@ -2642,9 +2310,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         renderTopProducts();
-
         renderInventoryAlerts();
-
         renderRevenueChart();
     }
 
@@ -2689,14 +2355,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             totals[name] =
-                (
-                    totals[name] ||
-                    0
-                ) +
-                Number(
-                    sale.quantity ||
-                    0
-                );
+                (totals[name] || 0) +
+                Number(sale.quantity || 0);
         });
 
 
@@ -2712,10 +2372,7 @@ document.addEventListener("DOMContentLoaded", () => {
         container.innerHTML =
             ranking
                 .map(
-                    (
-                        [name, quantity],
-                        index
-                    ) => {
+                    ([name, quantity], index) => {
 
                         return `
                             <div
@@ -2761,9 +2418,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const lowStockProducts =
             products.filter(
                 product =>
-                    Number(
-                        product.stock
-                    ) <= 5
+                    Number(product.stock) <= 5
             );
 
 
@@ -2783,26 +2438,17 @@ document.addEventListener("DOMContentLoaded", () => {
             lowStockProducts
                 .map(product => {
 
-                    const stock =
-                        Number(
-                            product.stock
-                        ) || 0;
-
-
                     return `
-                        <div
-                            class="inventory-alert">
+                        <div class="inventory-alert">
 
                             <strong>
                                 ⚠️
-                                ${safe(
-                                    product.name
-                                )}
+                                ${safe(product.name)}
                             </strong>
 
                             <span>
                                 Only
-                                ${stock}
+                                ${Number(product.stock) || 0}
                                 left
                             </span>
 
@@ -2849,9 +2495,7 @@ document.addEventListener("DOMContentLoaded", () => {
         sales.forEach(sale => {
 
             const date =
-                new Date(
-                    sale.date
-                );
+                new Date(sale.date);
 
 
             if (
@@ -2874,13 +2518,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             daily[key] =
-                (
-                    daily[key] ||
-                    0
-                ) +
-                Number(
-                    sale.total || 0
-                );
+                (daily[key] || 0) +
+                Number(sale.total || 0);
         });
 
 
@@ -2892,8 +2531,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const max =
             Math.max(
                 ...entries.map(
-                    entry =>
-                        entry[1]
+                    entry => entry[1]
                 ),
                 1
             );
@@ -2967,11 +2605,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type:
-                    "sale",
-
-                icon:
-                    "🛒",
+                icon: "🛒",
 
                 title:
                     `Sale: ${
@@ -2980,9 +2614,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }`,
 
                 detail:
-                    `${money(
-                        sale.total
-                    )} • ${
+                    `${money(sale.total)} • ${
                         sale.quantity
                     } unit(s)`,
 
@@ -2996,16 +2628,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type:
-                    "invoice",
-
-                icon:
-                    "🧾",
+                icon: "🧾",
 
                 title:
                     `Invoice ${
-                        invoice.invoiceNumber ||
-                        ""
+                        invoice.invoiceNumber || ""
                     }`,
 
                 detail:
@@ -3013,9 +2640,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         invoice.customerName ||
                         "Customer"
                     } • ${
-                        money(
-                            invoice.total
-                        )
+                        money(invoice.total)
                     }`,
 
                 date:
@@ -3028,11 +2653,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type:
-                    "customer",
-
-                icon:
-                    "👤",
+                icon: "👤",
 
                 title:
                     `Customer added: ${
@@ -3045,8 +2666,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "New customer",
 
                 date:
-                    customer.createdAt ||
-                    new Date().toISOString()
+                    customer.createdAt
             });
         });
 
@@ -3055,11 +2675,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             activities.push({
 
-                type:
-                    "product",
-
-                icon:
-                    "📦",
+                icon: "📦",
 
                 title:
                     `Product: ${
@@ -3067,15 +2683,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     }`,
 
                 detail:
-                    `${money(
-                        product.price
-                    )} • Stock: ${
+                    `${money(product.price)} • Stock: ${
                         product.stock
                     }`,
 
                 date:
-                    product.createdAt ||
-                    new Date().toISOString()
+                    product.createdAt
             });
         });
 
@@ -3121,40 +2734,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 .map(activity => {
 
                     return `
-                        <div
-                            class="activity-item">
+                        <div class="activity-item">
 
-                            <div
-                                class="activity-icon">
-
+                            <div class="activity-icon">
                                 ${activity.icon}
-
                             </div>
 
-                            <div
-                                class="activity-info">
+                            <div class="activity-info">
 
                                 <strong>
-                                    ${safe(
-                                        activity.title
-                                    )}
+                                    ${safe(activity.title)}
                                 </strong>
 
                                 <p>
-                                    ${safe(
-                                        activity.detail
-                                    )}
+                                    ${safe(activity.detail)}
                                 </p>
 
                             </div>
 
-                            <span
-                                class="activity-date">
-
-                                ${formatDate(
-                                    activity.date
-                                )}
-
+                            <span class="activity-date">
+                                ${formatDate(activity.date)}
                             </span>
 
                         </div>
@@ -3177,35 +2776,28 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (productSearch) {
+        productSearch?.addEventListener(
+            "input",
+            () => {
 
-            productSearch.addEventListener(
-                "input",
-                () => {
-
-                    const query =
-                        productSearch.value
-                            .trim()
-                            .toLowerCase();
+                const query =
+                    productSearch.value
+                        .trim()
+                        .toLowerCase();
 
 
-                    const filtered =
-                        products.filter(
-                            product =>
-                                String(
-                                    product.name
-                                )
-                                .toLowerCase()
-                                .includes(query)
-                        );
-
-
-                    renderProductResults(
-                        filtered
-                    );
-                }
-            );
-        }
+                renderProductResults(
+                    products.filter(
+                        product =>
+                            String(
+                                product.name
+                            )
+                            .toLowerCase()
+                            .includes(query)
+                    )
+                );
+            }
+        );
 
 
         const customerSearch =
@@ -3214,50 +2806,41 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (customerSearch) {
+        customerSearch?.addEventListener(
+            "input",
+            () => {
 
-            customerSearch.addEventListener(
-                "input",
-                () => {
-
-                    const query =
-                        customerSearch.value
-                            .trim()
-                            .toLowerCase();
+                const query =
+                    customerSearch.value
+                        .trim()
+                        .toLowerCase();
 
 
-                    const filtered =
-                        customers.filter(
-                            customer =>
+                renderCustomerResults(
+                    customers.filter(
+                        customer =>
 
-                                String(
-                                    customer.name
-                                )
-                                .toLowerCase()
-                                .includes(query) ||
+                            String(
+                                customer.name
+                            )
+                            .toLowerCase()
+                            .includes(query) ||
 
-                                String(
-                                    customer.email ||
-                                    ""
-                                )
-                                .toLowerCase()
-                                .includes(query) ||
+                            String(
+                                customer.email || ""
+                            )
+                            .toLowerCase()
+                            .includes(query) ||
 
-                                String(
-                                    customer.phone ||
-                                    ""
-                                )
-                                .toLowerCase()
-                                .includes(query)
-                        );
-
-
-                    renderCustomerResults(
-                        filtered
-                    );
-                }
-            );
-        }
+                            String(
+                                customer.phone || ""
+                            )
+                            .toLowerCase()
+                            .includes(query)
+                    )
+                );
+            }
+        );
 
 
         const salesSearch =
@@ -3266,43 +2849,34 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (salesSearch) {
+        salesSearch?.addEventListener(
+            "input",
+            () => {
 
-            salesSearch.addEventListener(
-                "input",
-                () => {
-
-                    const query =
-                        salesSearch.value
-                            .trim()
-                            .toLowerCase();
+                const query =
+                    salesSearch.value
+                        .trim()
+                        .toLowerCase();
 
 
-                    const filtered =
-                        sales.filter(
-                            sale =>
+                renderSales(
+                    sales.filter(
+                        sale =>
 
-                                String(
-                                    sale.productName ||
-                                    ""
-                                )
-                                .toLowerCase()
-                                .includes(query) ||
+                            String(
+                                sale.productName || ""
+                            )
+                            .toLowerCase()
+                            .includes(query) ||
 
-                                String(
-                                    sale.total ||
-                                    ""
-                                )
-                                .includes(query)
-                        );
-
-
-                    renderSales(
-                        filtered
-                    );
-                }
-            );
-        }
+                            String(
+                                sale.total || ""
+                            )
+                            .includes(query)
+                    )
+                );
+            }
+        );
 
 
         const invoiceSearch =
@@ -3322,8 +2896,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const query =
                 invoiceSearch?.value
                     .trim()
-                    .toLowerCase() ||
-                "";
+                    .toLowerCase() || "";
 
 
             const status =
@@ -3331,72 +2904,60 @@ document.addEventListener("DOMContentLoaded", () => {
                 "all";
 
 
-            const filtered =
-                invoices.filter(
-                    invoice => {
-
-                        const matchesSearch =
-                            !query ||
-
-                            String(
-                                invoice.invoiceNumber ||
-                                ""
-                            )
-                            .toLowerCase()
-                            .includes(query) ||
-
-                            String(
-                                invoice.customerName ||
-                                ""
-                            )
-                            .toLowerCase()
-                            .includes(query) ||
-
-                            String(
-                                invoice.productName ||
-                                ""
-                            )
-                            .toLowerCase()
-                            .includes(query);
-
-
-                        const matchesStatus =
-                            status === "all" ||
-                            invoice.status ===
-                            status;
-
-
-                        return (
-                            matchesSearch &&
-                            matchesStatus
-                        );
-                    }
-                );
-
-
             renderInvoices(
-                filtered
+                invoices.filter(invoice => {
+
+                    const matchesSearch =
+                        !query ||
+
+                        String(
+                            invoice.invoiceNumber || ""
+                        )
+                        .toLowerCase()
+                        .includes(query) ||
+
+                        String(
+                            invoice.customerName || ""
+                        )
+                        .toLowerCase()
+                        .includes(query) ||
+
+                        String(
+                            invoice.productName || ""
+                        )
+                        .toLowerCase()
+                        .includes(query);
+
+
+                    const matchesStatus =
+                        status === "all" ||
+                        invoice.status === status;
+
+
+                    return (
+                        matchesSearch &&
+                        matchesStatus
+                    );
+                })
             );
         }
 
 
-        invoiceSearch
-            ?.addEventListener(
-                "input",
-                filterInvoices
-            );
+        invoiceSearch?.addEventListener(
+            "input",
+            filterInvoices
+        );
 
 
-        invoiceStatusFilter
-            ?.addEventListener(
-                "change",
-                filterInvoices
-            );
+        invoiceStatusFilter?.addEventListener(
+            "change",
+            filterInvoices
+        );
     }
 
 
     /* =========================================================
-       BACKUP / RESTORE
+       BACKUP
        ========================================================= */
 
     window.exportBusinessData =
@@ -3404,21 +2965,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const backup = {
 
-                app:
-                    "BusinessOS",
+                app: "BusinessOS",
 
-                version:
-                    "2.0",
+                version: "3.0",
 
                 exportedAt:
                     new Date().toISOString(),
 
                 products,
-
                 customers,
-
                 sales,
-
                 invoices
             };
 
@@ -3440,39 +2996,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             const url =
-                URL.createObjectURL(
-                    blob
-                );
+                URL.createObjectURL(blob);
 
 
             const link =
-                document.createElement(
-                    "a"
-                );
+                document.createElement("a");
 
 
-            link.href =
-                url;
+            link.href = url;
 
 
             link.download =
                 `businessos-backup-${todayString()}.json`;
 
 
-            document.body.appendChild(
-                link
-            );
-
+            document.body.appendChild(link);
 
             link.click();
 
-
             link.remove();
 
-
-            URL.revokeObjectURL(
-                url
-            );
+            URL.revokeObjectURL(url);
         };
 
 
@@ -3501,33 +3045,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         if (
                             !data ||
-                            typeof data !==
-                            "object"
+                            !Array.isArray(data.products) ||
+                            !Array.isArray(data.customers) ||
+                            !Array.isArray(data.sales) ||
+                            !Array.isArray(data.invoices)
                         ) {
 
                             throw new Error(
                                 "Invalid backup"
-                            );
-                        }
-
-
-                        if (
-                            !Array.isArray(
-                                data.products
-                            ) ||
-                            !Array.isArray(
-                                data.customers
-                            ) ||
-                            !Array.isArray(
-                                data.sales
-                            ) ||
-                            !Array.isArray(
-                                data.invoices
-                            )
-                        ) {
-
-                            throw new Error(
-                                "Invalid backup structure"
                             );
                         }
 
@@ -3541,24 +3066,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
 
 
-                        products =
-                            data.products;
-
-
-                        customers =
-                            data.customers;
-
-
-                        sales =
-                            data.sales;
-
-
-                        invoices =
-                            data.invoices;
+                        products = data.products;
+                        customers = data.customers;
+                        sales = data.sales;
+                        invoices = data.invoices;
 
 
                         saveData();
-
                         renderAll();
 
 
@@ -3568,59 +3082,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     } catch (error) {
 
-                        console.error(
-                            error
-                        );
-
+                        console.error(error);
 
                         alert(
-                            "Could not import this backup. Please select a valid BusinessOS JSON backup."
+                            "Could not import this backup."
                         );
                     }
                 };
 
 
-            reader.readAsText(
-                file
-            );
+            reader.readAsText(file);
         };
 
 
     /* =========================================================
-       RESET BUSINESS DATA
+       RESET
        ========================================================= */
 
     window.resetBusinessData =
         function() {
 
-            const firstConfirm =
-                confirm(
+            if (
+                !confirm(
                     "Are you sure you want to reset ALL BusinessOS data?"
-                );
-
-
-            if (!firstConfirm) {
+                )
+            ) {
                 return;
             }
 
 
-            const secondConfirm =
-                confirm(
-                    "This will permanently delete your products, customers, sales and invoices from this browser. Continue?"
-                );
-
-
-            if (!secondConfirm) {
+            if (
+                !confirm(
+                    "This permanently deletes your BusinessOS browser data. Continue?"
+                )
+            ) {
                 return;
             }
 
 
             products = [];
-
             customers = [];
-
             sales = [];
-
             invoices = [];
 
 
@@ -3628,16 +3130,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 "businessOSProducts"
             );
 
-
             localStorage.removeItem(
                 "businessOSCustomers"
             );
 
-
             localStorage.removeItem(
                 "businessOSSales"
             );
-
 
             localStorage.removeItem(
                 "businessOSInvoices"
@@ -3654,7 +3153,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       MODAL BEHAVIOR
+       MODALS
        ========================================================= */
 
     function setupModalBehavior() {
@@ -3668,8 +3167,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     event => {
 
                         if (
-                            event.target ===
-                            modal
+                            event.target === modal
                         ) {
 
                             modal.classList.remove(
@@ -3686,8 +3184,7 @@ document.addEventListener("DOMContentLoaded", () => {
             event => {
 
                 if (
-                    event.key !==
-                    "Escape"
+                    event.key !== "Escape"
                 ) {
                     return;
                 }
@@ -3731,15 +3228,11 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
 
-        if (
-            savedTheme ===
-            "dark"
-        ) {
+        if (savedTheme === "dark") {
 
             document.body.classList.add(
                 "dark-mode"
             );
-
 
             themeToggle.textContent =
                 "☀️ Light Mode";
@@ -3760,7 +3253,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-                const darkMode =
+                const dark =
                     document.body.classList.contains(
                         "dark-mode"
                     );
@@ -3768,14 +3261,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 localStorage.setItem(
                     "businessOSTheme",
-                    darkMode
-                        ? "dark"
-                        : "light"
+                    dark ? "dark" : "light"
                 );
 
 
                 themeToggle.textContent =
-                    darkMode
+                    dark
                         ? "☀️ Light Mode"
                         : "🌙 Dark Mode";
             }
@@ -3784,28 +3275,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       PAYSTACK LOADER CHECK
+       REAL PAYMENT CONNECTION
        ========================================================= */
 
-    function paystackReady() {
+    function paymentBackendReady() {
 
         if (
-            typeof PaystackPop ===
-            "undefined"
+            !PAYMENT_API_URL ||
+            PAYMENT_API_URL.includes(
+                "YOUR_VERCEL_URL"
+            )
         ) {
 
             alert(
-                "Paystack could not be loaded.\n\n" +
-                "Make sure the Paystack script is included " +
-                "before script.js, then refresh the page."
+                "Your Vercel payment URL has not been added yet."
             );
 
+            return false;
+        }
 
-            console.error(
-                "PaystackPop is undefined. " +
-                "Load Paystack inline.js before script.js."
+
+        if (
+            !PAYSTACK_PUBLIC_KEY ||
+            PAYSTACK_PUBLIC_KEY.includes(
+                "YOUR_LIVE_PUBLIC_KEY"
+            ) ||
+            !PAYSTACK_PUBLIC_KEY.startsWith(
+                "pk_live_"
+            )
+        ) {
+
+            alert(
+                "Your Paystack LIVE public key has not been added yet."
             );
-
 
             return false;
         }
@@ -3816,11 +3318,146 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       PAYSTACK PAYMENT
+       INITIALIZE REAL PAYSTACK PAYMENT
+       ========================================================= */
+
+    async function initializeRealPayment({
+
+        email,
+        amountGHS,
+        product,
+        plan = null
+
+    }) {
+
+        if (!paymentBackendReady()) {
+            return;
+        }
+
+
+        const reference =
+            createReference(
+                "BOS"
+            );
+
+
+        const response =
+            await fetch(
+                `${PAYMENT_API_URL}/api/paystack/initialize`,
+                {
+
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            email:
+                                email.trim(),
+
+                            amount:
+                                Math.round(
+                                    Number(amountGHS) *
+                                    100
+                                ),
+
+                            currency:
+                                "GHS",
+
+                            reference,
+
+                            metadata: {
+
+                                product,
+
+                                plan,
+
+                                source:
+                                    "BusinessOS",
+
+                                reference
+
+                            }
+
+                        })
+                }
+            );
+
+
+        const result =
+            await response.json();
+
+
+        if (
+            !response.ok ||
+            !result.success
+        ) {
+
+            throw new Error(
+                result.message ||
+                "Unable to initialize payment."
+            );
+        }
+
+
+        if (
+            !result.authorization_url
+        ) {
+
+            throw new Error(
+                "Paystack did not return a checkout URL."
+            );
+        }
+
+
+        /*
+         * Save pending payment information.
+         */
+
+        localStorage.setItem(
+            "businessOSPendingPayment",
+            JSON.stringify({
+
+                reference:
+                    result.reference ||
+                    reference,
+
+                email:
+                    email.trim(),
+
+                amount:
+                    Number(amountGHS),
+
+                product,
+
+                plan,
+
+                startedAt:
+                    new Date().toISOString()
+
+            })
+        );
+
+
+        /*
+         * Redirect user to REAL Paystack checkout.
+         */
+
+        window.location.href =
+            result.authorization_url;
+    }
+
+
+    /* =========================================================
+       GENERAL REAL-MONEY PAYMENT
        ========================================================= */
 
     window.payWithPaystack =
-        function() {
+        async function() {
 
             const email =
                 prompt(
@@ -3850,17 +3487,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             if (
-                amountInput ===
-                null
+                amountInput === null
             ) {
                 return;
             }
 
 
             const amount =
-                Number(
-                    amountInput
-                );
+                Number(amountInput);
 
 
             if (
@@ -3876,128 +3510,41 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
-            if (!paystackReady()) {
-                return;
-            }
-
-
             try {
 
-                const paystack =
-                    new PaystackPop();
+                await initializeRealPayment({
 
+                    email,
 
-                paystack.newTransaction({
+                    amountGHS:
+                        amount,
 
-                    key:
-                        PAYSTACK_PUBLIC_KEY,
-
-                    email:
-                        email.trim(),
-
-                    amount:
-                        Math.round(
-                            amount * 100
-                        ),
-
-                    currency:
-                        PAYSTACK_CURRENCY,
-
-                    ref:
-                        createReference(
-                            "BOS-PAY"
-                        ),
-
-                    metadata: {
-
-                        product:
-                            "BusinessOS Payment",
-
-                        source:
-                            "BusinessOS Dashboard",
-
-                        currency:
-                            "GHS"
-                    },
-
-
-                    onLoad:
-                        function(response) {
-
-                            console.log(
-                                "Paystack loaded:",
-                                response
-                            );
-                        },
-
-
-                    onSuccess:
-                        function(transaction) {
-
-                            console.log(
-                                "Paystack payment successful:",
-                                transaction
-                            );
-
-
-                            alert(
-                                "🎉 Payment successful!\n\n" +
-                                "Amount: " +
-                                ghcMoney(amount) +
-                                "\n\n" +
-                                "Reference: " +
-                                transaction.reference
-                            );
-                        },
-
-
-                    onCancel:
-                        function() {
-
-                            alert(
-                                "Payment cancelled."
-                            );
-                        },
-
-
-                    onError:
-                        function(error) {
-
-                            console.error(
-                                "Paystack error:",
-                                error
-                            );
-
-
-                            alert(
-                                "Payment failed:\n\n" +
-                                (
-                                    error?.message ||
-                                    "The payment could not be completed."
-                                )
-                            );
-                        }
+                    product:
+                        "BusinessOS Payment"
 
                 });
 
             } catch (error) {
 
                 console.error(
-                    "Could not start Paystack:",
+                    "Real payment error:",
                     error
                 );
 
 
                 alert(
-                    "Could not start Paystack.\n\n" +
-                    "Please refresh the page and try again."
+                    "Payment could not be started.\n\n" +
+                    (
+                        error.message ||
+                        "Please try again."
+                    )
                 );
             }
         };
 
 
     /* =========================================================
-       BUSINESSOS PRO
+       BUSINESSOS PRO — REAL MONEY
        ========================================================= */
 
     const upgradeProBtn =
@@ -4010,7 +3557,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         upgradeProBtn.addEventListener(
             "click",
-            () => {
+            async () => {
 
                 const email =
                     prompt(
@@ -4033,14 +3580,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                if (!paystackReady()) {
-                    return;
-                }
-
-
                 const confirmed =
                     confirm(
-                        `BusinessOS Pro costs ${ghcMoney(PRO_PRICE_GHS)} for this payment.\n\nContinue to Paystack?`
+                        `BusinessOS Pro costs ${ghcMoney(PRO_PRICE_GHS)}.\n\nContinue to secure Paystack checkout?`
                     );
 
 
@@ -4051,128 +3593,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 try {
 
-                    const paystack =
-                        new PaystackPop();
+                    await initializeRealPayment({
 
+                        email,
 
-                    paystack.newTransaction({
+                        amountGHS:
+                            PRO_PRICE_GHS,
 
-                        key:
-                            PAYSTACK_PUBLIC_KEY,
+                        product:
+                            "BusinessOS Pro",
 
-                        email:
-                            email.trim(),
-
-                        amount:
-                            Math.round(
-                                PRO_PRICE_GHS *
-                                100
-                            ),
-
-                        currency:
-                            PAYSTACK_CURRENCY,
-
-                        ref:
-                            createReference(
-                                "BOS-PRO"
-                            ),
-
-
-                        metadata: {
-
-                            product:
-                                "BusinessOS Pro",
-
-                            plan:
-                                "Pro",
-
-                            source:
-                                "BusinessOS",
-
-                            currency:
-                                "GHS"
-                        },
-
-
-                        onLoad:
-                            function(response) {
-
-                                console.log(
-                                    "BusinessOS Pro payment loaded:",
-                                    response
-                                );
-                            },
-
-
-                        onSuccess:
-                            function(transaction) {
-
-                                console.log(
-                                    "BusinessOS Pro payment successful:",
-                                    transaction
-                                );
-
-
-                                localStorage.setItem(
-                                    "businessOSPro",
-                                    "true"
-                                );
-
-
-                                alert(
-                                    "🎉 Payment successful!\n\n" +
-                                    "Welcome to BusinessOS Pro!\n\n" +
-                                    "Amount paid: " +
-                                    ghcMoney(
-                                        PRO_PRICE_GHS
-                                    ) +
-                                    "\n\n" +
-                                    "Reference: " +
-                                    transaction.reference
-                                );
-                            },
-
-
-                        onCancel:
-                            function() {
-
-                                alert(
-                                    "Payment cancelled."
-                                );
-                            },
-
-
-                        onError:
-                            function(error) {
-
-                                console.error(
-                                    "Pro payment error:",
-                                    error
-                                );
-
-
-                                alert(
-                                    "Payment failed:\n\n" +
-                                    (
-                                        error?.message ||
-                                        "Unknown payment error."
-                                    )
-                                );
-                            }
+                        plan:
+                            "Pro"
 
                     });
 
                 } catch (error) {
 
                     console.error(
-                        "Paystack initialization error:",
+                        "BusinessOS Pro payment error:",
                         error
                     );
 
 
                     alert(
-                        "Could not start Paystack.\n\n" +
-                        "Please refresh the page and try again."
+                        "Could not start BusinessOS Pro payment.\n\n" +
+                        (
+                            error.message ||
+                            "Please try again."
+                        )
                     );
                 }
 
@@ -4182,7 +3631,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       PRICING FALLBACK BUTTONS
+       PRICING BUTTONS
        ========================================================= */
 
     window.startProPlan =
@@ -4211,6 +3660,129 @@ document.addEventListener("DOMContentLoaded", () => {
                 "advanced reports and priority support."
             );
         };
+
+
+    /* =========================================================
+       PAYMENT RETURN / VERIFICATION
+       ========================================================= */
+
+    async function verifyReturnedPayment() {
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+
+        const reference =
+            params.get("reference") ||
+            params.get("trxref");
+
+
+        if (!reference) {
+            return;
+        }
+
+
+        const pending =
+            JSON.parse(
+                localStorage.getItem(
+                    "businessOSPendingPayment"
+                ) || "null"
+            );
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${PAYMENT_API_URL}/api/paystack/verify?reference=${encodeURIComponent(reference)}`
+                );
+
+
+            const result =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+
+                throw new Error(
+                    result.message ||
+                    "Payment verification failed."
+                );
+            }
+
+
+            if (
+                result.status !==
+                "success"
+            ) {
+
+                throw new Error(
+                    "Paystack has not confirmed this payment."
+                );
+            }
+
+
+            /*
+             * Only after server-side verification
+             * do we mark the payment successful.
+             */
+
+            if (
+                pending?.plan ===
+                "Pro"
+            ) {
+
+                localStorage.setItem(
+                    "businessOSPro",
+                    "true"
+                );
+            }
+
+
+            localStorage.removeItem(
+                "businessOSPendingPayment"
+            );
+
+
+            alert(
+                "🎉 PAYMENT SUCCESSFUL!\n\n" +
+                "Your payment has been verified by Paystack.\n\n" +
+                "Reference:\n" +
+                reference
+            );
+
+
+            /*
+             * Remove payment parameters from URL.
+             */
+
+            window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname +
+                window.location.hash
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Payment verification error:",
+                error
+            );
+
+
+            alert(
+                "Payment verification failed.\n\n" +
+                "Do not pay again yet. Check your Paystack transaction status."
+            );
+        }
+    }
 
 
     /* =========================================================
@@ -4252,5 +3824,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupBusinessContactLinks();
 
     renderAll();
+
+    verifyReturnedPayment();
 
 });

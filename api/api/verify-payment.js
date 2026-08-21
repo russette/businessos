@@ -1,8 +1,8 @@
 export default async function handler(req, res) {
 
-    // ---------------------------------------------------------
+    // =========================================================
     // CORS
-    // ---------------------------------------------------------
+    // =========================================================
 
     res.setHeader(
         "Access-Control-Allow-Origin",
@@ -20,20 +20,18 @@ export default async function handler(req, res) {
     );
 
 
-    // ---------------------------------------------------------
-    // Handle CORS preflight
-    // ---------------------------------------------------------
+    // =========================================================
+    // OPTIONS
+    // =========================================================
 
     if (req.method === "OPTIONS") {
-
         return res.status(204).end();
-
     }
 
 
-    // ---------------------------------------------------------
-    // Only POST allowed
-    // ---------------------------------------------------------
+    // =========================================================
+    // POST ONLY
+    // =========================================================
 
     if (req.method !== "POST") {
 
@@ -45,20 +43,19 @@ export default async function handler(req, res) {
                 "Method not allowed"
 
         });
-
     }
 
 
     try {
 
+        // =====================================================
+        // GET REFERENCE
+        // =====================================================
+
         const {
             reference
         } = req.body || {};
 
-
-        // -----------------------------------------------------
-        // Validate reference
-        // -----------------------------------------------------
 
         if (!reference) {
 
@@ -70,13 +67,12 @@ export default async function handler(req, res) {
                     "Payment reference is required"
 
             });
-
         }
 
 
-        // -----------------------------------------------------
-        // Secret key
-        // -----------------------------------------------------
+        // =====================================================
+        // PAYSTACK SECRET KEY
+        // =====================================================
 
         const secretKey =
             process.env.PAYSTACK_SECRET_KEY;
@@ -96,63 +92,58 @@ export default async function handler(req, res) {
                     "PAYSTACK_SECRET_KEY is not configured on Vercel"
 
             });
-
         }
 
 
-        // -----------------------------------------------------
-        // Verify transaction with Paystack
-        // -----------------------------------------------------
+        // =====================================================
+        // VERIFY WITH PAYSTACK
+        // =====================================================
 
         const paystackResponse =
             await fetch(
-
-                `https://api.paystack.co/transaction/verify/${encodeURIComponent(
-                    reference
-                )}`,
-
+                `https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`,
                 {
-
                     method: "GET",
 
                     headers: {
-
                         Authorization:
                             `Bearer ${secretKey}`,
 
                         "Content-Type":
                             "application/json"
-
                     }
-
                 }
-
             );
 
 
-        const data =
+        const paystackResult =
             await paystackResponse.json();
 
 
         console.log(
             "Paystack verification:",
             {
+                httpStatus:
+                    paystackResponse.status,
+
                 status:
-                    data.status,
+                    paystackResult.status,
 
                 message:
-                    data.message
+                    paystackResult.message,
+
+                reference
             }
         );
 
 
-        // -----------------------------------------------------
-        // Paystack verification failed
-        // -----------------------------------------------------
+        // =====================================================
+        // PAYSTACK API ERROR
+        // =====================================================
 
         if (
             !paystackResponse.ok ||
-            !data.status
+            !paystackResult.status
         ) {
 
             return res.status(
@@ -162,21 +153,58 @@ export default async function handler(req, res) {
                 status: false,
 
                 error:
-                    data.message ||
+                    paystackResult.message ||
                     "Unable to verify payment"
 
             });
-
         }
 
 
+        // =====================================================
+        // VERIFIED PAYMENT
+        // =====================================================
+
         const payment =
-            data.data;
+            paystackResult.data;
 
 
-        // -----------------------------------------------------
-        // Return verified payment
-        // -----------------------------------------------------
+        if (!payment) {
+
+            return res.status(400).json({
+
+                status: false,
+
+                error:
+                    "Paystack returned no transaction data"
+
+            });
+        }
+
+
+        console.log(
+            "Verified transaction:",
+            {
+                reference:
+                    payment.reference,
+
+                status:
+                    payment.status,
+
+                amount:
+                    payment.amount,
+
+                currency:
+                    payment.currency,
+
+                customer:
+                    payment.customer?.email
+            }
+        );
+
+
+        // =====================================================
+        // RETURN VERIFIED PAYMENT
+        // =====================================================
 
         return res.status(200).json({
 
@@ -227,7 +255,5 @@ export default async function handler(req, res) {
                 "Server error while verifying payment"
 
         });
-
     }
-
 }

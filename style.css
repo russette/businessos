@@ -96,18 +96,35 @@ a {
 }
 
 .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
     color: #0f172a;
 
-    font-size: 25px;
+    font-size: 22px;
     font-weight: 900;
 
-    letter-spacing: -1.5px;
+    letter-spacing: -1px;
 
     white-space: nowrap;
 }
 
+.logo strong {
+    font-weight: 900;
+}
+
 .logo span {
-    color: #2563eb;
+    padding-left: 10px;
+
+    color: #64748b;
+
+    border-left: 1px solid #cbd5e1;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    letter-spacing: 0;
 }
 
 nav {

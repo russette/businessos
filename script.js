@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================================
-       BUSINESSOS
+       PATRIODX
        COMPLETE BUSINESS MANAGEMENT SYSTEM
        PAYSTACK + VERCEL BACKEND
        ========================================================= */
@@ -311,14 +311,14 @@ const PRO_PRICE_GHS =
 
             const emailSubject =
                 encodeURIComponent(
-                    "BusinessOS Contact: " +
+                    "PATRIODX Contact: " +
                     subject
                 );
 
 
             const emailBody =
                 encodeURIComponent(
-                    "Hello BusinessOS,\n\n" +
+                    "Hello PATRIODX,\n\n" +
                     "Name: " +
                     name +
                     "\n" +
@@ -328,7 +328,7 @@ const PRO_PRICE_GHS =
                     "Message:\n" +
                     message +
                     "\n\n" +
-                    "Sent from BusinessOS."
+                    "Sent from PATRIODX."
                 );
 
 
@@ -2947,7 +2947,7 @@ const PRO_PRICE_GHS =
 
             const backup = {
 
-                app: "BusinessOS",
+                app: "PATRIODX",
 
                 version: "3.0",
 
@@ -2989,7 +2989,7 @@ const PRO_PRICE_GHS =
 
 
             link.download =
-                `businessos-backup-${todayString()}.json`;
+                `patriodx-backup-${todayString()}.json`;
 
 
             document.body.appendChild(link);
@@ -3041,7 +3041,7 @@ const PRO_PRICE_GHS =
 
                         if (
                             !confirm(
-                                "Importing this backup will replace your current BusinessOS data. Continue?"
+                                "Importing this backup will replace your current PATRIODX data. Continue?"
                             )
                         ) {
                             return;
@@ -3086,7 +3086,7 @@ const PRO_PRICE_GHS =
 
             if (
                 !confirm(
-                    "Are you sure you want to reset ALL BusinessOS data?"
+                    "Are you sure you want to reset ALL PATRIODX data?"
                 )
             ) {
                 return;
@@ -3095,7 +3095,7 @@ const PRO_PRICE_GHS =
 
             if (
                 !confirm(
-                    "This permanently deletes your BusinessOS browser data. Continue?"
+                    "This permanently deletes your PATRIODX browser data. Continue?"
                 )
             ) {
                 return;
@@ -3129,7 +3129,7 @@ const PRO_PRICE_GHS =
 
 
             alert(
-                "All BusinessOS data has been reset."
+                "All PATRIODX data has been reset."
             );
         };
 
@@ -3511,7 +3511,7 @@ const PRO_PRICE_GHS =
                         amount,
 
                     product:
-                        "BusinessOS Payment"
+                        "PATRIODX Payment"
 
                 });
 
@@ -3535,7 +3535,7 @@ const PRO_PRICE_GHS =
 
 
     /* =========================================================
-       BUSINESSOS PRO
+       PATRIODX PRO
        ========================================================= */
 
     const upgradeProBtn =
@@ -3552,7 +3552,7 @@ const PRO_PRICE_GHS =
 
                 const email =
                     prompt(
-                        "Enter your email address for BusinessOS Pro:"
+                        "Enter your email address for PATRIODX Pro:"
                     );
 
 
@@ -3573,7 +3573,7 @@ const PRO_PRICE_GHS =
 
                 const confirmed =
                     confirm(
-                        `BusinessOS Pro costs ${ghcMoney(PRO_PRICE_GHS)}.\n\nContinue to Paystack checkout?`
+                        `PATRIODX Pro costs ${ghcMoney(PRO_PRICE_GHS)}.\n\nContinue to Paystack checkout?`
                     );
 
 
@@ -3592,7 +3592,7 @@ const PRO_PRICE_GHS =
                             PRO_PRICE_GHS,
 
                         product:
-                            "BusinessOS Pro",
+                            "PATRIODX Pro",
 
                         plan:
                             "Pro"
@@ -3602,13 +3602,13 @@ const PRO_PRICE_GHS =
                 } catch (error) {
 
                     console.error(
-                        "BusinessOS Pro payment error:",
+                        "PATRIODX Pro payment error:",
                         error
                     );
 
 
                     alert(
-                        "Could not start BusinessOS Pro payment.\n\n" +
+                        "Could not start PATRIODX Pro payment.\n\n" +
                         (
                             error.message ||
                             "Please try again."
@@ -3637,7 +3637,7 @@ const PRO_PRICE_GHS =
 
 
             alert(
-                "BusinessOS Pro payment is available through the Upgrade button."
+                "PATRIODX Pro payment is available through the Upgrade button."
             );
         };
 
@@ -3646,7 +3646,7 @@ const PRO_PRICE_GHS =
         function() {
 
             alert(
-                "BusinessOS Business is coming soon.\n\n" +
+                "PATRIODX Business is coming soon.\n\n" +
                 "This plan will include multiple users, " +
                 "advanced reports and priority support."
             );
@@ -3796,7 +3796,7 @@ async function verifyReturnedPayment() {
 
         /*
          * -----------------------------------------------------
-         * BUSINESSOS PRO PAYMENT CHECK
+         * PATRIODX PRO PAYMENT CHECK
          * -----------------------------------------------------
          */
 
@@ -3851,7 +3851,7 @@ async function verifyReturnedPayment() {
 
 
             /*
-             * ACTIVATE BUSINESSOS PRO
+             * ACTIVATE PATRIODX PRO
              */
             localStorage.setItem(
                 "businessOSPro",
@@ -3880,7 +3880,7 @@ async function verifyReturnedPayment() {
                         "GHS",
 
                     product:
-                        "BusinessOS Pro",
+                        "PATRIODX Pro",
 
                     paidAt:
                         payment.paid_at ||
@@ -3902,21 +3902,21 @@ async function verifyReturnedPayment() {
              * Show success message.
              */
             showPaymentSuccess(
-                "BusinessOS Pro Activated!",
+                "PATRIODX Pro Activated!",
                 `Your GHS ${PRO_PRICE_GHS} payment was successfully verified by Paystack.`,
                 reference
             );
 
 
             /*
-             * Refresh the BusinessOS interface.
+             * Refresh the PATRIODX interface.
              */
             updateProUI();
         }
 
 
         /*
-         * General BusinessOS payment.
+         * General PATRIODX payment.
          */
         else {
 
@@ -4026,7 +4026,7 @@ function showPaymentSuccess(
                     id="closePaymentSuccess"
                     class="primary-btn">
 
-                    Continue to BusinessOS
+                    Continue to PATRIODX
 
                 </button>
 
@@ -4142,7 +4142,7 @@ function showPaymentError(
 
 
 /* =========================================================
-   BUSINESSOS PRO UI
+   PATRIODX PRO UI
    ========================================================= */
 
 function updateProUI() {
@@ -4170,7 +4170,7 @@ function updateProUI() {
     if (upgradeButton) {
 
         upgradeButton.textContent =
-            "✓ BusinessOS Pro Active";
+            "✓ PATRIODX Pro Active";
 
         upgradeButton.disabled =
             true;
@@ -4213,7 +4213,7 @@ function updateProUI() {
     if (proStatus) {
 
         proStatus.textContent =
-            "✓ BusinessOS Pro Active";
+            "✓ PATRIODX Pro Active";
 
         proStatus.classList.add(
             "pro-active"
@@ -4265,3 +4265,4 @@ updateProUI();
 verifyReturnedPayment();
 
 });
+

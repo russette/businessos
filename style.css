@@ -2874,3 +2874,54 @@ textarea:focus-visible {
         transition-duration: 0.01ms !important;
     }
 }
+.account-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.account-label {
+    font-size: 11px;
+    opacity: 0.65;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+#userEmail {
+    font-size: 13px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.logout-btn {
+    border: 1px solid rgba(255, 80, 80, 0.4);
+    background: transparent;
+    color: #e74c3c;
+    padding: 9px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.logout-btn:hover {
+    background: rgba(231, 76, 60, 0.1);
+}
+
+@media (max-width: 900px) {
+    .account-area {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .account-info {
+        display: none;
+    }
+}

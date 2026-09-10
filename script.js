@@ -1,3373 +1,2087 @@
-// ============================================================
-// PATRIODX - SUPABASE CONNECTED SCRIPT
-// ============================================================
-
 const SUPABASE_URL = "https://saerujjsfzyxkyacbvgr.supabase.co";
-const SUPABASE_KEY = "sb_publishable_l50YIYtYLXkjWE1iQSTyoA_GkrIKWn7";
+const SUPABASE_KEY = "sb_publishable_l50YIYtYLXkjWE1iQSTyoA_GkrIKW7";
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
 
-// ============================================================
-// GLOBAL DATA
-// ============================================================
+let products = [];
+let customers = [];
+let sales = [];
+let invoices = [];
 
-document.addEventListener("DOMContentLoaded", async () => {
+let currentUser = null;
+let currentBusiness = null;
+let editingProductId = null;
 
-    let products = [];
-    let customers = [];
-    let sales = [];
-    let invoices = [];
 
-    let currentUser = null;
-    let currentBusiness = null;
+// =========================================================
+// BASIC HELPERS
+// =========================================================
 
-    let editingProductId = null;
+function money(value) {
+    return `$${Number(value || 0).toFixed(2)}`;
+}
 
-    // ========================================================
-    // PAYMENT SETTINGS
-    // ========================================================
+function safe(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
-    const PAYMENT_API_URL = "https://businessos-wine-eight.vercel.app";
+function todayString() {
+    return new Date().toISOString().split("T")[0];
+}
 
-    const PAYSTACK_PUBLIC_KEY =
-        "pk_test_2321844583071969c00a747ba838b337df808a44";
+function createReference() {
+    return "INV-" + Date.now();
+}
 
-    const PAYSTACK_CURRENCY = "GHS";
-    const PRO_PRICE_GHS = 900;
+function formatDate(date) {
+    if (!date) return "—";
 
-    // ========================================================
-    // BASIC HELPERS
-    // ========================================================
+    const d = new Date(date);
 
-    function createId() {
-        return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    if (Number.isNaN(d.getTime())) return "—";
+
+    return d.toLocaleDateString();
+}
+
+
+// =========================================================
+// AUTH / SUPABASE
+// =========================================================
+
+async function loadUser() {
+
+    const {
+        data: { session },
+        error
+    } = await supabaseClient.auth.getSession();
+
+    if (error) {
+        console.error(error);
+        alert("Unable to connect to PATRIODX.");
+        return false;
     }
 
-    function createReference() {
-        return "PATRIODX_" + Date.now() + "_" +
-            Math.random().toString(36).substring(2, 8);
+    if (!session) {
+        window.location.href = "auth.html";
+        return false;
     }
 
-    function money(value) {
-        return "$" + Number(value || 0).toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
+    currentUser = session.user;
 
-    function ghcMoney(value) {
-        return "GH₵" + Number(value || 0).toLocaleString("en-GH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-
-    function safe(value) {
-        return String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    function text(value) {
-        return String(value ?? "");
-    }
-
-    function formatDate(date) {
-        if (!date) return "-";
-
-        const d = new Date(date);
-
-        if (isNaN(d.getTime())) return "-";
-
-        return d.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric"
-        });
-    }
-
-    function todayString() {
-        return new Date().toISOString().split("T")[0];
-    }
-
-    function isValidEmail(email) {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
-    function showError(message) {
-        console.error(message);
-        alert(message);
-    }
-
-    // ========================================================
-    // DATABASE ROW -> JAVASCRIPT OBJECT
-    // ========================================================
-
-    function mapProduct(row) {
-        return {
-            id: row.id,
-            productId: row.id,
-            name: row.name,
-            productName: row.name,
-            price: Number(row.price) || 0,
-            stock: Number(row.stock) || 0,
-            createdAt: row.created_at,
-            updatedAt: row.updated_at
-        };
-    }
-
-    function mapCustomer(row) {
-        return {
-            id: row.id,
-            customerId: row.id,
-            name: row.name,
-            customerName: row.name,
-            email: row.email || "",
-            phone: row.phone || "",
-            createdAt: row.created_at
-        };
-    }
-
-    function mapSale(row) {
-        return {
-            id: row.id,
-            saleId: row.id,
-            productId: row.product_id,
-            productName: row.product_name,
-            quantity: Number(row.quantity) || 0,
-            total: Number(row.total) || 0,
-            date: row.created_at,
-            createdAt: row.created_at
-        };
-    }
-
-    function mapInvoice(row) {
-        return {
-            id: row.id,
-            invoiceId: row.id,
-            invoiceNumber: row.invoice_number,
-            customerId: row.customer_id,
-            customerName: row.customer_name,
-            productId: row.product_id,
-            productName: row.product_name,
-            quantity: Number(row.quantity) || 0,
-            subtotal: Number(row.subtotal) || 0,
-            discount: Number(row.discount) || 0,
-            taxRate: Number(row.tax_rate) || 0,
-            tax: Number(row.tax) || 0,
-            total: Number(row.total) || 0,
-            dueDate: row.due_date,
-            status: row.status || "unpaid",
-            createdAt: row.created_at
-        };
-    }
-
-    // ========================================================
-    // AUTHENTICATION
-    // ========================================================
-
-    async function checkAuthentication() {
-
-        const {
-            data: { session },
-            error
-        } = await supabaseClient.auth.getSession();
-
-        if (error) {
-            console.error("Session error:", error);
-        }
-
-        if (!session) {
-            window.location.href = "auth.html";
-            return false;
-        }
-
-        currentUser = session.user;
-
-        return true;
-    }
-
-    // ========================================================
-    // GET USER BUSINESS
-    // ========================================================
-
-    async function loadBusiness() {
-
-        const { data, error } = await supabaseClient
+    const { data: business, error: businessError } =
+        await supabaseClient
             .from("businesses")
             .select("*")
             .eq("owner_id", currentUser.id)
             .single();
 
-        if (error) {
-            console.error("Business error:", error);
-            alert(
-                "PATRIODX could not find your business account.\n\n" +
-                "Please sign out and create/sign in to your account again."
-            );
-            return false;
-        }
-
-        currentBusiness = data;
-
-        console.log("Current business:", currentBusiness);
-
-        return true;
+    if (businessError) {
+        console.error(businessError);
+        alert("Your PATRIODX business account could not be loaded.");
+        return false;
     }
 
-    // ========================================================
-    // LOAD ALL DATA FROM SUPABASE
-    // ========================================================
+    currentBusiness = business;
 
-    async function loadDataFromSupabase() {
+    return true;
+}
 
-        if (!currentBusiness) return;
 
-        const [
-            productsResult,
-            customersResult,
-            salesResult,
-            invoicesResult
-        ] = await Promise.all([
+// =========================================================
+// LOAD DATA
+// =========================================================
 
-            supabaseClient
+async function loadData() {
+
+    if (!currentBusiness) return;
+
+    const businessId = currentBusiness.id;
+
+    const [
+        productsResult,
+        customersResult,
+        salesResult,
+        invoicesResult
+    ] = await Promise.all([
+
+        supabaseClient
+            .from("products")
+            .select("*")
+            .eq("business_id", businessId)
+            .order("created_at", { ascending: false }),
+
+        supabaseClient
+            .from("customers")
+            .select("*")
+            .eq("business_id", businessId)
+            .order("created_at", { ascending: false }),
+
+        supabaseClient
+            .from("sales")
+            .select("*")
+            .eq("business_id", businessId)
+            .order("created_at", { ascending: false }),
+
+        supabaseClient
+            .from("invoices")
+            .select("*")
+            .eq("business_id", businessId)
+            .order("created_at", { ascending: false })
+    ]);
+
+    if (productsResult.error) {
+        console.error(productsResult.error);
+    }
+
+    if (customersResult.error) {
+        console.error(customersResult.error);
+    }
+
+    if (salesResult.error) {
+        console.error(salesResult.error);
+    }
+
+    if (invoicesResult.error) {
+        console.error(invoicesResult.error);
+    }
+
+    products = productsResult.data || [];
+    customers = customersResult.data || [];
+    sales = salesResult.data || [];
+    invoices = invoicesResult.data || [];
+}
+
+
+// =========================================================
+// NAVIGATION
+// =========================================================
+
+function scrollToSection(id) {
+
+    const section = document.getElementById(id);
+
+    if (section) {
+        section.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+
+function setupNavigation() {
+
+    document.querySelectorAll("nav a, .footer-links a").forEach(link => {
+
+        link.addEventListener("click", function (event) {
+
+            const href = this.getAttribute("href");
+
+            if (!href || !href.startsWith("#")) return;
+
+            const id = href.substring(1);
+
+            const section = document.getElementById(id);
+
+            if (!section) return;
+
+            event.preventDefault();
+
+            scrollToSection(id);
+        });
+
+    });
+}
+
+
+// =========================================================
+// DARK MODE
+// =========================================================
+
+function setupDarkMode() {
+
+    const button = document.getElementById("themeToggle");
+
+    if (!button) return;
+
+    const savedTheme = localStorage.getItem("patriodxTheme");
+
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-mode");
+        button.textContent = "☀️ Light Mode";
+    }
+
+    button.addEventListener("click", function () {
+
+        document.body.classList.toggle("dark-mode");
+
+        const dark = document.body.classList.contains("dark-mode");
+
+        localStorage.setItem(
+            "patriodxTheme",
+            dark ? "dark" : "light"
+        );
+
+        button.textContent = dark
+            ? "☀️ Light Mode"
+            : "🌙 Dark Mode";
+    });
+}
+
+
+// =========================================================
+// PRODUCT MODAL
+// =========================================================
+
+function openProductModal(productId = null) {
+
+    const modal = document.getElementById("productModal");
+    const form = document.getElementById("productForm");
+
+    if (!modal || !form) return;
+
+    editingProductId = productId;
+
+    form.reset();
+
+    document.getElementById("productId").value = "";
+
+    document.getElementById("productModalTitle").textContent =
+        productId ? "Edit Product" : "Add Product";
+
+    if (productId) {
+
+        const product = products.find(p => p.id === productId);
+
+        if (!product) return;
+
+        document.getElementById("productId").value = product.id;
+        document.getElementById("productName").value = product.name;
+        document.getElementById("productPrice").value = product.price;
+        document.getElementById("productStock").value = product.stock;
+    }
+
+    modal.classList.add("active");
+}
+
+function closeProductModal() {
+
+    const modal = document.getElementById("productModal");
+
+    if (modal) {
+        modal.classList.remove("active");
+    }
+
+    editingProductId = null;
+}
+
+async function saveProduct(event) {
+
+    event.preventDefault();
+
+    if (!currentBusiness) return;
+
+    const name =
+        document.getElementById("productName").value.trim();
+
+    const price =
+        Number(document.getElementById("productPrice").value);
+
+    const stock =
+        Number(document.getElementById("productStock").value);
+
+    if (!name || price < 0 || stock < 0) {
+        alert("Please enter valid product details.");
+        return;
+    }
+
+    let result;
+
+    if (editingProductId) {
+
+        result = await supabaseClient
+            .from("products")
+            .update({
+                name,
+                price,
+                stock,
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", editingProductId)
+            .eq("business_id", currentBusiness.id);
+
+    } else {
+
+        result = await supabaseClient
+            .from("products")
+            .insert({
+                business_id: currentBusiness.id,
+                name,
+                price,
+                stock
+            });
+    }
+
+    if (result.error) {
+
+        console.error(result.error);
+
+        alert("Could not save product.");
+
+        return;
+    }
+
+    closeProductModal();
+
+    await loadData();
+
+    renderAll();
+}
+
+
+// =========================================================
+// PRODUCT DISPLAY
+// =========================================================
+
+function renderProducts() {
+
+    const container = document.getElementById("productsList");
+
+    if (!container) return;
+
+    const search =
+        document.getElementById("productSearch")?.value
+            .toLowerCase()
+            .trim() || "";
+
+    const filtered = products.filter(product =>
+        product.name.toLowerCase().includes(search)
+    );
+
+    if (!filtered.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <h3>No products yet</h3>
+                <p>Add your first product to start managing your inventory.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = filtered.map(product => `
+
+        <div class="item-card">
+
+            <h3>${safe(product.name)}</h3>
+
+            <p>
+                Price: <strong>${money(product.price)}</strong>
+            </p>
+
+            <p>
+                Stock: <strong>${product.stock}</strong>
+            </p>
+
+            <div class="card-actions">
+
+                <button
+                    type="button"
+                    onclick="openProductModal('${product.id}')"
+                >
+                    Edit
+                </button>
+
+                <button
+                    type="button"
+                    class="danger-btn"
+                    onclick="deleteProduct('${product.id}')"
+                >
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("");
+}
+
+async function deleteProduct(id) {
+
+    if (!confirm("Delete this product?")) return;
+
+    const { error } = await supabaseClient
+        .from("products")
+        .delete()
+        .eq("id", id)
+        .eq("business_id", currentBusiness.id);
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not delete product.");
+
+        return;
+    }
+
+    await loadData();
+
+    renderAll();
+}
+
+
+// =========================================================
+// CUSTOMER MODAL
+// =========================================================
+
+function openCustomerModal() {
+
+    const modal = document.getElementById("customerModal");
+    const form = document.getElementById("customerForm");
+
+    if (!modal || !form) return;
+
+    form.reset();
+
+    modal.classList.add("active");
+}
+
+function closeCustomerModal() {
+
+    const modal = document.getElementById("customerModal");
+
+    if (modal) {
+        modal.classList.remove("active");
+    }
+}
+
+async function saveCustomer(event) {
+
+    event.preventDefault();
+
+    if (!currentBusiness) return;
+
+    const name =
+        document.getElementById("customerName").value.trim();
+
+    const email =
+        document.getElementById("customerEmail").value.trim();
+
+    const phone =
+        document.getElementById("customerPhone").value.trim();
+
+    if (!name) {
+        alert("Customer name is required.");
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("customers")
+        .insert({
+            business_id: currentBusiness.id,
+            name,
+            email,
+            phone
+        });
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not save customer.");
+
+        return;
+    }
+
+    closeCustomerModal();
+
+    await loadData();
+
+    renderAll();
+}
+
+
+// =========================================================
+// CUSTOMERS DISPLAY
+// =========================================================
+
+function renderCustomers() {
+
+    const container = document.getElementById("customersList");
+
+    if (!container) return;
+
+    const search =
+        document.getElementById("customerSearch")?.value
+            .toLowerCase()
+            .trim() || "";
+
+    const filtered = customers.filter(customer =>
+
+        customer.name.toLowerCase().includes(search) ||
+
+        (customer.email || "")
+            .toLowerCase()
+            .includes(search) ||
+
+        (customer.phone || "")
+            .toLowerCase()
+            .includes(search)
+    );
+
+    if (!filtered.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">👥</div>
+                <h3>No customers yet</h3>
+                <p>Add your first customer to start building your customer list.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = filtered.map(customer => `
+
+        <div class="item-card">
+
+            <h3>${safe(customer.name)}</h3>
+
+            <p>📧 ${safe(customer.email || "No email")}</p>
+
+            <p>📱 ${safe(customer.phone || "No phone")}</p>
+
+            <div class="card-actions">
+
+                <button
+                    type="button"
+                    class="danger-btn"
+                    onclick="deleteCustomer('${customer.id}')"
+                >
+                    Delete
+                </button>
+
+            </div>
+
+        </div>
+
+    `).join("");
+}
+
+async function deleteCustomer(id) {
+
+    if (!confirm("Delete this customer?")) return;
+
+    const { error } = await supabaseClient
+        .from("customers")
+        .delete()
+        .eq("id", id)
+        .eq("business_id", currentBusiness.id);
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not delete customer.");
+
+        return;
+    }
+
+    await loadData();
+
+    renderAll();
+}
+
+
+// =========================================================
+// SALE MODAL
+// =========================================================
+
+function openSaleModal() {
+
+    const modal = document.getElementById("saleModal");
+    const select = document.getElementById("saleProduct");
+
+    if (!modal || !select) return;
+
+    select.innerHTML = `
+        <option value="">Select a product</option>
+    `;
+
+    products.forEach(product => {
+
+        select.innerHTML += `
+            <option value="${product.id}">
+                ${safe(product.name)} — ${money(product.price)} — Stock: ${product.stock}
+            </option>
+        `;
+    });
+
+    document.getElementById("saleQuantity").value = 1;
+
+    updateSaleTotal();
+
+    modal.classList.add("active");
+}
+
+function closeSaleModal() {
+
+    const modal = document.getElementById("saleModal");
+
+    if (modal) {
+        modal.classList.remove("active");
+    }
+}
+
+function updateSaleTotal() {
+
+    const productId =
+        document.getElementById("saleProduct")?.value;
+
+    const quantity =
+        Number(document.getElementById("saleQuantity")?.value || 0);
+
+    const product =
+        products.find(p => p.id === productId);
+
+    const total =
+        product ? Number(product.price) * quantity : 0;
+
+    const display =
+        document.getElementById("saleTotal");
+
+    if (display) {
+        display.textContent = money(total);
+    }
+}
+
+async function saveSale(event) {
+
+    event.preventDefault();
+
+    if (!currentBusiness) return;
+
+    const productId =
+        document.getElementById("saleProduct").value;
+
+    const quantity =
+        Number(document.getElementById("saleQuantity").value);
+
+    const product =
+        products.find(p => p.id === productId);
+
+    if (!product) {
+
+        alert("Please select a product.");
+
+        return;
+    }
+
+    if (quantity <= 0) {
+
+        alert("Quantity must be at least 1.");
+
+        return;
+    }
+
+    if (quantity > product.stock) {
+
+        alert("Not enough stock.");
+
+        return;
+    }
+
+    const total =
+        Number(product.price) * quantity;
+
+    const { data: sale, error: saleError } =
+        await supabaseClient
+            .from("sales")
+            .insert({
+                business_id: currentBusiness.id,
+                product_id: product.id,
+                product_name: product.name,
+                quantity,
+                total
+            })
+            .select()
+            .single();
+
+    if (saleError) {
+
+        console.error(saleError);
+
+        alert("Could not record sale.");
+
+        return;
+    }
+
+    const { error: stockError } =
+        await supabaseClient
+            .from("products")
+            .update({
+                stock: product.stock - quantity,
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", product.id)
+            .eq("business_id", currentBusiness.id);
+
+    if (stockError) {
+
+        console.error(stockError);
+
+        await supabaseClient
+            .from("sales")
+            .delete()
+            .eq("id", sale.id);
+
+        alert("Sale could not update stock.");
+
+        return;
+    }
+
+    closeSaleModal();
+
+    await loadData();
+
+    renderAll();
+}
+
+
+// =========================================================
+// SALES DISPLAY
+// =========================================================
+
+function renderSales() {
+
+    const container = document.getElementById("salesList");
+
+    if (!container) return;
+
+    const search =
+        document.getElementById("salesSearch")?.value
+            .toLowerCase()
+            .trim() || "";
+
+    const filtered = sales.filter(sale =>
+
+        (sale.product_name || "")
+            .toLowerCase()
+            .includes(search)
+    );
+
+    if (!filtered.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🧾</div>
+                <h3>No sales yet</h3>
+                <p>Your recorded sales will appear here.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = filtered.map(sale => `
+
+        <div class="sale-card">
+
+            <div>
+                <h3>${safe(sale.product_name)}</h3>
+
+                <p>
+                    Quantity: ${sale.quantity}
+                </p>
+
+                <small>
+                    ${formatDate(sale.created_at)}
+                </small>
+            </div>
+
+            <strong>
+                ${money(sale.total)}
+            </strong>
+
+            <button
+                type="button"
+                class="danger-btn"
+                onclick="deleteSale('${sale.id}')"
+            >
+                Delete
+            </button>
+
+        </div>
+
+    `).join("");
+}
+
+async function deleteSale(id) {
+
+    const sale =
+        sales.find(s => s.id === id);
+
+    if (!sale) return;
+
+    if (!confirm("Delete this sale?")) return;
+
+    const { error } =
+        await supabaseClient
+            .from("sales")
+            .delete()
+            .eq("id", id)
+            .eq("business_id", currentBusiness.id);
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not delete sale.");
+
+        return;
+    }
+
+    if (sale.product_id) {
+
+        const product =
+            products.find(p => p.id === sale.product_id);
+
+        if (product) {
+
+            await supabaseClient
                 .from("products")
-                .select("*")
-                .eq("business_id", currentBusiness.id)
-                .order("created_at", { ascending: false }),
-
-            supabaseClient
-                .from("customers")
-                .select("*")
-                .eq("business_id", currentBusiness.id)
-                .order("created_at", { ascending: false }),
-
-            supabaseClient
-                .from("sales")
-                .select("*")
-                .eq("business_id", currentBusiness.id)
-                .order("created_at", { ascending: false }),
-
-            supabaseClient
-                .from("invoices")
-                .select("*")
-                .eq("business_id", currentBusiness.id)
-                .order("created_at", { ascending: false })
-        ]);
-
-        if (productsResult.error) {
-            throw productsResult.error;
+                .update({
+                    stock: Number(product.stock) + Number(sale.quantity),
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", product.id)
+                .eq("business_id", currentBusiness.id);
         }
-
-        if (customersResult.error) {
-            throw customersResult.error;
-        }
-
-        if (salesResult.error) {
-            throw salesResult.error;
-        }
-
-        if (invoicesResult.error) {
-            throw invoicesResult.error;
-        }
-
-        products = (productsResult.data || []).map(mapProduct);
-        customers = (customersResult.data || []).map(mapCustomer);
-        sales = (salesResult.data || []).map(mapSale);
-        invoices = (invoicesResult.data || []).map(mapInvoice);
-
-        console.log("Supabase data loaded:", {
-            products,
-            customers,
-            sales,
-            invoices
-        });
     }
 
-    // ========================================================
-    // NAVIGATION
-    // ========================================================
+    await loadData();
 
-    function setupNavigation() {
+    renderAll();
+}
 
-        const navLinks = document.querySelectorAll(
-            "[data-section], .nav-link, nav a"
-        );
 
-        navLinks.forEach(link => {
+// =========================================================
+// INVOICE MODAL
+// =========================================================
 
-            link.addEventListener("click", function (event) {
+function openInvoiceModal() {
 
-                const target =
-                    this.dataset.section ||
-                    this.getAttribute("href");
+    const modal =
+        document.getElementById("invoiceModal");
 
-                if (!target) return;
+    if (!modal) return;
 
-                if (target.startsWith("#")) {
-                    event.preventDefault();
+    const customerSelect =
+        document.getElementById("invoiceCustomer");
 
-                    const sectionId = target.substring(1);
-                    const section =
-                        document.getElementById(sectionId);
+    const productSelect =
+        document.getElementById("invoiceProduct");
 
-                    if (section) {
-                        section.scrollIntoView({
-                            behavior: "smooth"
-                        });
+    customerSelect.innerHTML = `
+        <option value="">Select a customer</option>
+    `;
+
+    customers.forEach(customer => {
+
+        customerSelect.innerHTML += `
+            <option value="${customer.id}">
+                ${safe(customer.name)}
+            </option>
+        `;
+    });
+
+    productSelect.innerHTML = `
+        <option value="">Select a product</option>
+    `;
+
+    products.forEach(product => {
+
+        productSelect.innerHTML += `
+            <option value="${product.id}">
+                ${safe(product.name)} — ${money(product.price)}
+            </option>
+        `;
+    });
+
+    document.getElementById("invoiceNumber").value =
+        createReference();
+
+    document.getElementById("invoiceDueDate").value =
+        todayString();
+
+    document.getElementById("invoiceQuantity").value = 1;
+
+    document.getElementById("invoiceDiscount").value = 0;
+
+    document.getElementById("invoiceTax").value = 0;
+
+    updateInvoiceTotal();
+
+    modal.classList.add("active");
+}
+
+function closeInvoiceModal() {
+
+    const modal =
+        document.getElementById("invoiceModal");
+
+    if (modal) {
+        modal.classList.remove("active");
+    }
+}
+
+function updateInvoiceTotal() {
+
+    const productId =
+        document.getElementById("invoiceProduct")?.value;
+
+    const quantity =
+        Number(document.getElementById("invoiceQuantity")?.value || 0);
+
+    const discount =
+        Number(document.getElementById("invoiceDiscount")?.value || 0);
+
+    const taxRate =
+        Number(document.getElementById("invoiceTax")?.value || 0);
+
+    const product =
+        products.find(p => p.id === productId);
+
+    const subtotal =
+        product
+            ? Number(product.price) * quantity
+            : 0;
+
+    const afterDiscount =
+        Math.max(0, subtotal - discount);
+
+    const tax =
+        afterDiscount * (taxRate / 100);
+
+    const total =
+        afterDiscount + tax;
+
+    document.getElementById("invoiceSubtotal").textContent =
+        money(subtotal);
+
+    document.getElementById("invoiceDiscountDisplay").textContent =
+        "-" + money(discount);
+
+    document.getElementById("invoiceTaxDisplay").textContent =
+        money(tax);
+
+    document.getElementById("invoiceTotal").textContent =
+        money(total);
+}
+
+async function saveInvoice(event) {
+
+    event.preventDefault();
+
+    if (!currentBusiness) return;
+
+    const invoiceNumber =
+        document.getElementById("invoiceNumber").value;
+
+    const customerId =
+        document.getElementById("invoiceCustomer").value;
+
+    const productId =
+        document.getElementById("invoiceProduct").value;
+
+    const quantity =
+        Number(document.getElementById("invoiceQuantity").value);
+
+    const dueDate =
+        document.getElementById("invoiceDueDate").value;
+
+    const discount =
+        Number(document.getElementById("invoiceDiscount").value || 0);
+
+    const taxRate =
+        Number(document.getElementById("invoiceTax").value || 0);
+
+    const customer =
+        customers.find(c => c.id === customerId);
+
+    const product =
+        products.find(p => p.id === productId);
+
+    if (!customer || !product) {
+
+        alert("Please select a customer and product.");
+
+        return;
+    }
+
+    const subtotal =
+        Number(product.price) * quantity;
+
+    const afterDiscount =
+        Math.max(0, subtotal - discount);
+
+    const tax =
+        afterDiscount * (taxRate / 100);
+
+    const total =
+        afterDiscount + tax;
+
+    const { error } =
+        await supabaseClient
+            .from("invoices")
+            .insert({
+
+                business_id: currentBusiness.id,
+
+                invoice_number: invoiceNumber,
+
+                customer_id: customer.id,
+
+                customer_name: customer.name,
+
+                product_id: product.id,
+
+                product_name: product.name,
+
+                quantity,
+
+                subtotal,
+
+                discount,
+
+                tax_rate: taxRate,
+
+                tax,
+
+                total,
+
+                due_date: dueDate,
+
+                status: "unpaid"
+            });
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not create invoice.");
+
+        return;
+    }
+
+    closeInvoiceModal();
+
+    await loadData();
+
+    renderAll();
+}
+
+
+// =========================================================
+// INVOICE DISPLAY
+// =========================================================
+
+function renderInvoices() {
+
+    const container =
+        document.getElementById("invoicesList");
+
+    if (!container) return;
+
+    const search =
+        document.getElementById("invoiceSearch")?.value
+            .toLowerCase()
+            .trim() || "";
+
+    const status =
+        document.getElementById("invoiceStatusFilter")?.value || "all";
+
+    const filtered = invoices.filter(invoice => {
+
+        const matchesSearch =
+
+            (invoice.invoice_number || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (invoice.customer_name || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (invoice.product_name || "")
+                .toLowerCase()
+                .includes(search);
+
+        const matchesStatus =
+            status === "all" ||
+            invoice.status === status;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    if (!filtered.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🧾</div>
+                <h3>No invoices yet</h3>
+                <p>Create your first invoice for a customer.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = filtered.map(invoice => `
+
+        <div class="invoice-card">
+
+            <div>
+
+                <h3>
+                    ${safe(invoice.invoice_number)}
+                </h3>
+
+                <p>
+                    Customer:
+                    ${safe(invoice.customer_name)}
+                </p>
+
+                <p>
+                    Product:
+                    ${safe(invoice.product_name)}
+                </p>
+
+                <p>
+                    Due:
+                    ${formatDate(invoice.due_date)}
+                </p>
+
+                <strong>
+                    ${money(invoice.total)}
+                </strong>
+
+            </div>
+
+            <div>
+
+                <span>
+                    ${invoice.status === "paid"
+                        ? "✅ Paid"
+                        : "⏳ Unpaid"}
+                </span>
+
+                <br><br>
+
+                <button
+                    type="button"
+                    onclick="toggleInvoiceStatus('${invoice.id}')"
+                >
+                    Mark ${
+                        invoice.status === "paid"
+                            ? "Unpaid"
+                            : "Paid"
                     }
-                }
-            });
-        });
+                </button>
 
-        document.querySelectorAll("[data-scroll]").forEach(button => {
+                <button
+                    type="button"
+                    onclick="viewInvoice('${invoice.id}')"
+                >
+                    View
+                </button>
 
-            button.addEventListener("click", () => {
+                <button
+                    type="button"
+                    class="danger-btn"
+                    onclick="deleteInvoice('${invoice.id}')"
+                >
+                    Delete
+                </button>
 
-                const target =
-                    document.getElementById(button.dataset.scroll);
+            </div>
 
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: "smooth"
-                    });
-                }
-            });
-        });
+        </div>
+
+    `).join("");
+}
+
+async function toggleInvoiceStatus(id) {
+
+    const invoice =
+        invoices.find(i => i.id === id);
+
+    if (!invoice) return;
+
+    const newStatus =
+        invoice.status === "paid"
+            ? "unpaid"
+            : "paid";
+
+    const { error } =
+        await supabaseClient
+            .from("invoices")
+            .update({
+                status: newStatus
+            })
+            .eq("id", id)
+            .eq("business_id", currentBusiness.id);
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Could not update invoice.");
+
+        return;
     }
 
-    // ========================================================
-    // SEARCH
-    // ========================================================
+    await loadData();
 
-    function setupSearch() {
+    renderAll();
+}
 
-        const searchInputs =
-            document.querySelectorAll(
-                "#searchInput, .search-input, input[type='search']"
-            );
+async function deleteInvoice(id) {
 
-        searchInputs.forEach(input => {
+    if (!confirm("Delete this invoice?")) return;
 
-            input.addEventListener("input", () => {
+    const { error } =
+        await supabaseClient
+            .from("invoices")
+            .delete()
+            .eq("id", id)
+            .eq("business_id", currentBusiness.id);
 
-                const query =
-                    input.value.trim().toLowerCase();
+    if (error) {
 
-                document
-                    .querySelectorAll(
-                        "table tbody tr, .product-card, .customer-card"
-                    )
-                    .forEach(item => {
+        console.error(error);
 
-                        const content =
-                            item.textContent.toLowerCase();
+        alert("Could not delete invoice.");
 
-                        item.style.display =
-                            !query || content.includes(query)
-                                ? ""
-                                : "none";
-                    });
-            });
-        });
+        return;
     }
 
-    // ========================================================
-    // DARK MODE
-    // ========================================================
+    await loadData();
 
-    function setupDarkMode() {
+    renderAll();
+}
 
-        const savedTheme =
-            localStorage.getItem("patriodxDarkMode");
+function viewInvoice(id) {
 
-        if (savedTheme === "true") {
-            document.body.classList.add("dark-mode");
-        }
+    const invoice =
+        invoices.find(i => i.id === id);
 
-        const buttons = document.querySelectorAll(
-            "#darkModeToggle, .dark-mode-toggle, [data-dark-mode]"
+    if (!invoice) return;
+
+    const modal =
+        document.getElementById("invoiceViewModal");
+
+    const content =
+        document.getElementById("invoiceViewContent");
+
+    content.innerHTML = `
+
+        <div class="invoice-view">
+
+            <p class="eyebrow">
+                PATRIODX INVOICE
+            </p>
+
+            <h2>
+                ${safe(invoice.invoice_number)}
+            </h2>
+
+            <hr>
+
+            <p>
+                <strong>Customer:</strong>
+                ${safe(invoice.customer_name)}
+            </p>
+
+            <p>
+                <strong>Product:</strong>
+                ${safe(invoice.product_name)}
+            </p>
+
+            <p>
+                <strong>Quantity:</strong>
+                ${invoice.quantity}
+            </p>
+
+            <p>
+                <strong>Due Date:</strong>
+                ${formatDate(invoice.due_date)}
+            </p>
+
+            <hr>
+
+            <p>
+                Subtotal:
+                ${money(invoice.subtotal)}
+            </p>
+
+            <p>
+                Discount:
+                -${money(invoice.discount)}
+            </p>
+
+            <p>
+                Tax:
+                ${money(invoice.tax)}
+            </p>
+
+            <h2>
+                Total:
+                ${money(invoice.total)}
+            </h2>
+
+            <p>
+                Status:
+                ${
+                    invoice.status === "paid"
+                        ? "✅ Paid"
+                        : "⏳ Unpaid"
+                }
+            </p>
+
+        </div>
+    `;
+
+    modal.classList.add("active");
+}
+
+function closeInvoiceViewModal() {
+
+    const modal =
+        document.getElementById("invoiceViewModal");
+
+    if (modal) {
+        modal.classList.remove("active");
+    }
+}
+
+
+// =========================================================
+// STATS
+// =========================================================
+
+function renderStats() {
+
+    const totalRevenue =
+        sales.reduce(
+            (sum, sale) => sum + Number(sale.total || 0),
+            0
         );
 
-        buttons.forEach(button => {
+    const today =
+        todayString();
 
-            button.addEventListener("click", () => {
-
-                document.body.classList.toggle("dark-mode");
-
-                localStorage.setItem(
-                    "patriodxDarkMode",
-                    document.body.classList.contains("dark-mode")
-                );
-            });
-        });
-    }
-
-    // ========================================================
-    // RENDER ALL
-    // ========================================================
-
-    function renderAll() {
-        renderDashboard();
-        renderProducts();
-        renderCustomers();
-        renderSales();
-        renderInvoices();
-        renderAnalytics();
-        updateProUI();
-    }
-
-    // ========================================================
-    // DASHBOARD
-    // ========================================================
-
-    function renderDashboard() {
-
-        const revenue =
-            sales.reduce(
+    const todayRevenue =
+        sales
+            .filter(sale =>
+                sale.created_at &&
+                sale.created_at.startsWith(today)
+            )
+            .reduce(
                 (sum, sale) => sum + Number(sale.total || 0),
                 0
             );
 
-        const stats = {
-            revenue,
-            products: products.length,
-            customers: customers.length,
-            sales: sales.length,
-            invoices: invoices.length
-        };
+    document.getElementById("totalRevenue").textContent =
+        money(totalRevenue);
 
-        const selectors = {
+    document.getElementById("todayRevenue").textContent =
+        money(todayRevenue);
 
-            revenue: [
-                "#totalRevenue",
-                "[data-stat='revenue']"
-            ],
+    document.getElementById("totalProducts").textContent =
+        products.length;
 
-            products: [
-                "#totalProducts",
-                "[data-stat='products']"
-            ],
+    document.getElementById("totalCustomers").textContent =
+        customers.length;
 
-            customers: [
-                "#totalCustomers",
-                "[data-stat='customers']"
-            ],
+    document.getElementById("totalSales").textContent =
+        sales.length;
 
-            sales: [
-                "#totalSales",
-                "[data-stat='sales']"
-            ],
+    document.getElementById("paidInvoices").textContent =
+        invoices.filter(i => i.status === "paid").length;
 
-            invoices: [
-                "#totalInvoices",
-                "[data-stat='invoices']"
-            ]
-        };
+    document.getElementById("unpaidInvoices").textContent =
+        invoices.filter(i => i.status !== "paid").length;
 
-        selectors.revenue.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.textContent = money(stats.revenue);
-            });
-        });
+    document.getElementById("lowStockProducts").textContent =
+        products.filter(p => Number(p.stock) <= 5).length;
+}
 
-        selectors.products.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.textContent = stats.products;
-            });
-        });
 
-        selectors.customers.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.textContent = stats.customers;
-            });
-        });
+// =========================================================
+// ANALYTICS
+// =========================================================
 
-        selectors.sales.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.textContent = stats.sales;
-            });
-        });
+function renderAnalytics() {
 
-        selectors.invoices.forEach(selector => {
-            document.querySelectorAll(selector).forEach(el => {
-                el.textContent = stats.invoices;
-            });
-        });
-
-        const businessNameElements =
-            document.querySelectorAll(
-                "#businessName, .business-name"
-            );
-
-        businessNameElements.forEach(el => {
-            if (currentBusiness) {
-                el.textContent = currentBusiness.name;
-            }
-        });
-
-        renderRecentActivity();
-    }
-
-    // ========================================================
-    // RECENT ACTIVITY
-    // ========================================================
-
-    function renderRecentActivity() {
-
-        const containers = document.querySelectorAll(
-            "#recentActivity, .recent-activity"
+    const totalRevenue =
+        sales.reduce(
+            (sum, sale) => sum + Number(sale.total || 0),
+            0
         );
 
-        containers.forEach(container => {
-
-            if (!sales.length) {
-
-                container.innerHTML = `
-                    <div class="empty-state">
-                        No recent sales yet.
-                    </div>
-                `;
-
-                return;
-            }
-
-            const recentSales = sales.slice(0, 5);
-
-            container.innerHTML = recentSales.map(sale => `
-                <div class="activity-item">
-                    <div>
-                        <strong>${safe(sale.productName)}</strong>
-                        <small>
-                            ${sale.quantity} item${sale.quantity === 1 ? "" : "s"}
-                        </small>
-                    </div>
-
-                    <div>
-                        <strong>${money(sale.total)}</strong>
-                        <small>${formatDate(sale.createdAt)}</small>
-                    </div>
-                </div>
-            `).join("");
-        });
-    }
-
-    // ========================================================
-    // PRODUCTS
-    // ========================================================
-
-    function renderProducts() {
-
-        const containers = document.querySelectorAll(
-            "#productsList, #productList, .products-list"
+    const totalUnits =
+        sales.reduce(
+            (sum, sale) => sum + Number(sale.quantity || 0),
+            0
         );
 
-        containers.forEach(container => {
+    const average =
+        sales.length
+            ? totalRevenue / sales.length
+            : 0;
 
-            if (!products.length) {
-
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No products yet</h3>
-                        <p>Add your first product to get started.</p>
-                    </div>
-                `;
-
-                return;
-            }
-
-            container.innerHTML = products.map(product => `
-                <div class="product-card">
-
-                    <div class="product-info">
-                        <h3>${safe(product.name)}</h3>
-
-                        <p>
-                            Price:
-                            <strong>${money(product.price)}</strong>
-                        </p>
-
-                        <p>
-                            Stock:
-                            <strong>${product.stock}</strong>
-                        </p>
-                    </div>
-
-                    <div class="product-actions">
-
-                        <button
-                            type="button"
-                            class="edit-product"
-                            data-id="${product.id}">
-                            Edit
-                        </button>
-
-                        <button
-                            type="button"
-                            class="delete-product"
-                            data-id="${product.id}">
-                            Delete
-                        </button>
-
-                    </div>
-
-                </div>
-            `).join("");
-
-            container
-                .querySelectorAll(".edit-product")
-                .forEach(button => {
-
-                    button.addEventListener("click", () => {
-
-                        const product =
-                            products.find(
-                                p => p.id === button.dataset.id
-                            );
-
-                        if (product) {
-                            openProductEdit(product);
-                        }
-                    });
-                });
-
-            container
-                .querySelectorAll(".delete-product")
-                .forEach(button => {
-
-                    button.addEventListener("click", () => {
-
-                        deleteProduct(button.dataset.id);
-                    });
-                });
-        });
-
-        renderProductTable();
-    }
-
-    // ========================================================
-    // PRODUCT TABLE
-    // ========================================================
-
-    function renderProductTable() {
-
-        const tbody = document.querySelector(
-            "#productsTable tbody"
+    const inventoryValue =
+        products.reduce(
+            (sum, product) =>
+                sum +
+                Number(product.price || 0) *
+                Number(product.stock || 0),
+            0
         );
 
-        if (!tbody) return;
+    const largest =
+        sales.length
+            ? Math.max(
+                ...sales.map(s => Number(s.total || 0))
+            )
+            : 0;
 
-        if (!products.length) {
+    document.getElementById("averageSale").textContent =
+        money(average);
 
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5">
-                        No products yet.
-                    </td>
-                </tr>
-            `;
-
-            return;
-        }
-
-        tbody.innerHTML = products.map(product => `
-            <tr>
-
-                <td>${safe(product.name)}</td>
-
-                <td>${money(product.price)}</td>
-
-                <td>${product.stock}</td>
-
-                <td>${formatDate(product.createdAt)}</td>
-
-                <td>
-
-                    <button
-                        class="edit-product"
-                        data-id="${product.id}">
-                        Edit
-                    </button>
-
-                    <button
-                        class="delete-product"
-                        data-id="${product.id}">
-                        Delete
-                    </button>
-
-                </td>
-
-            </tr>
-        `).join("");
-
-        tbody
-            .querySelectorAll(".edit-product")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-
-                    const product =
-                        products.find(
-                            p => p.id === button.dataset.id
-                        );
-
-                    if (product) openProductEdit(product);
-                });
-            });
-
-        tbody
-            .querySelectorAll(".delete-product")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-                    deleteProduct(button.dataset.id);
-                });
-            });
-    }
-
-    // ========================================================
-    // PRODUCT MODAL
-    // ========================================================
-
-    function getProductModal() {
-
-        return document.querySelector(
-            "#productModal, #addProductModal, .product-modal"
-        );
-    }
-
-    function openProductEdit(product) {
-
-        editingProductId = product.id;
-
-        const modal = getProductModal();
-
-        if (modal) {
-            modal.classList.add("active");
-            modal.style.display = "flex";
-        }
-
-        const nameInput = document.querySelector(
-            "#productName, #product-name"
+    document.getElementById("unitsInStock").textContent =
+        products.reduce(
+            (sum, product) =>
+                sum + Number(product.stock || 0),
+            0
         );
 
-        const priceInput = document.querySelector(
-            "#productPrice, #product-price"
-        );
+    document.getElementById("inventoryValue").textContent =
+        money(inventoryValue);
 
-        const stockInput = document.querySelector(
-            "#productStock, #product-stock"
-        );
+    document.getElementById("overviewRevenue").textContent =
+        money(totalRevenue);
 
-        if (nameInput) nameInput.value = product.name;
-        if (priceInput) priceInput.value = product.price;
-        if (stockInput) stockInput.value = product.stock;
+    document.getElementById("unitsSold").textContent =
+        totalUnits;
 
-        const submit =
-            document.querySelector(
-                "#productForm button[type='submit'], " +
-                "#productForm .submit-btn"
-            );
+    document.getElementById("overviewAverage").textContent =
+        money(average);
 
-        if (submit) {
-            submit.textContent = "Update Product";
-        }
-    }
+    document.getElementById("largestSale").textContent =
+        money(largest);
 
-    function setupProductForm() {
 
-        const form =
-            document.querySelector(
-                "#productForm, #addProductForm"
-            );
+    // BEST SELLER
 
-        if (!form) return;
+    const productSales = {};
 
-        form.addEventListener("submit", async event => {
+    sales.forEach(sale => {
 
-            event.preventDefault();
+        const name = sale.product_name || "Unknown";
 
-            const nameInput =
-                form.querySelector(
-                    "#productName, #product-name, [name='productName']"
-                );
+        productSales[name] =
+            (productSales[name] || 0) +
+            Number(sale.quantity || 0);
+    });
 
-            const priceInput =
-                form.querySelector(
-                    "#productPrice, #product-price, [name='price']"
-                );
+    let bestSeller = "—";
 
-            const stockInput =
-                form.querySelector(
-                    "#productStock, #product-stock, [name='stock']"
-                );
-
-            const name =
-                nameInput?.value.trim();
-
-            const price =
-                Number(priceInput?.value);
-
-            const stock =
-                Number(stockInput?.value);
-
-            if (!name) {
-                alert("Please enter a product name.");
-                return;
-            }
-
-            if (isNaN(price) || price < 0) {
-                alert("Please enter a valid price.");
-                return;
-            }
-
-            if (isNaN(stock) || stock < 0) {
-                alert("Please enter valid stock.");
-                return;
-            }
-
-            const submit =
-                form.querySelector(
-                    "button[type='submit']"
-                );
-
-            if (submit) {
-                submit.disabled = true;
-                submit.textContent = "Saving...";
-            }
-
-            try {
-
-                if (editingProductId) {
-
-                    const { data, error } =
-                        await supabaseClient
-                            .from("products")
-                            .update({
-                                name,
-                                price,
-                                stock,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq("id", editingProductId)
-                            .select()
-                            .single();
-
-                    if (error) throw error;
-
-                    const index =
-                        products.findIndex(
-                            p => p.id === editingProductId
-                        );
-
-                    if (index !== -1) {
-                        products[index] = mapProduct(data);
-                    }
-
-                    alert("Product updated successfully.");
-
-                } else {
-
-                    const { data, error } =
-                        await supabaseClient
-                            .from("products")
-                            .insert({
-                                business_id: currentBusiness.id,
-                                name,
-                                price,
-                                stock
-                            })
-                            .select()
-                            .single();
-
-                    if (error) throw error;
-
-                    products.unshift(mapProduct(data));
-
-                    alert("Product added successfully.");
-                }
-
-                editingProductId = null;
-
-                form.reset();
-
-                closeAllModals();
-
-                renderAll();
-
-            } catch (error) {
-
-                console.error("Product error:", error);
-
-                alert(
-                    "Could not save product.\n\n" +
-                    error.message
-                );
-
-            } finally {
-
-                if (submit) {
-                    submit.disabled = false;
-                    submit.textContent =
-                        editingProductId
-                            ? "Update Product"
-                            : "Add Product";
-                }
-            }
-        });
-    }
-
-    // ========================================================
-    // DELETE PRODUCT
-    // ========================================================
-
-    async function deleteProduct(productId) {
-
-        const product =
-            products.find(
-                p => p.id === productId
-            );
-
-        if (!product) return;
-
-        const usedInSales =
-            sales.some(
-                sale => sale.productId === productId
-            );
-
-        const usedInInvoices =
-            invoices.some(
-                invoice => invoice.productId === productId
-            );
-
-        if (usedInSales || usedInInvoices) {
-
-            alert(
-                "This product cannot be deleted because " +
-                "it is already used in sales or invoices."
-            );
-
-            return;
-        }
+    Object.keys(productSales).forEach(name => {
 
         if (
-            !confirm(
-                `Delete "${product.name}"?`
-            )
+            bestSeller === "—" ||
+            productSales[name] > productSales[bestSeller]
         ) {
-            return;
+            bestSeller = name;
         }
+    });
 
-        try {
+    document.getElementById("bestSeller").textContent =
+        bestSeller;
 
-            const { error } =
-                await supabaseClient
-                    .from("products")
-                    .delete()
-                    .eq("id", productId);
 
-            if (error) throw error;
+    // TOP PRODUCTS
 
-            products =
-                products.filter(
-                    p => p.id !== productId
-                );
+    const topProducts =
+        Object.entries(productSales)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
 
-            renderAll();
+    const topContainer =
+        document.getElementById("topProducts");
 
-            alert("Product deleted.");
+    if (topContainer) {
 
-        } catch (error) {
+        if (!topProducts.length) {
 
-            console.error(error);
+            topContainer.innerHTML =
+                `<div class="empty-state">No sales yet.</div>`;
 
-            alert(
-                "Could not delete product.\n\n" +
-                error.message
-            );
+        } else {
+
+            topContainer.innerHTML =
+                topProducts.map(([name, quantity]) => `
+                    <div class="overview-row">
+                        <span>${safe(name)}</span>
+                        <strong>${quantity} sold</strong>
+                    </div>
+                `).join("");
         }
     }
 
-    // ========================================================
-    // CUSTOMERS
-    // ========================================================
 
-    function renderCustomers() {
+    // INVENTORY ALERTS
 
-        const containers = document.querySelectorAll(
-            "#customersList, #customerList, .customers-list"
-        );
+    const alertContainer =
+        document.getElementById("inventoryAlerts");
 
-        containers.forEach(container => {
+    if (alertContainer) {
 
-            if (!customers.length) {
+        const lowStock =
+            products.filter(p => Number(p.stock) <= 5);
 
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No customers yet</h3>
-                        <p>Add your first customer to get started.</p>
-                    </div>
-                `;
+        if (!lowStock.length) {
 
-                return;
-            }
-
-            container.innerHTML = customers.map(customer => `
-                <div class="customer-card">
-
-                    <div>
-                        <h3>${safe(customer.name)}</h3>
-
-                        <p>${safe(customer.email)}</p>
-
-                        <p>${safe(customer.phone)}</p>
-                    </div>
-
-                    <button
-                        type="button"
-                        class="delete-customer"
-                        data-id="${customer.id}">
-                        Delete
-                    </button>
-
+            alertContainer.innerHTML = `
+                <div class="success-message">
+                    ✅ All products have healthy stock levels.
                 </div>
-            `).join("");
-
-            container
-                .querySelectorAll(".delete-customer")
-                .forEach(button => {
-
-                    button.addEventListener("click", () => {
-                        deleteCustomer(button.dataset.id);
-                    });
-                });
-        });
-
-        renderCustomerTable();
-    }
-
-    function renderCustomerTable() {
-
-        const tbody =
-            document.querySelector(
-                "#customersTable tbody"
-            );
-
-        if (!tbody) return;
-
-        if (!customers.length) {
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5">
-                        No customers yet.
-                    </td>
-                </tr>
             `;
 
-            return;
-        }
+        } else {
 
-        tbody.innerHTML = customers.map(customer => `
-            <tr>
-
-                <td>${safe(customer.name)}</td>
-
-                <td>${safe(customer.email)}</td>
-
-                <td>${safe(customer.phone)}</td>
-
-                <td>${formatDate(customer.createdAt)}</td>
-
-                <td>
-                    <button
-                        class="delete-customer"
-                        data-id="${customer.id}">
-                        Delete
-                    </button>
-                </td>
-
-            </tr>
-        `).join("");
-
-        tbody
-            .querySelectorAll(".delete-customer")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-                    deleteCustomer(button.dataset.id);
-                });
-            });
-    }
-
-    function setupCustomerForm() {
-
-        const form =
-            document.querySelector(
-                "#customerForm, #addCustomerForm"
-            );
-
-        if (!form) return;
-
-        form.addEventListener("submit", async event => {
-
-            event.preventDefault();
-
-            const nameInput =
-                form.querySelector(
-                    "#customerName, #customer-name, [name='name']"
-                );
-
-            const emailInput =
-                form.querySelector(
-                    "#customerEmail, #customer-email, [name='email']"
-                );
-
-            const phoneInput =
-                form.querySelector(
-                    "#customerPhone, #customer-phone, [name='phone']"
-                );
-
-            const name =
-                nameInput?.value.trim();
-
-            const email =
-                emailInput?.value.trim() || "";
-
-            const phone =
-                phoneInput?.value.trim() || "";
-
-            if (!name) {
-                alert("Please enter a customer name.");
-                return;
-            }
-
-            if (email && !isValidEmail(email)) {
-                alert("Please enter a valid email.");
-                return;
-            }
-
-            try {
-
-                const { data, error } =
-                    await supabaseClient
-                        .from("customers")
-                        .insert({
-                            business_id: currentBusiness.id,
-                            name,
-                            email,
-                            phone
-                        })
-                        .select()
-                        .single();
-
-                if (error) throw error;
-
-                customers.unshift(
-                    mapCustomer(data)
-                );
-
-                form.reset();
-
-                closeAllModals();
-
-                renderAll();
-
-                alert("Customer added successfully.");
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "Could not add customer.\n\n" +
-                    error.message
-                );
-            }
-        });
-    }
-
-    async function deleteCustomer(customerId) {
-
-        const customer =
-            customers.find(
-                c => c.id === customerId
-            );
-
-        if (!customer) return;
-
-        const used =
-            invoices.some(
-                invoice =>
-                    invoice.customerId === customerId
-            );
-
-        if (used) {
-
-            alert(
-                "This customer cannot be deleted because " +
-                "they are used in an invoice."
-            );
-
-            return;
-        }
-
-        if (
-            !confirm(
-                `Delete "${customer.name}"?`
-            )
-        ) {
-            return;
-        }
-
-        try {
-
-            const { error } =
-                await supabaseClient
-                    .from("customers")
-                    .delete()
-                    .eq("id", customerId);
-
-            if (error) throw error;
-
-            customers =
-                customers.filter(
-                    c => c.id !== customerId
-                );
-
-            renderAll();
-
-            alert("Customer deleted.");
-
-        } catch (error) {
-
-            console.error(error);
-
-            alert(
-                "Could not delete customer.\n\n" +
-                error.message
-            );
+            alertContainer.innerHTML =
+                lowStock.map(product => `
+                    <div class="overview-row">
+                        <span>${safe(product.name)}</span>
+                        <strong>${product.stock} left</strong>
+                    </div>
+                `).join("");
         }
     }
 
-    // ========================================================
-    // SALES
-    // ========================================================
 
-    function renderSales() {
+    // SIMPLE REVENUE TREND
 
-        const containers = document.querySelectorAll(
-            "#salesList, #saleList, .sales-list"
+    const chart =
+        document.getElementById("revenueChart");
+
+    if (!chart) return;
+
+    if (!sales.length) {
+
+        chart.innerHTML = `
+            <div class="empty-chart">
+                Make your first sale to see your revenue trend.
+            </div>
+        `;
+
+        return;
+    }
+
+    const recent =
+        [...sales]
+            .reverse()
+            .slice(-10);
+
+    const max =
+        Math.max(
+            ...recent.map(s => Number(s.total || 0)),
+            1
         );
 
-        containers.forEach(container => {
+    chart.innerHTML = `
 
-            if (!sales.length) {
+        <div class="simple-chart">
 
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No sales yet</h3>
-                        <p>Record your first sale.</p>
-                    </div>
-                `;
+            ${recent.map(sale => {
 
-                return;
-            }
-
-            container.innerHTML = sales.map(sale => `
-                <div class="sale-item">
-
-                    <div>
-                        <strong>
-                            ${safe(sale.productName)}
-                        </strong>
-
-                        <span>
-                            ${sale.quantity} ×
-                            ${money(
-                                sale.total /
-                                Math.max(sale.quantity, 1)
-                            )}
-                        </span>
-                    </div>
-
-                    <div>
-                        <strong>${money(sale.total)}</strong>
-                        <small>${formatDate(sale.createdAt)}</small>
-                    </div>
-
-                    <button
-                        class="delete-sale"
-                        data-id="${sale.id}">
-                        Delete
-                    </button>
-
-                </div>
-            `).join("");
-
-            container
-                .querySelectorAll(".delete-sale")
-                .forEach(button => {
-
-                    button.addEventListener("click", () => {
-                        deleteSale(button.dataset.id);
-                    });
-                });
-        });
-
-        renderSalesTable();
-    }
-
-    function renderSalesTable() {
-
-        const tbody =
-            document.querySelector(
-                "#salesTable tbody"
-            );
-
-        if (!tbody) return;
-
-        if (!sales.length) {
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="6">
-                        No sales yet.
-                    </td>
-                </tr>
-            `;
-
-            return;
-        }
-
-        tbody.innerHTML = sales.map(sale => `
-            <tr>
-
-                <td>${safe(sale.productName)}</td>
-
-                <td>${sale.quantity}</td>
-
-                <td>${money(sale.total)}</td>
-
-                <td>${formatDate(sale.createdAt)}</td>
-
-                <td>
-                    <button
-                        class="delete-sale"
-                        data-id="${sale.id}">
-                        Delete
-                    </button>
-                </td>
-
-            </tr>
-        `).join("");
-
-        tbody
-            .querySelectorAll(".delete-sale")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-                    deleteSale(button.dataset.id);
-                });
-            });
-    }
-
-    function setupSaleForm() {
-
-        const form =
-            document.querySelector(
-                "#saleForm, #addSaleForm"
-            );
-
-        if (!form) return;
-
-        populateProductSelects();
-
-        form.addEventListener("submit", async event => {
-
-            event.preventDefault();
-
-            const productSelect =
-                form.querySelector(
-                    "#saleProduct, #sale-product, [name='productId']"
-                );
-
-            const quantityInput =
-                form.querySelector(
-                    "#saleQuantity, #sale-quantity, [name='quantity']"
-                );
-
-            const productId =
-                productSelect?.value;
-
-            const quantity =
-                Number(quantityInput?.value);
-
-            if (!productId) {
-                alert("Please select a product.");
-                return;
-            }
-
-            if (!quantity || quantity <= 0) {
-                alert("Please enter a valid quantity.");
-                return;
-            }
-
-            const product =
-                products.find(
-                    p => p.id === productId
-                );
-
-            if (!product) {
-                alert("Product not found.");
-                return;
-            }
-
-            if (quantity > product.stock) {
-                alert(
-                    `Only ${product.stock} item(s) available in stock.`
-                );
-                return;
-            }
-
-            const total =
-                Number(product.price) * quantity;
-
-            try {
-
-                // 1. INSERT SALE
-                const { data: saleData, error: saleError } =
-                    await supabaseClient
-                        .from("sales")
-                        .insert({
-                            business_id: currentBusiness.id,
-                            product_id: product.id,
-                            product_name: product.name,
-                            quantity,
-                            total
-                        })
-                        .select()
-                        .single();
-
-                if (saleError) throw saleError;
-
-                // 2. UPDATE STOCK
-                const newStock =
-                    Number(product.stock) - quantity;
-
-                const {
-                    data: productData,
-                    error: stockError
-                } = await supabaseClient
-                    .from("products")
-                    .update({
-                        stock: newStock,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq("id", product.id)
-                    .select()
-                    .single();
-
-                if (stockError) {
-
-                    // Try to remove sale if stock update fails
-                    await supabaseClient
-                        .from("sales")
-                        .delete()
-                        .eq("id", saleData.id);
-
-                    throw stockError;
-                }
-
-                sales.unshift(
-                    mapSale(saleData)
-                );
-
-                const index =
-                    products.findIndex(
-                        p => p.id === product.id
+                const height =
+                    Math.max(
+                        8,
+                        (Number(sale.total || 0) / max) * 100
                     );
 
-                if (index !== -1) {
-                    products[index] =
-                        mapProduct(productData);
-                }
+                return `
+                    <div class="chart-bar-wrap">
 
-                form.reset();
+                        <div
+                            class="chart-bar"
+                            style="height:${height}%"
+                            title="${money(sale.total)}"
+                        ></div>
 
-                closeAllModals();
-
-                renderAll();
-
-                alert("Sale recorded successfully.");
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "Could not record sale.\n\n" +
-                    error.message
-                );
-            }
-        });
-    }
-
-    async function deleteSale(saleId) {
-
-        const sale =
-            sales.find(
-                s => s.id === saleId
-            );
-
-        if (!sale) return;
-
-        if (!confirm("Delete this sale?")) {
-            return;
-        }
-
-        try {
-
-            // Delete sale
-            const { error: deleteError } =
-                await supabaseClient
-                    .from("sales")
-                    .delete()
-                    .eq("id", saleId);
-
-            if (deleteError) {
-                throw deleteError;
-            }
-
-            // Restore stock
-            const product =
-                products.find(
-                    p => p.id === sale.productId
-                );
-
-            if (product) {
-
-                const restoredStock =
-                    Number(product.stock) +
-                    Number(sale.quantity);
-
-                const {
-                    data: productData,
-                    error: stockError
-                } = await supabaseClient
-                    .from("products")
-                    .update({
-                        stock: restoredStock,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq("id", product.id)
-                    .select()
-                    .single();
-
-                if (stockError) {
-                    console.error(
-                        "Stock restoration failed:",
-                        stockError
-                    );
-                } else {
-
-                    const index =
-                        products.findIndex(
-                            p => p.id === product.id
-                        );
-
-                    if (index !== -1) {
-                        products[index] =
-                            mapProduct(productData);
-                    }
-                }
-            }
-
-            sales =
-                sales.filter(
-                    s => s.id !== saleId
-                );
-
-            renderAll();
-
-            alert("Sale deleted.");
-
-        } catch (error) {
-
-            console.error(error);
-
-            alert(
-                "Could not delete sale.\n\n" +
-                error.message
-            );
-        }
-    }
-
-    // ========================================================
-    // INVOICES
-    // ========================================================
-
-    function renderInvoices() {
-
-        const containers = document.querySelectorAll(
-            "#invoicesList, #invoiceList, .invoices-list"
-        );
-
-        containers.forEach(container => {
-
-            if (!invoices.length) {
-
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>No invoices yet</h3>
-                        <p>Create your first invoice.</p>
                     </div>
                 `;
 
-                return;
-            }
+            }).join("")}
 
-            container.innerHTML = invoices.map(invoice => `
-                <div class="invoice-card">
+        </div>
+    `;
+}
 
-                    <div>
-                        <strong>
-                            ${safe(invoice.invoiceNumber)}
-                        </strong>
 
-                        <p>
-                            ${safe(invoice.customerName)}
-                        </p>
+// =========================================================
+// RECENT ACTIVITY
+// =========================================================
 
-                        <p>
-                            ${safe(invoice.productName)}
-                        </p>
-                    </div>
+function renderRecentActivity() {
 
-                    <div>
-                        <strong>
-                            ${money(invoice.total)}
-                        </strong>
+    const container =
+        document.getElementById("recentActivity");
 
-                        <span>
-                            ${safe(invoice.status)}
-                        </span>
-                    </div>
+    if (!container) return;
 
-                    <div>
+    if (!sales.length && !invoices.length) {
 
-                        <button
-                            class="toggle-invoice"
-                            data-id="${invoice.id}">
-                            Mark ${
-                                invoice.status === "paid"
-                                    ? "Unpaid"
-                                    : "Paid"
-                            }
-                        </button>
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📊</div>
+                <h3>No recent activity</h3>
+                <p>Your latest business activity will appear here.</p>
+            </div>
+        `;
 
-                        <button
-                            class="delete-invoice"
-                            data-id="${invoice.id}">
-                            Delete
-                        </button>
-
-                    </div>
-
-                </div>
-            `).join("");
-
-            setupInvoiceButtons(container);
-        });
-
-        renderInvoiceTable();
+        return;
     }
 
-    function setupInvoiceButtons(container) {
-
-        container
-            .querySelectorAll(".toggle-invoice")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-                    toggleInvoiceStatus(button.dataset.id);
-                });
-            });
-
-        container
-            .querySelectorAll(".delete-invoice")
-            .forEach(button => {
-
-                button.addEventListener("click", () => {
-                    deleteInvoice(button.dataset.id);
-                });
-            });
-    }
-
-    function renderInvoiceTable() {
-
-        const tbody =
-            document.querySelector(
-                "#invoicesTable tbody"
-            );
-
-        if (!tbody) return;
-
-        if (!invoices.length) {
-
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7">
-                        No invoices yet.
-                    </td>
-                </tr>
-            `;
-
-            return;
-        }
-
-        tbody.innerHTML = invoices.map(invoice => `
-            <tr>
-
-                <td>
-                    ${safe(invoice.invoiceNumber)}
-                </td>
-
-                <td>
-                    ${safe(invoice.customerName)}
-                </td>
-
-                <td>
-                    ${safe(invoice.productName)}
-                </td>
-
-                <td>
-                    ${money(invoice.total)}
-                </td>
-
-                <td>
-                    ${safe(invoice.status)}
-                </td>
-
-                <td>
-                    ${formatDate(invoice.dueDate)}
-                </td>
-
-                <td>
-
-                    <button
-                        class="toggle-invoice"
-                        data-id="${invoice.id}">
-                        ${
-                            invoice.status === "paid"
-                                ? "Unpaid"
-                                : "Paid"
-                        }
-                    </button>
-
-                    <button
-                        class="delete-invoice"
-                        data-id="${invoice.id}">
-                        Delete
-                    </button>
-
-                </td>
-
-            </tr>
-        `).join("");
-
-        setupInvoiceButtons(tbody);
-    }
-
-    function generateInvoiceNumber() {
-
-        const number =
-            invoices.length + 1;
-
-        return "INV-" +
-            String(number).padStart(4, "0");
-    }
-
-    function setupInvoiceForm() {
-
-        const form =
-            document.querySelector(
-                "#invoiceForm, #createInvoiceForm"
-            );
-
-        if (!form) return;
-
-        populateInvoiceSelects();
-
-        form.addEventListener("submit", async event => {
-
-            event.preventDefault();
-
-            const customerSelect =
-                form.querySelector(
-                    "#invoiceCustomer, #invoice-customer, [name='customerId']"
-                );
-
-            const productSelect =
-                form.querySelector(
-                    "#invoiceProduct, #invoice-product, [name='productId']"
-                );
-
-            const quantityInput =
-                form.querySelector(
-                    "#invoiceQuantity, #invoice-quantity, [name='quantity']"
-                );
-
-            const discountInput =
-                form.querySelector(
-                    "#invoiceDiscount, #invoice-discount, [name='discount']"
-                );
-
-            const taxInput =
-                form.querySelector(
-                    "#invoiceTax, #invoice-tax, [name='taxRate']"
-                );
-
-            const dueDateInput =
-                form.querySelector(
-                    "#invoiceDueDate, #invoice-due-date, [name='dueDate']"
-                );
-
-            const customerId =
-                customerSelect?.value;
-
-            const productId =
-                productSelect?.value;
-
-            const quantity =
-                Number(quantityInput?.value);
-
-            const discount =
-                Number(discountInput?.value || 0);
-
-            const taxRate =
-                Number(taxInput?.value || 0);
-
-            const dueDate =
-                dueDateInput?.value || null;
-
-            const customer =
-                customers.find(
-                    c => c.id === customerId
-                );
-
-            const product =
-                products.find(
-                    p => p.id === productId
-                );
-
-            if (!customer) {
-                alert("Please select a customer.");
-                return;
-            }
-
-            if (!product) {
-                alert("Please select a product.");
-                return;
-            }
-
-            if (!quantity || quantity <= 0) {
-                alert("Please enter a valid quantity.");
-                return;
-            }
-
-            if (discount < 0) {
-                alert("Discount cannot be negative.");
-                return;
-            }
-
-            if (taxRate < 0) {
-                alert("Tax rate cannot be negative.");
-                return;
-            }
-
-            const subtotal =
-                Number(product.price) *
-                quantity;
-
-            const discountedSubtotal =
-                Math.max(
-                    0,
-                    subtotal - discount
-                );
-
-            const tax =
-                discountedSubtotal *
-                (taxRate / 100);
-
-            const total =
-                discountedSubtotal + tax;
-
-            try {
-
-                const { data, error } =
-                    await supabaseClient
-                        .from("invoices")
-                        .insert({
-                            business_id: currentBusiness.id,
-
-                            invoice_number:
-                                generateInvoiceNumber(),
-
-                            customer_id:
-                                customer.id,
-
-                            customer_name:
-                                customer.name,
-
-                            product_id:
-                                product.id,
-
-                            product_name:
-                                product.name,
-
-                            quantity,
-
-                            subtotal,
-
-                            discount,
-
-                            tax_rate: taxRate,
-
-                            tax,
-
-                            total,
-
-                            due_date: dueDate,
-
-                            status: "unpaid"
-                        })
-                        .select()
-                        .single();
-
-                if (error) throw error;
-
-                invoices.unshift(
-                    mapInvoice(data)
-                );
-
-                form.reset();
-
-                closeAllModals();
-
-                renderAll();
-
-                alert("Invoice created successfully.");
-
-            } catch (error) {
-
-                console.error(error);
-
-                alert(
-                    "Could not create invoice.\n\n" +
-                    error.message
-                );
-            }
-        });
-    }
-
-    async function toggleInvoiceStatus(invoiceId) {
-
-        const invoice =
-            invoices.find(
-                i => i.id === invoiceId
-            );
-
-        if (!invoice) return;
-
-        const newStatus =
-            invoice.status === "paid"
-                ? "unpaid"
-                : "paid";
-
-        try {
-
-            const { data, error } =
-                await supabaseClient
-                    .from("invoices")
-                    .update({
-                        status: newStatus
-                    })
-                    .eq("id", invoiceId)
-                    .select()
-                    .single();
-
-            if (error) throw error;
-
-            const index =
-                invoices.findIndex(
-                    i => i.id === invoiceId
-                );
-
-            if (index !== -1) {
-                invoices[index] =
-                    mapInvoice(data);
-            }
-
-            renderAll();
-
-        } catch (error) {
-
-            console.error(error);
-
-            alert(
-                "Could not update invoice.\n\n" +
-                error.message
-            );
-        }
-    }
-
-    async function deleteInvoice(invoiceId) {
-
-        if (!confirm("Delete this invoice?")) {
-            return;
-        }
-
-        try {
-
-            const { error } =
-                await supabaseClient
-                    .from("invoices")
-                    .delete()
-                    .eq("id", invoiceId);
-
-            if (error) throw error;
-
-            invoices =
-                invoices.filter(
-                    invoice =>
-                        invoice.id !== invoiceId
-                );
-
-            renderAll();
-
-            alert("Invoice deleted.");
-
-        } catch (error) {
-
-            console.error(error);
-
-            alert(
-                "Could not delete invoice.\n\n" +
-                error.message
-            );
-        }
-    }
-
-    // ========================================================
-    // SELECT DROPDOWNS
-    // ========================================================
-
-    function populateProductSelects() {
-
-        const selectors = [
-            "#saleProduct",
-            "#sale-product",
-            "#invoiceProduct",
-            "#invoice-product"
-        ];
-
-        selectors.forEach(selector => {
-
-            const select =
-                document.querySelector(selector);
-
-            if (!select) return;
-
-            const current =
-                select.value;
-
-            const isInvoice =
-                selector.toLowerCase().includes("invoice");
-
-            const firstOption =
-                isInvoice
-                    ? "Select product"
-                    : "Select product";
-
-            select.innerHTML = `
-                <option value="">
-                    ${firstOption}
-                </option>
-
-                ${products.map(product => `
-                    <option value="${product.id}">
-                        ${safe(product.name)}
-                        - ${money(product.price)}
-                        ${
-                            isInvoice
-                                ? ""
-                                : `(${product.stock} in stock)`
-                        }
-                    </option>
-                `).join("")}
-            `;
-
-            if (
-                products.some(
-                    p => p.id === current
-                )
-            ) {
-                select.value = current;
-            }
-        });
-    }
-
-    function populateInvoiceSelects() {
-
-        const customerSelect =
-            document.querySelector(
-                "#invoiceCustomer, #invoice-customer"
-            );
-
-        if (customerSelect) {
-
-            customerSelect.innerHTML = `
-                <option value="">
-                    Select customer
-                </option>
-
-                ${customers.map(customer => `
-                    <option value="${customer.id}">
-                        ${safe(customer.name)}
-                    </option>
-                `).join("")}
-            `;
-        }
-
-        populateProductSelects();
-    }
-
-    // ========================================================
-    // ANALYTICS
-    // ========================================================
-
-    function renderAnalytics() {
-
-        const revenue =
-            sales.reduce(
-                (sum, sale) =>
-                    sum + Number(sale.total || 0),
-                0
-            );
-
-        const totalItems =
-            sales.reduce(
-                (sum, sale) =>
-                    sum + Number(sale.quantity || 0),
-                0
-            );
-
-        const averageSale =
-            sales.length
-                ? revenue / sales.length
-                : 0;
-
-        document
-            .querySelectorAll(
-                "#analyticsRevenue, [data-analytics='revenue']"
-            )
-            .forEach(el => {
-                el.textContent = money(revenue);
-            });
-
-        document
-            .querySelectorAll(
-                "#totalItemsSold, [data-analytics='items']"
-            )
-            .forEach(el => {
-                el.textContent = totalItems;
-            });
-
-        document
-            .querySelectorAll(
-                "#averageSale, [data-analytics='average']"
-            )
-            .forEach(el => {
-                el.textContent = money(averageSale);
-            });
-
-        renderTopProducts();
-    }
-
-    function renderTopProducts() {
-
-        const container =
-            document.querySelector(
-                "#topProducts, .top-products"
-            );
-
-        if (!container) return;
-
-        const totals = {};
-
-        sales.forEach(sale => {
-
-            if (!totals[sale.productName]) {
-                totals[sale.productName] = 0;
-            }
-
-            totals[sale.productName] +=
-                Number(sale.total || 0);
-        });
-
-        const sorted =
-            Object.entries(totals)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
-
-        if (!sorted.length) {
-
-            container.innerHTML =
-                `<p>No sales data yet.</p>`;
-
-            return;
-        }
-
-        container.innerHTML =
-            sorted.map(([name, total], index) => `
-                <div class="top-product-item">
-
-                    <span>
-                        ${index + 1}.
-                        ${safe(name)}
-                    </span>
-
+    const activity = [
+
+        ...sales.map(sale => ({
+            type: "Sale",
+            text: `${sale.product_name} sale`,
+            amount: sale.total,
+            date: sale.created_at
+        })),
+
+        ...invoices.map(invoice => ({
+            type: "Invoice",
+            text: `${invoice.invoice_number} created`,
+            amount: invoice.total,
+            date: invoice.created_at
+        }))
+
+    ]
+        .sort(
+            (a, b) =>
+                new Date(b.date) -
+                new Date(a.date)
+        )
+        .slice(0, 8);
+
+    container.innerHTML =
+        activity.map(item => `
+
+            <div class="activity-item">
+
+                <div>
                     <strong>
-                        ${money(total)}
+                        ${safe(item.type)}
                     </strong>
 
+                    <p>
+                        ${safe(item.text)}
+                    </p>
+
+                    <small>
+                        ${formatDate(item.date)}
+                    </small>
                 </div>
-            `).join("");
-    }
 
-    // ========================================================
-    // MODALS
-    // ========================================================
+                <strong>
+                    ${money(item.amount)}
+                </strong>
 
-    function setupModalBehavior() {
+            </div>
 
-        document
-            .querySelectorAll(
-                "[data-modal], .open-modal"
-            )
-            .forEach(button => {
+        `).join("");
+}
 
-                button.addEventListener("click", () => {
 
-                    const modalId =
-                        button.dataset.modal ||
-                        button.dataset.target;
+// =========================================================
+// SEARCH
+// =========================================================
 
-                    if (!modalId) return;
+function setupSearch() {
 
-                    const modal =
-                        document.querySelector(
-                            modalId.startsWith("#")
-                                ? modalId
-                                : "#" + modalId
-                        );
+    document
+        .getElementById("productSearch")
+        ?.addEventListener("input", renderProducts);
 
-                    if (modal) {
-                        modal.classList.add("active");
-                        modal.style.display = "flex";
-                    }
-                });
-            });
+    document
+        .getElementById("customerSearch")
+        ?.addEventListener("input", renderCustomers);
 
-        document
-            .querySelectorAll(
-                ".modal-close, .close-modal, [data-close-modal]"
-            )
-            .forEach(button => {
+    document
+        .getElementById("salesSearch")
+        ?.addEventListener("input", renderSales);
 
-                button.addEventListener("click", () => {
-                    closeAllModals();
-                });
-            });
+    document
+        .getElementById("invoiceSearch")
+        ?.addEventListener("input", renderInvoices);
 
-        document
-            .querySelectorAll(".modal")
-            .forEach(modal => {
+    document
+        .getElementById("invoiceStatusFilter")
+        ?.addEventListener("change", renderInvoices);
+}
 
-                modal.addEventListener(
-                    "click",
-                    event => {
 
-                        if (
-                            event.target === modal
-                        ) {
-                            closeAllModals();
-                        }
-                    }
-                );
-            });
-    }
+// =========================================================
+// MODAL CLOSE
+// =========================================================
 
-    function closeAllModals() {
+function setupModalBehavior() {
 
-        document
-            .querySelectorAll(
-                ".modal, .modal-overlay"
-            )
-            .forEach(modal => {
+    document.querySelectorAll(".modal").forEach(modal => {
 
+        modal.addEventListener("click", function(event) {
+
+            if (event.target === modal) {
                 modal.classList.remove("active");
-                modal.style.display = "none";
-            });
-
-        editingProductId = null;
-
-        document
-            .querySelectorAll(
-                "#productForm button[type='submit']"
-            )
-            .forEach(button => {
-                button.textContent = "Add Product";
-            });
-    }
-
-    // ========================================================
-    // BUSINESS CONTACT LINKS
-    // ========================================================
-
-    function setupBusinessContactLinks() {
-
-        const emailElements =
-            document.querySelectorAll(
-                "[data-business-email]"
-            );
-
-        emailElements.forEach(el => {
-
-            if (currentUser?.email) {
-
-                el.textContent =
-                    currentUser.email;
-
-                if (el.tagName === "A") {
-                    el.href =
-                        "mailto:" + currentUser.email;
-                }
             }
+
         });
-    }
+    });
+}
 
-    // ========================================================
-    // CONTACT FORM
-    // ========================================================
 
-    function setupContactForm() {
+// =========================================================
+// CONTACT
+// =========================================================
 
-        const form =
-            document.querySelector(
-                "#contactForm"
-            );
+function sendContactMessage(event) {
 
-        if (!form) return;
+    event.preventDefault();
 
-        form.addEventListener(
-            "submit",
-            event => {
+    const name =
+        document.getElementById("contactName").value.trim();
 
-                event.preventDefault();
+    const email =
+        document.getElementById("contactEmail").value.trim();
 
-                alert(
-                    "Thanks! Your message has been received."
-                );
+    const subject =
+        document.getElementById("contactSubject").value.trim();
 
-                form.reset();
-            }
-        );
-    }
+    const message =
+        document.getElementById("contactMessage").value.trim();
 
-    // ========================================================
-    // BACKUP / EXPORT
-    // ========================================================
+    const body =
+        `Name: ${name}\nEmail: ${email}\n\n${message}`;
 
-    function setupBackup() {
+    window.location.href =
+        `mailto:crarcss@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
-        const exportButtons =
-            document.querySelectorAll(
-                "#exportData, #exportBackup, [data-export]"
-            );
 
-        exportButtons.forEach(button => {
+// =========================================================
+// BACKUP
+// =========================================================
 
-            button.addEventListener(
-                "click",
-                exportBusinessData
-            );
-        });
+async function exportBusinessData() {
 
-        const importInput =
-            document.querySelector(
-                "#importData, #importBackup"
-            );
-
-        if (importInput) {
-
-            importInput.addEventListener(
-                "change",
-                event => {
-
-                    const file =
-                        event.target.files?.[0];
-
-                    if (file) {
-                        importBusinessData(file);
-                    }
-                }
-            );
-        }
-
-        const resetButtons =
-            document.querySelectorAll(
-                "#resetData, #resetBusinessData, [data-reset]"
-            );
-
-        resetButtons.forEach(button => {
-
-            button.addEventListener(
-                "click",
-                resetBusinessData
-            );
-        });
-    }
-
-    function exportBusinessData() {
-
-        const backup = {
-
-            version: 1,
-
-            business: {
-                name: currentBusiness?.name || ""
-            },
-
-            products,
-            customers,
-            sales,
-            invoices,
-
-            exportedAt:
-                new Date().toISOString()
-        };
-
-        const blob =
-            new Blob(
-                [JSON.stringify(backup, null, 2)],
-                {
-                    type: "application/json"
-                }
-            );
-
-        const url =
-            URL.createObjectURL(blob);
-
-        const link =
-            document.createElement("a");
-
-        link.href = url;
-
-        link.download =
-            "patriodx-backup-" +
-            todayString() +
-            ".json";
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        link.remove();
-
-        URL.revokeObjectURL(url);
-    }
-
-    // ========================================================
-    // IMPORT DATA
-    // ========================================================
-
-    async function importBusinessData(file) {
-
-        if (
-            !confirm(
-                "Importing this backup will replace your current " +
-                "PATRIODX business data. Continue?"
-            )
-        ) {
-            return;
-        }
-
-        try {
-
-            const textData =
-                await file.text();
-
-            const backup =
-                JSON.parse(textData);
-
-            if (!backup || typeof backup !== "object") {
-                throw new Error(
-                    "Invalid backup file."
-                );
-            }
-
-            const oldProducts =
-                Array.isArray(backup.products)
-                    ? backup.products
-                    : [];
-
-            const oldCustomers =
-                Array.isArray(backup.customers)
-                    ? backup.customers
-                    : [];
-
-            const oldSales =
-                Array.isArray(backup.sales)
-                    ? backup.sales
-                    : [];
-
-            const oldInvoices =
-                Array.isArray(backup.invoices)
-                    ? backup.invoices
-                    : [];
-
-            // --------------------------------------------
-            // DELETE CURRENT DATA
-            // --------------------------------------------
-
-            let result =
-                await supabaseClient
-                    .from("invoices")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            result =
-                await supabaseClient
-                    .from("sales")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            result =
-                await supabaseClient
-                    .from("customers")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            result =
-                await supabaseClient
-                    .from("products")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            // --------------------------------------------
-            // PRODUCT ID MAP
-            // --------------------------------------------
-
-            const productIdMap = {};
-
-            for (const oldProduct of oldProducts) {
-
-                const { data, error } =
-                    await supabaseClient
-                        .from("products")
-                        .insert({
-                            business_id:
-                                currentBusiness.id,
-
-                            name:
-                                oldProduct.name ||
-                                oldProduct.productName ||
-                                "Unnamed Product",
-
-                            price:
-                                Number(
-                                    oldProduct.price
-                                ) || 0,
-
-                            stock:
-                                Number(
-                                    oldProduct.stock
-                                ) || 0
-                        })
-                        .select()
-                        .single();
-
-                if (error) throw error;
-
-                const oldId =
-                    oldProduct.id ||
-                    oldProduct.productId;
-
-                if (oldId) {
-                    productIdMap[oldId] =
-                        data.id;
-                }
-            }
-
-            // --------------------------------------------
-            // CUSTOMER ID MAP
-            // --------------------------------------------
-
-            const customerIdMap = {};
-
-            for (const oldCustomer of oldCustomers) {
-
-                const { data, error } =
-                    await supabaseClient
-                        .from("customers")
-                        .insert({
-                            business_id:
-                                currentBusiness.id,
-
-                            name:
-                                oldCustomer.name ||
-                                oldCustomer.customerName ||
-                                "Unnamed Customer",
-
-                            email:
-                                oldCustomer.email || "",
-
-                            phone:
-                                oldCustomer.phone || ""
-                        })
-                        .select()
-                        .single();
-
-                if (error) throw error;
-
-                const oldId =
-                    oldCustomer.id ||
-                    oldCustomer.customerId;
-
-                if (oldId) {
-                    customerIdMap[oldId] =
-                        data.id;
-                }
-            }
-
-            // --------------------------------------------
-            // SALES
-            // --------------------------------------------
-
-            for (const oldSale of oldSales) {
-
-                const oldProductId =
-                    oldSale.productId ||
-                    oldSale.product_id;
-
-                const newProductId =
-                    productIdMap[oldProductId];
-
-                if (!newProductId) continue;
-
-                const { error } =
-                    await supabaseClient
-                        .from("sales")
-                        .insert({
-                            business_id:
-                                currentBusiness.id,
-
-                            product_id:
-                                newProductId,
-
-                            product_name:
-                                oldSale.productName ||
-                                oldSale.product_name ||
-                                "Product",
-
-                            quantity:
-                                Number(
-                                    oldSale.quantity
-                                ) || 0,
-
-                            total:
-                                Number(
-                                    oldSale.total
-                                ) || 0
-                        });
-
-                if (error) throw error;
-            }
-
-            // --------------------------------------------
-            // INVOICES
-            // --------------------------------------------
-
-            for (const oldInvoice of oldInvoices) {
-
-                const oldCustomerId =
-                    oldInvoice.customerId ||
-                    oldInvoice.customer_id;
-
-                const oldProductId =
-                    oldInvoice.productId ||
-                    oldInvoice.product_id;
-
-                const newCustomerId =
-                    customerIdMap[oldCustomerId];
-
-                const newProductId =
-                    productIdMap[oldProductId];
-
-                if (!newCustomerId || !newProductId) {
-                    continue;
-                }
-
-                const { error } =
-                    await supabaseClient
-                        .from("invoices")
-                        .insert({
-                            business_id:
-                                currentBusiness.id,
-
-                            invoice_number:
-                                oldInvoice.invoiceNumber ||
-                                "INV-" +
-                                Math.random()
-                                    .toString(36)
-                                    .substring(2, 8)
-                                    .toUpperCase(),
-
-                            customer_id:
-                                newCustomerId,
-
-                            customer_name:
-                                oldInvoice.customerName ||
-                                "Customer",
-
-                            product_id:
-                                newProductId,
-
-                            product_name:
-                                oldInvoice.productName ||
-                                "Product",
-
-                            quantity:
-                                Number(
-                                    oldInvoice.quantity
-                                ) || 0,
-
-                            subtotal:
-                                Number(
-                                    oldInvoice.subtotal
-                                ) || 0,
-
-                            discount:
-                                Number(
-                                    oldInvoice.discount
-                                ) || 0,
-
-                            tax_rate:
-                                Number(
-                                    oldInvoice.taxRate
-                                ) || 0,
-
-                            tax:
-                                Number(
-                                    oldInvoice.tax
-                                ) || 0,
-
-                            total:
-                                Number(
-                                    oldInvoice.total
-                                ) || 0,
-
-                            due_date:
-                                oldInvoice.dueDate ||
-                                null,
-
-                            status:
-                                oldInvoice.status ||
-                                "unpaid"
-                        });
-
-                if (error) throw error;
-            }
-
-            await loadDataFromSupabase();
-
-            renderAll();
-
-            alert(
-                "Backup imported successfully."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Import error:",
-                error
-            );
-
-            alert(
-                "Could not import backup.\n\n" +
-                error.message
-            );
-
-            await loadDataFromSupabase();
-
-            renderAll();
-        }
-    }
-
-    // ========================================================
-    // RESET BUSINESS DATA
-    // ========================================================
-
-    async function resetBusinessData() {
-
-        const confirmation =
-            prompt(
-                "This will permanently delete all products, " +
-                "customers, sales and invoices.\n\n" +
-                "Type DELETE to continue:"
-            );
-
-        if (confirmation !== "DELETE") {
-            return;
-        }
-
-        try {
-
-            let result =
-                await supabaseClient
-                    .from("invoices")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            result =
-                await supabaseClient
-                    .from("sales")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            result =
-                await supabaseClient
-                    .from("customers")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            result =
-                await supabaseClient
-                    .from("products")
-                    .delete()
-                    .eq(
-                        "business_id",
-                        currentBusiness.id
-                    );
-
-            if (result.error) throw result.error;
-
-            products = [];
-            customers = [];
-            sales = [];
-            invoices = [];
-
-            renderAll();
-
-            alert(
-                "All business data has been reset."
-            );
-
-        } catch (error) {
-
-            console.error(error);
-
-            alert(
-                "Could not reset your data.\n\n" +
-                error.message
-            );
-        }
-    }
-
-    // ========================================================
-    // PAYMENT
-    // ========================================================
-
-    async function initializeRealPayment({
-        email,
-        amountGHS,
-        product,
-        plan
-    }) {
-
-        if (!email || !isValidEmail(email)) {
-
-            alert(
-                "Please provide a valid email address."
-            );
-
-            return;
-        }
-
-        try {
-
-            const reference =
-                createReference();
-
-            localStorage.setItem(
-                "patriodxPendingPayment",
-                JSON.stringify({
-                    reference,
-                    email,
-                    amountGHS,
-                    product,
-                    plan,
-                    createdAt:
-                        new Date().toISOString()
-                })
-            );
-
-            const response =
-                await fetch(
-                    PAYMENT_API_URL +
-                    "/api/initialize-payment",
-                    {
-                        method: "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body: JSON.stringify({
-                            email,
-                            amount:
-                                amountGHS * 100,
-                            currency:
-                                PAYSTACK_CURRENCY,
-                            reference,
-                            product,
-                            plan
-                        })
-                    }
-                );
-
-            const result =
-                await response.json();
-
-            if (!response.ok) {
-
-                throw new Error(
-                    result.message ||
-                    "Payment initialization failed."
-                );
-            }
-
-            if (result.authorization_url) {
-
-                window.location.href =
-                    result.authorization_url;
-
-                return;
-            }
-
-            if (result.data?.authorization_url) {
-
-                window.location.href =
-                    result.data.authorization_url;
-
-                return;
-            }
-
-            throw new Error(
-                "No payment URL returned."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Payment error:",
-                error
-            );
-
-            alert(
-                "Payment could not be started.\n\n" +
-                error.message
-            );
-        }
-    }
-
-    // ========================================================
-    // VERIFY RETURNED PAYMENT
-    // ========================================================
-
-    async function verifyReturnedPayment() {
-
-        const params =
-            new URLSearchParams(
-                window.location.search
-            );
-
-        const reference =
-            params.get("reference") ||
-            params.get("trxref");
-
-        if (!reference) {
-            return;
-        }
-
-        try {
-
-            const response =
-                await fetch(
-                    PAYMENT_API_URL +
-                    "/api/verify-payment?reference=" +
-                    encodeURIComponent(reference)
-                );
-
-            const result =
-                await response.json();
-
-            if (!response.ok) {
-
-                throw new Error(
-                    result.message ||
-                    "Payment verification failed."
-                );
-            }
-
-            const payment =
-                result.data ||
-                result;
-
-            const pendingRaw =
-                localStorage.getItem(
-                    "patriodxPendingPayment"
-                );
-
-            const pending =
-                pendingRaw
-                    ? JSON.parse(pendingRaw)
-                    : null;
-
-            if (!payment) {
-                return;
-            }
-
-            const amount =
-                Number(
-                    payment.amount || 0
-                );
-
-            const currency =
-                payment.currency;
-
-            const status =
-                payment.status;
-
-            if (
-                status === "success" &&
-                currency === PAYSTACK_CURRENCY &&
-                amount === PRO_PRICE_GHS * 100
-            ) {
-
-                localStorage.setItem(
-                    "businessOSPro",
-                    "true"
-                );
-
-                localStorage.setItem(
-                    "patriodxPayment",
-                    JSON.stringify({
-                        reference,
-                        amount,
-                        currency,
-                        paidAt:
-                            new Date().toISOString(),
-                        email:
-                            pending?.email ||
-                            currentUser?.email ||
-                            ""
-                    })
-                );
-
-                localStorage.removeItem(
-                    "patriodxPendingPayment"
-                );
-
-                updateProUI();
-
-                alert(
-                    "Payment successful! PATRIODX Pro is now active."
-                );
-            }
-
-            window.history.replaceState(
-                {},
-                document.title,
-                window.location.pathname
-            );
-
-        } catch (error) {
-
-            console.error(
-                "Payment verification error:",
-                error
-            );
-        }
-    }
-
-    // ========================================================
-    // PRO UI
-    // ========================================================
-
-    function updateProUI() {
-
-        const isPro =
-            localStorage.getItem(
-                "businessOSPro"
-            ) === "true";
-
-        document
-            .querySelectorAll(
-                "#proStatus, .pro-status"
-            )
-            .forEach(el => {
-
-                el.textContent =
-                    isPro
-                        ? "Pro Active"
-                        : "Free Plan";
-            });
-
-        document
-            .querySelectorAll(
-                "[data-pro-only]"
-            )
-            .forEach(el => {
-
-                el.style.display =
-                    isPro ? "" : "none";
-            });
-    }
-
-    // ========================================================
-    // PRICING BUTTONS
-    // ========================================================
-
-    function setupPaymentButtons() {
-
-        document
-            .querySelectorAll(
-                "#proPlanButton, .pro-plan-button, [data-plan='pro']"
-            )
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    async () => {
-
-                        if (
-                            localStorage.getItem(
-                                "businessOSPro"
-                            ) === "true"
-                        ) {
-
-                            alert(
-                                "PATRIODX Pro is already active."
-                            );
-
-                            return;
-                        }
-
-                        const email =
-                            currentUser?.email;
-
-                        if (!email) {
-
-                            alert(
-                                "Please sign in before purchasing Pro."
-                            );
-
-                            return;
-                        }
-
-                        await initializeRealPayment({
-                            email,
-                            amountGHS:
-                                PRO_PRICE_GHS,
-                            product:
-                                "PATRIODX Pro",
-                            plan:
-                                "pro"
-                        });
-                    }
-                );
-            });
-    }
-
-    // ========================================================
-    // LOGOUT
-    // ========================================================
-
-    async function logout() {
-
-        try {
-
-            const { error } =
-                await supabaseClient
-                    .auth.signOut();
-
-            if (error) {
-                throw error;
-            }
-
-            window.location.href =
-                "auth.html";
-
-        } catch (error) {
-
-            console.error(error);
-
-            alert(
-                "Could not sign out.\n\n" +
-                error.message
-            );
-        }
-    }
-
-    // Make logout available to HTML buttons
-    window.logout = logout;
-    window.PATRIODX = {
-        logout,
-        exportBusinessData,
-        resetBusinessData
+    const data = {
+        business: currentBusiness,
+        products,
+        customers,
+        sales,
+        invoices,
+        exportedAt: new Date().toISOString()
     };
 
-    // ========================================================
-    // AUTO LOGOUT IF SESSION ENDS
-    // ========================================================
+    const blob =
+        new Blob(
+            [JSON.stringify(data, null, 2)],
+            { type: "application/json" }
+        );
 
-    supabaseClient.auth.onAuthStateChange(
-        (event, session) => {
+    const url =
+        URL.createObjectURL(blob);
 
-            if (
-                event === "SIGNED_OUT" ||
-                !session
-            ) {
+    const a =
+        document.createElement("a");
 
-                window.location.href =
-                    "auth.html";
-            }
-        }
+    a.href = url;
+
+    a.download =
+        "patriodx-backup.json";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
+
+async function importBusinessData(file) {
+
+    if (!file) return;
+
+    alert(
+        "Import is temporarily disabled while PATRIODX cloud storage is being finalized."
     );
+}
 
-    // ========================================================
-    // INITIALIZE APP
-    // ========================================================
 
-    async function initializeApp() {
+// =========================================================
+// RESET
+// =========================================================
 
-        try {
+async function resetBusinessData() {
 
-            // 1. Check login
-            const authenticated =
-                await checkAuthentication();
+    if (!currentBusiness) return;
 
-            if (!authenticated) {
-                return;
-            }
+    const confirmed =
+        confirm(
+            "This will permanently delete your products, customers, sales and invoices. Continue?"
+        );
 
-            // 2. Get business
-            const businessLoaded =
-                await loadBusiness();
+    if (!confirmed) return;
 
-            if (!businessLoaded) {
-                return;
-            }
+    const businessId =
+        currentBusiness.id;
 
-            // 3. Load cloud data
-            await loadDataFromSupabase();
+    await supabaseClient
+        .from("invoices")
+        .delete()
+        .eq("business_id", businessId);
 
-            // 4. Setup UI
-            setupNavigation();
-            setupSearch();
-            setupModalBehavior();
-            setupDarkMode();
+    await supabaseClient
+        .from("sales")
+        .delete()
+        .eq("business_id", businessId);
 
-            setupProductForm();
-            setupCustomerForm();
-            setupSaleForm();
-            setupInvoiceForm();
+    await supabaseClient
+        .from("customers")
+        .delete()
+        .eq("business_id", businessId);
 
-            setupBackup();
-            setupContactForm();
-            setupBusinessContactLinks();
+    await supabaseClient
+        .from("products")
+        .delete()
+        .eq("business_id", businessId);
 
-            setupPaymentButtons();
+    await loadData();
 
-            // 5. Render everything
-            renderAll();
+    renderAll();
+}
 
-            // 6. Check payment return
-            await verifyReturnedPayment();
 
-            console.log(
-                "PATRIODX initialized successfully."
-            );
+// =========================================================
+// PAYSTACK
+// =========================================================
 
-        } catch (error) {
+function startProPlan() {
 
-            console.error(
-                "PATRIODX initialization error:",
-                error
-            );
+    alert(
+        "Pro payments are being connected. Your dashboard and cloud storage are already working."
+    );
+}
 
-            alert(
-                "PATRIODX could not load your business data.\n\n" +
-                error.message
-            );
-        }
-    }
+function startBusinessPlan() {
 
-    await initializeApp();
-});
+    alert(
+        "Business plan payments are coming soon."
+    );
+}
+
+
+// =========================================================
+// RENDER EVERYTHING
+// =========================================================
+
+function renderAll() {
+
+    renderStats();
+
+    renderProducts();
+
+    renderCustomers();
+
+    renderSales();
+
+    renderInvoices();
+
+    renderAnalytics();
+
+    renderRecentActivity();
+}
+
+
+// =========================================================
+// FORM EVENTS
+// =========================================================
+
+function setupForms() {
+
+    document
+        .getElementById("productForm")
+        ?.addEventListener(
+            "submit",
+            saveProduct
+        );
+
+    document
+        .getElementById("customerForm")
+        ?.addEventListener(
+            "submit",
+            saveCustomer
+        );
+
+    document
+        .getElementById("saleForm")
+        ?.addEventListener(
+            "submit",
+            saveSale
+        );
+
+    document
+        .getElementById("invoiceForm")
+        ?.addEventListener(
+            "submit",
+            saveInvoice
+        );
+
+
+    document
+        .getElementById("saleProduct")
+        ?.addEventListener(
+            "change",
+            updateSaleTotal
+        );
+
+    document
+        .getElementById("saleQuantity")
+        ?.addEventListener(
+            "input",
+            updateSaleTotal
+        );
+
+
+    document
+        .getElementById("invoiceProduct")
+        ?.addEventListener(
+            "change",
+            updateInvoiceTotal
+        );
+
+    document
+        .getElementById("invoiceQuantity")
+        ?.addEventListener(
+            "input",
+            updateInvoiceTotal
+        );
+
+    document
+        .getElementById("invoiceDiscount")
+        ?.addEventListener(
+            "input",
+            updateInvoiceTotal
+        );
+
+    document
+        .getElementById("invoiceTax")
+        ?.addEventListener(
+            "input",
+            updateInvoiceTotal
+        );
+}
+
+
+// =========================================================
+// START PATRIODX
+// =========================================================
+
+async function startPATRIODX() {
+
+    const authenticated =
+        await loadUser();
+
+    if (!authenticated) return;
+
+    await loadData();
+
+    setupNavigation();
+
+    setupSearch();
+
+    setupDarkMode();
+
+    setupModalBehavior();
+
+    setupForms();
+
+    renderAll();
+
+    console.log("PATRIODX connected successfully.");
+}
+
+
+// =========================================================
+// MAKE HTML ONCLICK FUNCTIONS GLOBAL
+// =========================================================
+
+window.scrollToSection = scrollToSection;
+
+window.openProductModal = openProductModal;
+window.closeProductModal = closeProductModal;
+window.deleteProduct = deleteProduct;
+
+window.openCustomerModal = openCustomerModal;
+window.closeCustomerModal = closeCustomerModal;
+window.deleteCustomer = deleteCustomer;
+
+window.openSaleModal = openSaleModal;
+window.closeSaleModal = closeSaleModal;
+window.deleteSale = deleteSale;
+
+window.openInvoiceModal = openInvoiceModal;
+window.closeInvoiceModal = closeInvoiceModal;
+window.closeInvoiceViewModal = closeInvoiceViewModal;
+window.toggleInvoiceStatus = toggleInvoiceStatus;
+window.deleteInvoice = deleteInvoice;
+window.viewInvoice = viewInvoice;
+
+window.sendContactMessage = sendContactMessage;
+
+window.exportBusinessData = exportBusinessData;
+window.importBusinessData = importBusinessData;
+window.resetBusinessData = resetBusinessData;
+
+window.startProPlan = startProPlan;
+window.startBusinessPlan = startBusinessPlan;
+
+
+// =========================================================
+// START
+// =========================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    startPATRIODX
+);

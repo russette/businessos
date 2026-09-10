@@ -1,3 +1,7 @@
+// ============================================================
+// PATRIODX - SUPABASE CONNECTED SCRIPT
+// ============================================================
+
 const SUPABASE_URL = "https://saerujjsfzyxkyacbvgr.supabase.co";
 const SUPABASE_KEY = "sb_publishable_l50YIYtYLXkjWE1iQSTyoA_GkrIKWn7";
 
@@ -5,103 +9,63 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
-document.addEventListener("DOMContentLoaded", () => {
 
-    /* =========================================================
-       PATRIODX
-       COMPLETE BUSINESS MANAGEMENT SYSTEM
-       PAYSTACK + VERCEL BACKEND
-       ========================================================= */
+// ============================================================
+// GLOBAL DATA
+// ============================================================
 
+document.addEventListener("DOMContentLoaded", async () => {
 
-    /* =========================================================
-       DATA
-       ========================================================= */
+    let products = [];
+    let customers = [];
+    let sales = [];
+    let invoices = [];
 
-    let products =
-        JSON.parse(localStorage.getItem("businessOSProducts")) || [];
+    let currentUser = null;
+    let currentBusiness = null;
 
-    let customers =
-        JSON.parse(localStorage.getItem("businessOSCustomers")) || [];
+    let editingProductId = null;
 
-    let sales =
-        JSON.parse(localStorage.getItem("businessOSSales")) || [];
+    // ========================================================
+    // PAYMENT SETTINGS
+    // ========================================================
 
-    let invoices =
-        JSON.parse(localStorage.getItem("businessOSInvoices")) || [];
+    const PAYMENT_API_URL = "https://businessos-wine-eight.vercel.app";
 
+    const PAYSTACK_PUBLIC_KEY =
+        "pk_test_2321844583071969c00a747ba838b337df808a44";
 
-    /* =========================================================
-       BUSINESS CONTACT DETAILS
-       ========================================================= */
+    const PAYSTACK_CURRENCY = "GHS";
+    const PRO_PRICE_GHS = 900;
 
-    const BUSINESS_EMAIL = "crarcss@gmail.com";
-    const BUSINESS_PHONE = "0205346707";
-    const WHATSAPP_NUMBER = "233205346707";
-
-
-    /* =========================================================
-       PAYMENT CONFIGURATION
-       ========================================================= */
-const PAYMENT_API_URL =
-    "https://businessos-wine-eight.vercel.app";
-
-const PAYSTACK_PUBLIC_KEY =
-    "pk_test_2321844583071969c00a747ba838b337df808a44";
-
-const PAYSTACK_CURRENCY =
-    "GHS";
-
-const PRO_PRICE_GHS =
-    900;
-    /* =========================================================
-       HELPERS
-       ========================================================= */
+    // ========================================================
+    // BASIC HELPERS
+    // ========================================================
 
     function createId() {
-
-        return (
-            Date.now().toString(36) +
-            Math.random().toString(36).slice(2)
-        );
+        return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
 
-
-    function createReference(prefix = "BUSINESSOS") {
-
-        return (
-            prefix +
-            "-" +
-            Date.now() +
-            "-" +
-            Math.random()
-                .toString(36)
-                .substring(2, 8)
-                .toUpperCase()
-        );
+    function createReference() {
+        return "PATRIODX_" + Date.now() + "_" +
+            Math.random().toString(36).substring(2, 8);
     }
-
 
     function money(value) {
-
-        return new Intl.NumberFormat("en-US", {
-            style: "currency",
-            currency: "USD"
-        }).format(Number(value) || 0);
+        return "$" + Number(value || 0).toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
-
 
     function ghcMoney(value) {
-
-        return new Intl.NumberFormat("en-GH", {
-            style: "currency",
-            currency: "GHS"
-        }).format(Number(value) || 0);
+        return "GH₵" + Number(value || 0).toLocaleString("en-GH", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
     }
 
-
     function safe(value) {
-
         return String(value ?? "")
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -110,3042 +74,2228 @@ const PRO_PRICE_GHS =
             .replace(/'/g, "&#039;");
     }
 
-
-    function text(id, value) {
-
-        const element =
-            document.getElementById(id);
-
-        if (element) {
-            element.textContent = value;
-        }
+    function text(value) {
+        return String(value ?? "");
     }
 
+    function formatDate(date) {
+        if (!date) return "-";
 
-    function formatDate(value) {
+        const d = new Date(date);
 
-        if (!value) {
-            return "—";
-        }
+        if (isNaN(d.getTime())) return "-";
 
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-            return value;
-        }
-
-        return date.toLocaleDateString("en-US", {
+        return d.toLocaleDateString("en-US", {
+            year: "numeric",
             month: "short",
-            day: "numeric",
-            year: "numeric"
+            day: "numeric"
         });
     }
 
-
     function todayString() {
-
-        const today = new Date();
-
-        const year = today.getFullYear();
-
-        const month =
-            String(today.getMonth() + 1)
-                .padStart(2, "0");
-
-        const day =
-            String(today.getDate())
-                .padStart(2, "0");
-
-        return `${year}-${month}-${day}`;
+        return new Date().toISOString().split("T")[0];
     }
-
-
-    function saveData() {
-
-        localStorage.setItem(
-            "businessOSProducts",
-            JSON.stringify(products)
-        );
-
-        localStorage.setItem(
-            "businessOSCustomers",
-            JSON.stringify(customers)
-        );
-
-        localStorage.setItem(
-            "businessOSSales",
-            JSON.stringify(sales)
-        );
-
-        localStorage.setItem(
-            "businessOSInvoices",
-            JSON.stringify(invoices)
-        );
-    }
-
 
     function isValidEmail(email) {
-
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-            String(email).trim()
-        );
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
-
-    /* =========================================================
-       CONTACT
-       ========================================================= */
-
-    window.openBusinessEmail = function () {
-
-        window.location.href =
-            `mailto:${BUSINESS_EMAIL}`;
-    };
-
-
-    window.openBusinessWhatsApp = function () {
-
-        window.open(
-            `https://wa.me/${WHATSAPP_NUMBER}`,
-            "_blank",
-            "noopener,noreferrer"
-        );
-    };
-
-
-    window.callBusiness = function () {
-
-        window.location.href =
-            `tel:${BUSINESS_PHONE}`;
-    };
-
-
-    function setupBusinessContactLinks() {
-
-        document
-            .querySelectorAll('a[href^="mailto:"]')
-            .forEach(link => {
-
-                link.href =
-                    `mailto:${BUSINESS_EMAIL}`;
-            });
-
-
-        document
-            .querySelectorAll('a[href*="wa.me"]')
-            .forEach(link => {
-
-                link.href =
-                    `https://wa.me/${WHATSAPP_NUMBER}`;
-
-                link.target = "_blank";
-
-                link.rel =
-                    "noopener noreferrer";
-            });
-
-
-        document
-            .querySelectorAll('a[href^="tel:"]')
-            .forEach(link => {
-
-                link.href =
-                    `tel:${BUSINESS_PHONE}`;
-            });
+    function showError(message) {
+        console.error(message);
+        alert(message);
     }
 
+    // ========================================================
+    // DATABASE ROW -> JAVASCRIPT OBJECT
+    // ========================================================
 
-    /* =========================================================
-       CONTACT FORM
-       ========================================================= */
-
-    window.sendContactMessage =
-        function(event) {
-
-            if (event) {
-                event.preventDefault();
-            }
-
-            const name =
-                document
-                    .getElementById("contactName")
-                    ?.value
-                    .trim() || "";
-
-            const email =
-                document
-                    .getElementById("contactEmail")
-                    ?.value
-                    .trim() || "";
-
-            const subject =
-                document
-                    .getElementById("contactSubject")
-                    ?.value
-                    .trim() || "";
-
-            const message =
-                document
-                    .getElementById("contactMessage")
-                    ?.value
-                    .trim() || "";
-
-
-            if (
-                !name ||
-                !email ||
-                !subject ||
-                !message
-            ) {
-
-                alert(
-                    "Please complete all contact fields."
-                );
-
-                return;
-            }
-
-
-            if (!isValidEmail(email)) {
-
-                alert(
-                    "Please enter a valid email address."
-                );
-
-                return;
-            }
-
-
-            const emailSubject =
-                encodeURIComponent(
-                    "PATRIODX Contact: " +
-                    subject
-                );
-
-
-            const emailBody =
-                encodeURIComponent(
-                    "Hello PATRIODX,\n\n" +
-                    "Name: " +
-                    name +
-                    "\n" +
-                    "Email: " +
-                    email +
-                    "\n\n" +
-                    "Message:\n" +
-                    message +
-                    "\n\n" +
-                    "Sent from PATRIODX."
-                );
-
-
-            window.location.href =
-                "mailto:" +
-                BUSINESS_EMAIL +
-                "?subject=" +
-                emailSubject +
-                "&body=" +
-                emailBody;
+    function mapProduct(row) {
+        return {
+            id: row.id,
+            productId: row.id,
+            name: row.name,
+            productName: row.name,
+            price: Number(row.price) || 0,
+            stock: Number(row.stock) || 0,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at
         };
+    }
 
+    function mapCustomer(row) {
+        return {
+            id: row.id,
+            customerId: row.id,
+            name: row.name,
+            customerName: row.name,
+            email: row.email || "",
+            phone: row.phone || "",
+            createdAt: row.created_at
+        };
+    }
 
-    function setupContactForm() {
+    function mapSale(row) {
+        return {
+            id: row.id,
+            saleId: row.id,
+            productId: row.product_id,
+            productName: row.product_name,
+            quantity: Number(row.quantity) || 0,
+            total: Number(row.total) || 0,
+            date: row.created_at,
+            createdAt: row.created_at
+        };
+    }
 
-        const form =
-            document.getElementById(
-                "contactForm"
-            );
+    function mapInvoice(row) {
+        return {
+            id: row.id,
+            invoiceId: row.id,
+            invoiceNumber: row.invoice_number,
+            customerId: row.customer_id,
+            customerName: row.customer_name,
+            productId: row.product_id,
+            productName: row.product_name,
+            quantity: Number(row.quantity) || 0,
+            subtotal: Number(row.subtotal) || 0,
+            discount: Number(row.discount) || 0,
+            taxRate: Number(row.tax_rate) || 0,
+            tax: Number(row.tax) || 0,
+            total: Number(row.total) || 0,
+            dueDate: row.due_date,
+            status: row.status || "unpaid",
+            createdAt: row.created_at
+        };
+    }
 
-        if (form) {
+    // ========================================================
+    // AUTHENTICATION
+    // ========================================================
 
-            form.addEventListener(
-                "submit",
-                window.sendContactMessage
-            );
+    async function checkAuthentication() {
+
+        const {
+            data: { session },
+            error
+        } = await supabaseClient.auth.getSession();
+
+        if (error) {
+            console.error("Session error:", error);
         }
+
+        if (!session) {
+            window.location.href = "auth.html";
+            return false;
+        }
+
+        currentUser = session.user;
+
+        return true;
     }
 
+    // ========================================================
+    // GET USER BUSINESS
+    // ========================================================
 
-    /* =========================================================
-       NAVIGATION
-       ========================================================= */
+    async function loadBusiness() {
 
-    window.scrollToSection =
-        function(sectionId) {
+        const { data, error } = await supabaseClient
+            .from("businesses")
+            .select("*")
+            .eq("owner_id", currentUser.id)
+            .single();
 
-            const section =
-                document.getElementById(sectionId);
+        if (error) {
+            console.error("Business error:", error);
+            alert(
+                "PATRIODX could not find your business account.\n\n" +
+                "Please sign out and create/sign in to your account again."
+            );
+            return false;
+        }
 
-            if (!section) {
-                return;
-            }
+        currentBusiness = data;
 
-            section.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
-        };
+        console.log("Current business:", currentBusiness);
 
+        return true;
+    }
+
+    // ========================================================
+    // LOAD ALL DATA FROM SUPABASE
+    // ========================================================
+
+    async function loadDataFromSupabase() {
+
+        if (!currentBusiness) return;
+
+        const [
+            productsResult,
+            customersResult,
+            salesResult,
+            invoicesResult
+        ] = await Promise.all([
+
+            supabaseClient
+                .from("products")
+                .select("*")
+                .eq("business_id", currentBusiness.id)
+                .order("created_at", { ascending: false }),
+
+            supabaseClient
+                .from("customers")
+                .select("*")
+                .eq("business_id", currentBusiness.id)
+                .order("created_at", { ascending: false }),
+
+            supabaseClient
+                .from("sales")
+                .select("*")
+                .eq("business_id", currentBusiness.id)
+                .order("created_at", { ascending: false }),
+
+            supabaseClient
+                .from("invoices")
+                .select("*")
+                .eq("business_id", currentBusiness.id)
+                .order("created_at", { ascending: false })
+        ]);
+
+        if (productsResult.error) {
+            throw productsResult.error;
+        }
+
+        if (customersResult.error) {
+            throw customersResult.error;
+        }
+
+        if (salesResult.error) {
+            throw salesResult.error;
+        }
+
+        if (invoicesResult.error) {
+            throw invoicesResult.error;
+        }
+
+        products = (productsResult.data || []).map(mapProduct);
+        customers = (customersResult.data || []).map(mapCustomer);
+        sales = (salesResult.data || []).map(mapSale);
+        invoices = (invoicesResult.data || []).map(mapInvoice);
+
+        console.log("Supabase data loaded:", {
+            products,
+            customers,
+            sales,
+            invoices
+        });
+    }
+
+    // ========================================================
+    // NAVIGATION
+    // ========================================================
 
     function setupNavigation() {
 
-        document
-            .querySelectorAll('nav a[href^="#"]')
-            .forEach(link => {
+        const navLinks = document.querySelectorAll(
+            "[data-section], .nav-link, nav a"
+        );
 
-                link.addEventListener(
-                    "click",
-                    event => {
+        navLinks.forEach(link => {
 
-                        const href =
-                            link.getAttribute("href");
+            link.addEventListener("click", function (event) {
 
-                        if (!href) {
-                            return;
-                        }
+                const target =
+                    this.dataset.section ||
+                    this.getAttribute("href");
 
-                        const target =
-                            document.getElementById(
-                                href.substring(1)
-                            );
+                if (!target) return;
 
-                        if (target) {
+                if (target.startsWith("#")) {
+                    event.preventDefault();
 
-                            event.preventDefault();
+                    const sectionId = target.substring(1);
+                    const section =
+                        document.getElementById(sectionId);
 
-                            target.scrollIntoView({
-                                behavior: "smooth",
-                                block: "start"
-                            });
-                        }
+                    if (section) {
+                        section.scrollIntoView({
+                            behavior: "smooth"
+                        });
                     }
-                );
+                }
             });
-    }
+        });
 
+        document.querySelectorAll("[data-scroll]").forEach(button => {
 
-    /* =========================================================
-       PRODUCTS
-       ========================================================= */
+            button.addEventListener("click", () => {
 
-    function renderProducts() {
+                const target =
+                    document.getElementById(button.dataset.scroll);
 
-        const list =
-            document.getElementById(
-                "productsList"
-            );
-
-        if (!list) {
-            return;
-        }
-
-        if (!products.length) {
-
-            list.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">📦</div>
-                    <h3>No products yet</h3>
-                    <p>
-                        Add your first product to start
-                        managing your inventory.
-                    </p>
-                </div>
-            `;
-
-            return;
-        }
-
-        renderProductResults(products);
-    }
-
-
-    function renderProductResults(items) {
-
-        const list =
-            document.getElementById(
-                "productsList"
-            );
-
-        if (!list) {
-            return;
-        }
-
-        if (!items.length) {
-
-            list.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
-                    <h3>No products found</h3>
-                    <p>Try a different search.</p>
-                </div>
-            `;
-
-            return;
-        }
-
-
-        list.innerHTML =
-            items.map(product => {
-
-                const stock =
-                    Number(product.stock) || 0;
-
-                return `
-                    <div class="product-card">
-
-                        <h3>
-                            ${safe(product.name)}
-                        </h3>
-
-                        <p class="product-price">
-                            ${money(product.price)}
-                        </p>
-
-                        <p>
-                            Stock: ${stock}
-                        </p>
-
-                        <span class="status">
-                            ${
-                                stock > 0
-                                    ? "IN STOCK"
-                                    : "OUT OF STOCK"
-                            }
-                        </span>
-
-                        <div class="product-actions">
-
-                            <button
-                                class="edit-btn"
-                                onclick="editProduct('${safe(product.id)}')">
-
-                                Edit
-
-                            </button>
-
-                            <button
-                                class="delete-btn"
-                                onclick="deleteProduct('${safe(product.id)}')">
-
-                                Delete
-
-                            </button>
-
-                        </div>
-
-                    </div>
-                `;
-
-            }).join("");
-    }
-
-
-    window.openProductModal =
-        function(productId = null) {
-
-            const modal =
-                document.getElementById(
-                    "productModal"
-                );
-
-            if (!modal) {
-                return;
-            }
-
-            document
-                .getElementById("productForm")
-                ?.reset();
-
-            const title =
-                document.getElementById(
-                    "productModalTitle"
-                );
-
-            const hidden =
-                document.getElementById(
-                    "productId"
-                );
-
-
-            if (productId) {
-
-                const product =
-                    products.find(
-                        p =>
-                            String(p.id) ===
-                            String(productId)
-                    );
-
-                if (!product) {
-                    return;
-                }
-
-                if (title) {
-                    title.textContent =
-                        "Edit Product";
-                }
-
-                if (hidden) {
-                    hidden.value =
-                        product.id;
-                }
-
-                const nameInput =
-                    document.getElementById(
-                        "productName"
-                    );
-
-                const priceInput =
-                    document.getElementById(
-                        "productPrice"
-                    );
-
-                const stockInput =
-                    document.getElementById(
-                        "productStock"
-                    );
-
-                if (nameInput) {
-                    nameInput.value =
-                        product.name || "";
-                }
-
-                if (priceInput) {
-                    priceInput.value =
-                        product.price ?? "";
-                }
-
-                if (stockInput) {
-                    stockInput.value =
-                        product.stock ?? "";
-                }
-
-            } else {
-
-                if (title) {
-                    title.textContent =
-                        "Add Product";
-                }
-
-                if (hidden) {
-                    hidden.value = "";
-                }
-            }
-
-            modal.classList.add("active");
-        };
-
-
-    window.closeProductModal =
-        function() {
-
-            document
-                .getElementById("productModal")
-                ?.classList.remove("active");
-        };
-
-
-    window.editProduct =
-        function(productId) {
-
-            window.openProductModal(productId);
-        };
-
-
-    document
-        .getElementById("productForm")
-        ?.addEventListener(
-            "submit",
-            event => {
-
-                event.preventDefault();
-
-                const productId =
-                    document.getElementById(
-                        "productId"
-                    )?.value;
-
-                const name =
-                    document
-                        .getElementById(
-                            "productName"
-                        )
-                        ?.value
-                        .trim();
-
-                const price =
-                    Number(
-                        document.getElementById(
-                            "productPrice"
-                        )?.value
-                    );
-
-                const stock =
-                    Number(
-                        document.getElementById(
-                            "productStock"
-                        )?.value
-                    );
-
-
-                if (!name) {
-
-                    alert(
-                        "Enter a product name."
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    !Number.isFinite(price) ||
-                    !Number.isFinite(stock) ||
-                    price < 0 ||
-                    stock < 0
-                ) {
-
-                    alert(
-                        "Price and stock cannot be negative."
-                    );
-
-                    return;
-                }
-
-
-                if (productId) {
-
-                    const product =
-                        products.find(
-                            p =>
-                                String(p.id) ===
-                                String(productId)
-                        );
-
-                    if (product) {
-
-                        product.name = name;
-                        product.price = price;
-                        product.stock = stock;
-
-                        product.updatedAt =
-                            new Date().toISOString();
-                    }
-
-                } else {
-
-                    products.push({
-
-                        id:
-                            createId(),
-
-                        name,
-
-                        price,
-
-                        stock,
-
-                        createdAt:
-                            new Date().toISOString(),
-
-                        updatedAt:
-                            new Date().toISOString()
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: "smooth"
                     });
                 }
-
-
-                saveData();
-                renderAll();
-                closeProductModal();
-            }
-        );
-
-
-    window.deleteProduct =
-        function(productId) {
-
-            const used =
-                sales.some(
-                    sale =>
-                        String(sale.productId) ===
-                        String(productId)
-                ) ||
-                invoices.some(
-                    invoice =>
-                        String(invoice.productId) ===
-                        String(productId)
-                );
-
-
-            if (
-                !confirm(
-                    used
-                        ? "This product is connected to existing records. Delete it anyway?"
-                        : "Delete this product?"
-                )
-            ) {
-                return;
-            }
-
-
-            products =
-                products.filter(
-                    product =>
-                        String(product.id) !==
-                        String(productId)
-                );
-
-
-            saveData();
-            renderAll();
-        };
-
-
-    /* =========================================================
-       CUSTOMERS
-       ========================================================= */
-
-    function renderCustomers() {
-
-        renderCustomerResults(customers);
-    }
-
-
-    function renderCustomerResults(items) {
-
-        const list =
-            document.getElementById(
-                "customersList"
-            );
-
-        if (!list) {
-            return;
-        }
-
-
-        if (!items.length) {
-
-            list.innerHTML = `
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        ${customers.length ? "🔍" : "👥"}
-                    </div>
-
-                    <h3>
-                        ${
-                            customers.length
-                                ? "No customers found"
-                                : "No customers yet"
-                        }
-                    </h3>
-
-                    <p>
-                        ${
-                            customers.length
-                                ? "Try a different search."
-                                : "Add your first customer."
-                        }
-                    </p>
-
-                </div>
-            `;
-
-            return;
-        }
-
-
-        list.innerHTML =
-            items.map(customer => {
-
-                return `
-                    <div class="customer-card">
-
-                        <h3>
-                            ${safe(customer.name)}
-                        </h3>
-
-                        ${
-                            customer.email
-                                ? `<p>📧 ${safe(customer.email)}</p>`
-                                : ""
-                        }
-
-                        ${
-                            customer.phone
-                                ? `<p>📱 ${safe(customer.phone)}</p>`
-                                : ""
-                        }
-
-                        <button
-                            class="delete-btn"
-                            onclick="deleteCustomer('${safe(customer.id)}')">
-
-                            Delete
-
-                        </button>
-
-                    </div>
-                `;
-
-            }).join("");
-    }
-
-
-    window.openCustomerModal =
-        function() {
-
-            document
-                .getElementById("customerForm")
-                ?.reset();
-
-            document
-                .getElementById("customerModal")
-                ?.classList.add("active");
-        };
-
-
-    window.closeCustomerModal =
-        function() {
-
-            document
-                .getElementById("customerModal")
-                ?.classList.remove("active");
-        };
-
-
-    document
-        .getElementById("customerForm")
-        ?.addEventListener(
-            "submit",
-            event => {
-
-                event.preventDefault();
-
-                const name =
-                    document
-                        .getElementById(
-                            "customerName"
-                        )
-                        ?.value
-                        .trim();
-
-                const email =
-                    document
-                        .getElementById(
-                            "customerEmail"
-                        )
-                        ?.value
-                        .trim();
-
-                const phone =
-                    document
-                        .getElementById(
-                            "customerPhone"
-                        )
-                        ?.value
-                        .trim();
-
-
-                if (!name) {
-
-                    alert(
-                        "Enter customer name."
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    email &&
-                    !isValidEmail(email)
-                ) {
-
-                    alert(
-                        "Enter a valid email address."
-                    );
-
-                    return;
-                }
-
-
-                customers.push({
-
-                    id:
-                        createId(),
-
-                    name,
-
-                    email,
-
-                    phone,
-
-                    createdAt:
-                        new Date().toISOString()
-                });
-
-
-                saveData();
-                renderAll();
-                closeCustomerModal();
-            }
-        );
-
-
-    window.deleteCustomer =
-        function(customerId) {
-
-            if (
-                !confirm(
-                    "Delete this customer?"
-                )
-            ) {
-                return;
-            }
-
-
-            customers =
-                customers.filter(
-                    customer =>
-                        String(customer.id) !==
-                        String(customerId)
-                );
-
-
-            saveData();
-            renderAll();
-        };
-
-
-    /* =========================================================
-       SALES
-       ========================================================= */
-
-    window.openSaleModal =
-        function() {
-
-            const select =
-                document.getElementById(
-                    "saleProduct"
-                );
-
-            if (!select) {
-                return;
-            }
-
-
-            select.innerHTML = `
-                <option value="">
-                    Select a product
-                </option>
-            `;
-
-
-            products.forEach(product => {
-
-                const stock =
-                    Number(product.stock) || 0;
-
-                select.innerHTML += `
-                    <option
-                        value="${safe(product.id)}"
-                        ${stock <= 0 ? "disabled" : ""}>
-
-                        ${safe(product.name)}
-                        — ${money(product.price)}
-                        — Stock: ${stock}
-
-                    </option>
-                `;
             });
-
-
-            const quantity =
-                document.getElementById(
-                    "saleQuantity"
-                );
-
-            if (quantity) {
-                quantity.value = 1;
-            }
-
-
-            updateSaleTotal();
-
-            document
-                .getElementById("saleModal")
-                ?.classList.add("active");
-        };
-
-
-    window.closeSaleModal =
-        function() {
-
-            document
-                .getElementById("saleModal")
-                ?.classList.remove("active");
-        };
-
-
-    function updateSaleTotal() {
-
-        const productId =
-            document.getElementById(
-                "saleProduct"
-            )?.value;
-
-        const quantity =
-            Number(
-                document.getElementById(
-                    "saleQuantity"
-                )?.value
-            ) || 0;
-
-
-        const product =
-            products.find(
-                p =>
-                    String(p.id) ===
-                    String(productId)
-            );
-
-
-        const total =
-            product
-                ? Number(product.price) *
-                  quantity
-                : 0;
-
-
-        text(
-            "saleTotal",
-            money(total)
-        );
+        });
     }
 
+    // ========================================================
+    // SEARCH
+    // ========================================================
 
-    document
-        .getElementById("saleProduct")
-        ?.addEventListener(
-            "change",
-            updateSaleTotal
-        );
+    function setupSearch() {
 
-
-    document
-        .getElementById("saleQuantity")
-        ?.addEventListener(
-            "input",
-            updateSaleTotal
-        );
-
-
-    document
-        .getElementById("saleForm")
-        ?.addEventListener(
-            "submit",
-            event => {
-
-                event.preventDefault();
-
-
-                const productId =
-                    document.getElementById(
-                        "saleProduct"
-                    )?.value;
-
-
-                const quantity =
-                    Number(
-                        document.getElementById(
-                            "saleQuantity"
-                        )?.value
-                    );
-
-
-                const product =
-                    products.find(
-                        p =>
-                            String(p.id) ===
-                            String(productId)
-                    );
-
-
-                if (!product) {
-
-                    alert(
-                        "Select a product."
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    !Number.isInteger(quantity) ||
-                    quantity <= 0
-                ) {
-
-                    alert(
-                        "Quantity must be a whole number greater than 0."
-                    );
-
-                    return;
-                }
-
-
-                const stock =
-                    Number(product.stock) || 0;
-
-
-                if (quantity > stock) {
-
-                    alert(
-                        `Only ${stock} units of ${product.name} are available.`
-                    );
-
-                    return;
-                }
-
-
-                const total =
-                    Number(product.price) *
-                    quantity;
-
-
-                sales.push({
-
-                    id:
-                        createId(),
-
-                    productId:
-                        product.id,
-
-                    productName:
-                        product.name,
-
-                    quantity,
-
-                    total,
-
-                    date:
-                        new Date().toISOString()
-                });
-
-
-                product.stock =
-                    stock - quantity;
-
-
-                saveData();
-                renderAll();
-                closeSaleModal();
-
-
-                alert(
-                    "Sale recorded successfully."
-                );
-            }
-        );
-
-
-    function renderSales(items = sales) {
-
-        const list =
-            document.getElementById(
-                "salesList"
+        const searchInputs =
+            document.querySelectorAll(
+                "#searchInput, .search-input, input[type='search']"
             );
 
-        if (!list) {
-            return;
-        }
-
-
-        if (!items.length) {
-
-            list.innerHTML = `
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        ${sales.length ? "🔍" : "🧾"}
-                    </div>
-
-                    <h3>
-                        ${
-                            sales.length
-                                ? "No sales found"
-                                : "No sales yet"
-                        }
-                    </h3>
-
-                    <p>
-                        Your recorded sales will appear here.
-                    </p>
-
-                </div>
-            `;
-
-            return;
-        }
-
-
-        list.innerHTML =
-            [...items]
-                .sort(
-                    (a, b) =>
-                        new Date(b.date) -
-                        new Date(a.date)
-                )
-                .map(sale => {
-
-                    return `
-                        <div class="sale-card">
-
-                            <div class="sale-info">
-
-                                <div class="sale-icon">
-                                    🧾
-                                </div>
-
-                                <div>
-
-                                    <strong>
-                                        ${safe(
-                                            sale.productName ||
-                                            "Unknown Product"
-                                        )}
-                                    </strong>
-
-                                    <p>
-                                        Quantity:
-                                        ${Number(
-                                            sale.quantity
-                                        ) || 0}
-                                    </p>
-
-                                    <p>
-                                        ${formatDate(
-                                            sale.date
-                                        )}
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                            <div>
-
-                                <strong>
-                                    ${money(sale.total)}
-                                </strong>
-
-                                <br>
-
-                                <button
-                                    class="delete-btn"
-                                    onclick="deleteSale('${safe(sale.id)}')">
-
-                                    Delete
-
-                                </button>
-
-                            </div>
-
-                        </div>
-                    `;
-
-                })
-                .join("");
-    }
-
-
-    window.deleteSale =
-        function(saleId) {
-
-            if (
-                !confirm(
-                    "Delete this sale and restore the inventory?"
-                )
-            ) {
-                return;
-            }
-
-
-            const sale =
-                sales.find(
-                    s =>
-                        String(s.id) ===
-                        String(saleId)
-                );
-
-
-            if (!sale) {
-                return;
-            }
-
-
-            const product =
-                products.find(
-                    p =>
-                        String(p.id) ===
-                        String(sale.productId)
-                );
-
-
-            if (product) {
-
-                product.stock =
-                    Number(product.stock || 0) +
-                    Number(sale.quantity || 0);
-            }
-
-
-            sales =
-                sales.filter(
-                    s =>
-                        String(s.id) !==
-                        String(saleId)
-                );
-
-
-            saveData();
-            renderAll();
-
-
-            alert(
-                "Sale deleted and inventory restored."
-            );
-        };
-
-
-    /* =========================================================
-       INVOICES
-       ========================================================= */
-
-    function generateInvoiceNumber() {
-
-        return (
-            "INV-" +
-            Math.floor(
-                100000 +
-                Math.random() * 900000
-            )
-        );
-    }
-
-
-    function setInvoiceDefaults() {
-
-        const number =
-            document.getElementById(
-                "invoiceNumber"
-            );
-
-        if (number) {
-            number.value =
-                generateInvoiceNumber();
-        }
-
-
-        const dueDate =
-            document.getElementById(
-                "invoiceDueDate"
-            );
-
-        if (dueDate) {
-
-            const date = new Date();
-
-            date.setDate(
-                date.getDate() + 7
-            );
-
-            dueDate.value =
-                date.toISOString()
-                    .split("T")[0];
-        }
-    }
-
-
-    window.openInvoiceModal =
-        function() {
-
-            const customerSelect =
-                document.getElementById(
-                    "invoiceCustomer"
-                );
-
-            const productSelect =
-                document.getElementById(
-                    "invoiceProduct"
-                );
-
-
-            if (
-                !customerSelect ||
-                !productSelect
-            ) {
-                return;
-            }
-
-
-            customerSelect.innerHTML = `
-                <option value="">
-                    Select a customer
-                </option>
-            `;
-
-
-            customers.forEach(customer => {
-
-                customerSelect.innerHTML += `
-                    <option
-                        value="${safe(customer.id)}">
-
-                        ${safe(customer.name)}
-
-                    </option>
-                `;
+        searchInputs.forEach(input => {
+
+            input.addEventListener("input", () => {
+
+                const query =
+                    input.value.trim().toLowerCase();
+
+                document
+                    .querySelectorAll(
+                        "table tbody tr, .product-card, .customer-card"
+                    )
+                    .forEach(item => {
+
+                        const content =
+                            item.textContent.toLowerCase();
+
+                        item.style.display =
+                            !query || content.includes(query)
+                                ? ""
+                                : "none";
+                    });
             });
+        });
+    }
 
+    // ========================================================
+    // DARK MODE
+    // ========================================================
 
-            productSelect.innerHTML = `
-                <option value="">
-                    Select a product
-                </option>
-            `;
+    function setupDarkMode() {
 
+        const savedTheme =
+            localStorage.getItem("patriodxDarkMode");
 
-            products.forEach(product => {
+        if (savedTheme === "true") {
+            document.body.classList.add("dark-mode");
+        }
 
-                productSelect.innerHTML += `
-                    <option
-                        value="${safe(product.id)}">
+        const buttons = document.querySelectorAll(
+            "#darkModeToggle, .dark-mode-toggle, [data-dark-mode]"
+        );
 
-                        ${safe(product.name)}
-                        — ${money(product.price)}
+        buttons.forEach(button => {
 
-                    </option>
-                `;
+            button.addEventListener("click", () => {
+
+                document.body.classList.toggle("dark-mode");
+
+                localStorage.setItem(
+                    "patriodxDarkMode",
+                    document.body.classList.contains("dark-mode")
+                );
             });
+        });
+    }
 
+    // ========================================================
+    // RENDER ALL
+    // ========================================================
 
-            document
-                .getElementById("invoiceForm")
-                ?.reset();
+    function renderAll() {
+        renderDashboard();
+        renderProducts();
+        renderCustomers();
+        renderSales();
+        renderInvoices();
+        renderAnalytics();
+        updateProUI();
+    }
 
+    // ========================================================
+    // DASHBOARD
+    // ========================================================
 
-            setInvoiceDefaults();
-            updateInvoicePreview();
+    function renderDashboard() {
 
-
-            document
-                .getElementById("invoiceModal")
-                ?.classList.add("active");
-        };
-
-
-    window.closeInvoiceModal =
-        function() {
-
-            document
-                .getElementById("invoiceModal")
-                ?.classList.remove("active");
-        };
-
-
-    function updateInvoicePreview() {
-
-        const productId =
-            document.getElementById(
-                "invoiceProduct"
-            )?.value;
-
-        const quantity =
-            Number(
-                document.getElementById(
-                    "invoiceQuantity"
-                )?.value
-            ) || 0;
-
-        const discount =
-            Number(
-                document.getElementById(
-                    "invoiceDiscount"
-                )?.value
-            ) || 0;
-
-        const taxRate =
-            Number(
-                document.getElementById(
-                    "invoiceTax"
-                )?.value
-            ) || 0;
-
-
-        const product =
-            products.find(
-                p =>
-                    String(p.id) ===
-                    String(productId)
-            );
-
-
-        const subtotal =
-            product
-                ? Number(product.price) *
-                  quantity
-                : 0;
-
-
-        const validDiscount =
-            Math.min(
-                Math.max(discount, 0),
-                subtotal
-            );
-
-
-        const taxableAmount =
-            Math.max(
-                subtotal - validDiscount,
+        const revenue =
+            sales.reduce(
+                (sum, sale) => sum + Number(sale.total || 0),
                 0
             );
 
-
-        const tax =
-            taxableAmount *
-            Math.max(taxRate, 0) /
-            100;
-
-
-        const total =
-            taxableAmount + tax;
-
-
-        text(
-            "invoiceSubtotal",
-            money(subtotal)
-        );
-
-        text(
-            "invoiceDiscountDisplay",
-            "-" + money(validDiscount)
-        );
-
-        text(
-            "invoiceTaxDisplay",
-            money(tax)
-        );
-
-        text(
-            "invoiceTotal",
-            money(total)
-        );
-    }
-
-
-    document
-        .getElementById("invoiceProduct")
-        ?.addEventListener(
-            "change",
-            updateInvoicePreview
-        );
-
-
-    document
-        .getElementById("invoiceQuantity")
-        ?.addEventListener(
-            "input",
-            updateInvoicePreview
-        );
-
-
-    document
-        .getElementById("invoiceDiscount")
-        ?.addEventListener(
-            "input",
-            updateInvoicePreview
-        );
-
-
-    document
-        .getElementById("invoiceTax")
-        ?.addEventListener(
-            "input",
-            updateInvoicePreview
-        );
-
-
-    document
-        .getElementById("invoiceForm")
-        ?.addEventListener(
-            "submit",
-            event => {
-
-                event.preventDefault();
-
-
-                const invoiceNumber =
-                    document.getElementById(
-                        "invoiceNumber"
-                    )?.value.trim();
-
-
-                const customerId =
-                    document.getElementById(
-                        "invoiceCustomer"
-                    )?.value;
-
-
-                const productId =
-                    document.getElementById(
-                        "invoiceProduct"
-                    )?.value;
-
-
-                const quantity =
-                    Number(
-                        document.getElementById(
-                            "invoiceQuantity"
-                        )?.value
-                    );
-
-
-                const dueDate =
-                    document.getElementById(
-                        "invoiceDueDate"
-                    )?.value;
-
-
-                const discount =
-                    Number(
-                        document.getElementById(
-                            "invoiceDiscount"
-                        )?.value
-                    ) || 0;
-
-
-                const taxRate =
-                    Number(
-                        document.getElementById(
-                            "invoiceTax"
-                        )?.value
-                    ) || 0;
-
-
-                const customer =
-                    customers.find(
-                        c =>
-                            String(c.id) ===
-                            String(customerId)
-                    );
-
-
-                const product =
-                    products.find(
-                        p =>
-                            String(p.id) ===
-                            String(productId)
-                    );
-
-
-                if (!customer) {
-
-                    alert(
-                        "Select a customer."
-                    );
-
-                    return;
-                }
-
-
-                if (!product) {
-
-                    alert(
-                        "Select a product."
-                    );
-
-                    return;
-                }
-
-
-                if (
-                    !Number.isInteger(quantity) ||
-                    quantity <= 0
-                ) {
-
-                    alert(
-                        "Quantity must be a whole number greater than 0."
-                    );
-
-                    return;
-                }
-
-
-                if (!dueDate) {
-
-                    alert(
-                        "Select a due date."
-                    );
-
-                    return;
-                }
-
-
-                const subtotal =
-                    Number(product.price) *
-                    quantity;
-
-
-                const validDiscount =
-                    Math.min(
-                        Math.max(discount, 0),
-                        subtotal
-                    );
-
-
-                const taxableAmount =
-                    Math.max(
-                        subtotal -
-                        validDiscount,
-                        0
-                    );
-
-
-                const tax =
-                    taxableAmount *
-                    Math.max(taxRate, 0) /
-                    100;
-
-
-                const total =
-                    taxableAmount + tax;
-
-
-                invoices.push({
-
-                    id:
-                        createId(),
-
-                    invoiceNumber:
-                        invoiceNumber ||
-                        generateInvoiceNumber(),
-
-                    customerId:
-                        customer.id,
-
-                    customerName:
-                        customer.name,
-
-                    productId:
-                        product.id,
-
-                    productName:
-                        product.name,
-
-                    quantity,
-
-                    subtotal,
-
-                    discount:
-                        validDiscount,
-
-                    taxRate,
-
-                    tax,
-
-                    total,
-
-                    dueDate,
-
-                    status:
-                        "unpaid",
-
-                    createdAt:
-                        new Date().toISOString()
-                });
-
-
-                saveData();
-                renderAll();
-                closeInvoiceModal();
-
-
-                alert(
-                    "Invoice created successfully."
-                );
-            }
-        );
-
-
-    function renderInvoices(items = invoices) {
-
-        const list =
-            document.getElementById(
-                "invoicesList"
+        const stats = {
+            revenue,
+            products: products.length,
+            customers: customers.length,
+            sales: sales.length,
+            invoices: invoices.length
+        };
+
+        const selectors = {
+
+            revenue: [
+                "#totalRevenue",
+                "[data-stat='revenue']"
+            ],
+
+            products: [
+                "#totalProducts",
+                "[data-stat='products']"
+            ],
+
+            customers: [
+                "#totalCustomers",
+                "[data-stat='customers']"
+            ],
+
+            sales: [
+                "#totalSales",
+                "[data-stat='sales']"
+            ],
+
+            invoices: [
+                "#totalInvoices",
+                "[data-stat='invoices']"
+            ]
+        };
+
+        selectors.revenue.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.textContent = money(stats.revenue);
+            });
+        });
+
+        selectors.products.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.textContent = stats.products;
+            });
+        });
+
+        selectors.customers.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.textContent = stats.customers;
+            });
+        });
+
+        selectors.sales.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.textContent = stats.sales;
+            });
+        });
+
+        selectors.invoices.forEach(selector => {
+            document.querySelectorAll(selector).forEach(el => {
+                el.textContent = stats.invoices;
+            });
+        });
+
+        const businessNameElements =
+            document.querySelectorAll(
+                "#businessName, .business-name"
             );
 
-        if (!list) {
-            return;
-        }
+        businessNameElements.forEach(el => {
+            if (currentBusiness) {
+                el.textContent = currentBusiness.name;
+            }
+        });
 
+        renderRecentActivity();
+    }
 
-        if (!items.length) {
+    // ========================================================
+    // RECENT ACTIVITY
+    // ========================================================
 
-            list.innerHTML = `
-                <div class="empty-state">
+    function renderRecentActivity() {
 
-                    <div class="empty-icon">
-                        ${invoices.length ? "🔍" : "🧾"}
+        const containers = document.querySelectorAll(
+            "#recentActivity, .recent-activity"
+        );
+
+        containers.forEach(container => {
+
+            if (!sales.length) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        No recent sales yet.
+                    </div>
+                `;
+
+                return;
+            }
+
+            const recentSales = sales.slice(0, 5);
+
+            container.innerHTML = recentSales.map(sale => `
+                <div class="activity-item">
+                    <div>
+                        <strong>${safe(sale.productName)}</strong>
+                        <small>
+                            ${sale.quantity} item${sale.quantity === 1 ? "" : "s"}
+                        </small>
                     </div>
 
-                    <h3>
-                        ${
-                            invoices.length
-                                ? "No invoices found"
-                                : "No invoices yet"
-                        }
-                    </h3>
+                    <div>
+                        <strong>${money(sale.total)}</strong>
+                        <small>${formatDate(sale.createdAt)}</small>
+                    </div>
+                </div>
+            `).join("");
+        });
+    }
 
-                    <p>
-                        Create your first invoice.
-                    </p>
+    // ========================================================
+    // PRODUCTS
+    // ========================================================
+
+    function renderProducts() {
+
+        const containers = document.querySelectorAll(
+            "#productsList, #productList, .products-list"
+        );
+
+        containers.forEach(container => {
+
+            if (!products.length) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No products yet</h3>
+                        <p>Add your first product to get started.</p>
+                    </div>
+                `;
+
+                return;
+            }
+
+            container.innerHTML = products.map(product => `
+                <div class="product-card">
+
+                    <div class="product-info">
+                        <h3>${safe(product.name)}</h3>
+
+                        <p>
+                            Price:
+                            <strong>${money(product.price)}</strong>
+                        </p>
+
+                        <p>
+                            Stock:
+                            <strong>${product.stock}</strong>
+                        </p>
+                    </div>
+
+                    <div class="product-actions">
+
+                        <button
+                            type="button"
+                            class="edit-product"
+                            data-id="${product.id}">
+                            Edit
+                        </button>
+
+                        <button
+                            type="button"
+                            class="delete-product"
+                            data-id="${product.id}">
+                            Delete
+                        </button>
+
+                    </div>
 
                 </div>
+            `).join("");
+
+            container
+                .querySelectorAll(".edit-product")
+                .forEach(button => {
+
+                    button.addEventListener("click", () => {
+
+                        const product =
+                            products.find(
+                                p => p.id === button.dataset.id
+                            );
+
+                        if (product) {
+                            openProductEdit(product);
+                        }
+                    });
+                });
+
+            container
+                .querySelectorAll(".delete-product")
+                .forEach(button => {
+
+                    button.addEventListener("click", () => {
+
+                        deleteProduct(button.dataset.id);
+                    });
+                });
+        });
+
+        renderProductTable();
+    }
+
+    // ========================================================
+    // PRODUCT TABLE
+    // ========================================================
+
+    function renderProductTable() {
+
+        const tbody = document.querySelector(
+            "#productsTable tbody"
+        );
+
+        if (!tbody) return;
+
+        if (!products.length) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        No products yet.
+                    </td>
+                </tr>
             `;
 
             return;
         }
 
+        tbody.innerHTML = products.map(product => `
+            <tr>
 
-        list.innerHTML =
-            [...items]
-                .sort(
-                    (a, b) =>
-                        new Date(b.createdAt) -
-                        new Date(a.createdAt)
-                )
-                .map(invoice => {
+                <td>${safe(product.name)}</td>
 
-                    const paid =
-                        invoice.status === "paid";
+                <td>${money(product.price)}</td>
 
+                <td>${product.stock}</td>
 
-                    return `
-                        <div class="invoice-card">
+                <td>${formatDate(product.createdAt)}</td>
 
-                            <div>
+                <td>
 
-                                <h3>
-                                    ${safe(
-                                        invoice.invoiceNumber ||
-                                        "Invoice"
-                                    )}
-                                </h3>
+                    <button
+                        class="edit-product"
+                        data-id="${product.id}">
+                        Edit
+                    </button>
 
-                                <p>
-                                    👤
-                                    ${safe(
-                                        invoice.customerName ||
-                                        "Unknown Customer"
-                                    )}
-                                </p>
+                    <button
+                        class="delete-product"
+                        data-id="${product.id}">
+                        Delete
+                    </button>
 
-                                <p>
-                                    📦
-                                    ${safe(
-                                        invoice.productName ||
-                                        "Unknown Product"
-                                    )}
-                                    ×
-                                    ${Number(
-                                        invoice.quantity
-                                    ) || 0}
-                                </p>
+                </td>
 
-                                <p>
-                                    📅 Due:
-                                    ${formatDate(
-                                        invoice.dueDate
-                                    )}
-                                </p>
+            </tr>
+        `).join("");
 
-                            </div>
+        tbody
+            .querySelectorAll(".edit-product")
+            .forEach(button => {
 
-                            <div class="invoice-card-right">
+                button.addEventListener("click", () => {
 
-                                <strong>
-                                    ${money(invoice.total)}
-                                </strong>
+                    const product =
+                        products.find(
+                            p => p.id === button.dataset.id
+                        );
 
-                                <span
-                                    class="invoice-status ${
-                                        paid
-                                            ? "paid"
-                                            : "unpaid"
-                                    }">
+                    if (product) openProductEdit(product);
+                });
+            });
 
-                                    ${
-                                        paid
-                                            ? "PAID"
-                                            : "UNPAID"
-                                    }
+        tbody
+            .querySelectorAll(".delete-product")
+            .forEach(button => {
 
-                                </span>
-
-                                <div class="invoice-actions">
-
-                                    <button
-                                        class="secondary-btn"
-                                        onclick="toggleInvoiceStatus('${safe(invoice.id)}')">
-
-                                        ${
-                                            paid
-                                                ? "Mark Unpaid"
-                                                : "Mark Paid"
-                                        }
-
-                                    </button>
-
-                                    <button
-                                        class="delete-btn"
-                                        onclick="deleteInvoice('${safe(invoice.id)}')">
-
-                                        Delete
-
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-                    `;
-
-                })
-                .join("");
+                button.addEventListener("click", () => {
+                    deleteProduct(button.dataset.id);
+                });
+            });
     }
 
+    // ========================================================
+    // PRODUCT MODAL
+    // ========================================================
 
-    window.toggleInvoiceStatus =
-        function(invoiceId) {
+    function getProductModal() {
 
-            const invoice =
-                invoices.find(
-                    i =>
-                        String(i.id) ===
-                        String(invoiceId)
+        return document.querySelector(
+            "#productModal, #addProductModal, .product-modal"
+        );
+    }
+
+    function openProductEdit(product) {
+
+        editingProductId = product.id;
+
+        const modal = getProductModal();
+
+        if (modal) {
+            modal.classList.add("active");
+            modal.style.display = "flex";
+        }
+
+        const nameInput = document.querySelector(
+            "#productName, #product-name"
+        );
+
+        const priceInput = document.querySelector(
+            "#productPrice, #product-price"
+        );
+
+        const stockInput = document.querySelector(
+            "#productStock, #product-stock"
+        );
+
+        if (nameInput) nameInput.value = product.name;
+        if (priceInput) priceInput.value = product.price;
+        if (stockInput) stockInput.value = product.stock;
+
+        const submit =
+            document.querySelector(
+                "#productForm button[type='submit'], " +
+                "#productForm .submit-btn"
+            );
+
+        if (submit) {
+            submit.textContent = "Update Product";
+        }
+    }
+
+    function setupProductForm() {
+
+        const form =
+            document.querySelector(
+                "#productForm, #addProductForm"
+            );
+
+        if (!form) return;
+
+        form.addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            const nameInput =
+                form.querySelector(
+                    "#productName, #product-name, [name='productName']"
                 );
 
+            const priceInput =
+                form.querySelector(
+                    "#productPrice, #product-price, [name='price']"
+                );
 
-            if (!invoice) {
+            const stockInput =
+                form.querySelector(
+                    "#productStock, #product-stock, [name='stock']"
+                );
+
+            const name =
+                nameInput?.value.trim();
+
+            const price =
+                Number(priceInput?.value);
+
+            const stock =
+                Number(stockInput?.value);
+
+            if (!name) {
+                alert("Please enter a product name.");
                 return;
             }
 
+            if (isNaN(price) || price < 0) {
+                alert("Please enter a valid price.");
+                return;
+            }
 
-            invoice.status =
-                invoice.status === "paid"
-                    ? "unpaid"
-                    : "paid";
+            if (isNaN(stock) || stock < 0) {
+                alert("Please enter valid stock.");
+                return;
+            }
 
+            const submit =
+                form.querySelector(
+                    "button[type='submit']"
+                );
 
-            saveData();
+            if (submit) {
+                submit.disabled = true;
+                submit.textContent = "Saving...";
+            }
+
+            try {
+
+                if (editingProductId) {
+
+                    const { data, error } =
+                        await supabaseClient
+                            .from("products")
+                            .update({
+                                name,
+                                price,
+                                stock,
+                                updated_at: new Date().toISOString()
+                            })
+                            .eq("id", editingProductId)
+                            .select()
+                            .single();
+
+                    if (error) throw error;
+
+                    const index =
+                        products.findIndex(
+                            p => p.id === editingProductId
+                        );
+
+                    if (index !== -1) {
+                        products[index] = mapProduct(data);
+                    }
+
+                    alert("Product updated successfully.");
+
+                } else {
+
+                    const { data, error } =
+                        await supabaseClient
+                            .from("products")
+                            .insert({
+                                business_id: currentBusiness.id,
+                                name,
+                                price,
+                                stock
+                            })
+                            .select()
+                            .single();
+
+                    if (error) throw error;
+
+                    products.unshift(mapProduct(data));
+
+                    alert("Product added successfully.");
+                }
+
+                editingProductId = null;
+
+                form.reset();
+
+                closeAllModals();
+
+                renderAll();
+
+            } catch (error) {
+
+                console.error("Product error:", error);
+
+                alert(
+                    "Could not save product.\n\n" +
+                    error.message
+                );
+
+            } finally {
+
+                if (submit) {
+                    submit.disabled = false;
+                    submit.textContent =
+                        editingProductId
+                            ? "Update Product"
+                            : "Add Product";
+                }
+            }
+        });
+    }
+
+    // ========================================================
+    // DELETE PRODUCT
+    // ========================================================
+
+    async function deleteProduct(productId) {
+
+        const product =
+            products.find(
+                p => p.id === productId
+            );
+
+        if (!product) return;
+
+        const usedInSales =
+            sales.some(
+                sale => sale.productId === productId
+            );
+
+        const usedInInvoices =
+            invoices.some(
+                invoice => invoice.productId === productId
+            );
+
+        if (usedInSales || usedInInvoices) {
+
+            alert(
+                "This product cannot be deleted because " +
+                "it is already used in sales or invoices."
+            );
+
+            return;
+        }
+
+        if (
+            !confirm(
+                `Delete "${product.name}"?`
+            )
+        ) {
+            return;
+        }
+
+        try {
+
+            const { error } =
+                await supabaseClient
+                    .from("products")
+                    .delete()
+                    .eq("id", productId);
+
+            if (error) throw error;
+
+            products =
+                products.filter(
+                    p => p.id !== productId
+                );
+
             renderAll();
-        };
 
+            alert("Product deleted.");
 
-    window.deleteInvoice =
-        function(invoiceId) {
+        } catch (error) {
 
-            if (
-                !confirm(
-                    "Delete this invoice?"
-                )
-            ) {
+            console.error(error);
+
+            alert(
+                "Could not delete product.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    // ========================================================
+    // CUSTOMERS
+    // ========================================================
+
+    function renderCustomers() {
+
+        const containers = document.querySelectorAll(
+            "#customersList, #customerList, .customers-list"
+        );
+
+        containers.forEach(container => {
+
+            if (!customers.length) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No customers yet</h3>
+                        <p>Add your first customer to get started.</p>
+                    </div>
+                `;
+
                 return;
             }
 
+            container.innerHTML = customers.map(customer => `
+                <div class="customer-card">
+
+                    <div>
+                        <h3>${safe(customer.name)}</h3>
+
+                        <p>${safe(customer.email)}</p>
+
+                        <p>${safe(customer.phone)}</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="delete-customer"
+                        data-id="${customer.id}">
+                        Delete
+                    </button>
+
+                </div>
+            `).join("");
+
+            container
+                .querySelectorAll(".delete-customer")
+                .forEach(button => {
+
+                    button.addEventListener("click", () => {
+                        deleteCustomer(button.dataset.id);
+                    });
+                });
+        });
+
+        renderCustomerTable();
+    }
+
+    function renderCustomerTable() {
+
+        const tbody =
+            document.querySelector(
+                "#customersTable tbody"
+            );
+
+        if (!tbody) return;
+
+        if (!customers.length) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5">
+                        No customers yet.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        tbody.innerHTML = customers.map(customer => `
+            <tr>
+
+                <td>${safe(customer.name)}</td>
+
+                <td>${safe(customer.email)}</td>
+
+                <td>${safe(customer.phone)}</td>
+
+                <td>${formatDate(customer.createdAt)}</td>
+
+                <td>
+                    <button
+                        class="delete-customer"
+                        data-id="${customer.id}">
+                        Delete
+                    </button>
+                </td>
+
+            </tr>
+        `).join("");
+
+        tbody
+            .querySelectorAll(".delete-customer")
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+                    deleteCustomer(button.dataset.id);
+                });
+            });
+    }
+
+    function setupCustomerForm() {
+
+        const form =
+            document.querySelector(
+                "#customerForm, #addCustomerForm"
+            );
+
+        if (!form) return;
+
+        form.addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            const nameInput =
+                form.querySelector(
+                    "#customerName, #customer-name, [name='name']"
+                );
+
+            const emailInput =
+                form.querySelector(
+                    "#customerEmail, #customer-email, [name='email']"
+                );
+
+            const phoneInput =
+                form.querySelector(
+                    "#customerPhone, #customer-phone, [name='phone']"
+                );
+
+            const name =
+                nameInput?.value.trim();
+
+            const email =
+                emailInput?.value.trim() || "";
+
+            const phone =
+                phoneInput?.value.trim() || "";
+
+            if (!name) {
+                alert("Please enter a customer name.");
+                return;
+            }
+
+            if (email && !isValidEmail(email)) {
+                alert("Please enter a valid email.");
+                return;
+            }
+
+            try {
+
+                const { data, error } =
+                    await supabaseClient
+                        .from("customers")
+                        .insert({
+                            business_id: currentBusiness.id,
+                            name,
+                            email,
+                            phone
+                        })
+                        .select()
+                        .single();
+
+                if (error) throw error;
+
+                customers.unshift(
+                    mapCustomer(data)
+                );
+
+                form.reset();
+
+                closeAllModals();
+
+                renderAll();
+
+                alert("Customer added successfully.");
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Could not add customer.\n\n" +
+                    error.message
+                );
+            }
+        });
+    }
+
+    async function deleteCustomer(customerId) {
+
+        const customer =
+            customers.find(
+                c => c.id === customerId
+            );
+
+        if (!customer) return;
+
+        const used =
+            invoices.some(
+                invoice =>
+                    invoice.customerId === customerId
+            );
+
+        if (used) {
+
+            alert(
+                "This customer cannot be deleted because " +
+                "they are used in an invoice."
+            );
+
+            return;
+        }
+
+        if (
+            !confirm(
+                `Delete "${customer.name}"?`
+            )
+        ) {
+            return;
+        }
+
+        try {
+
+            const { error } =
+                await supabaseClient
+                    .from("customers")
+                    .delete()
+                    .eq("id", customerId);
+
+            if (error) throw error;
+
+            customers =
+                customers.filter(
+                    c => c.id !== customerId
+                );
+
+            renderAll();
+
+            alert("Customer deleted.");
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Could not delete customer.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    // ========================================================
+    // SALES
+    // ========================================================
+
+    function renderSales() {
+
+        const containers = document.querySelectorAll(
+            "#salesList, #saleList, .sales-list"
+        );
+
+        containers.forEach(container => {
+
+            if (!sales.length) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No sales yet</h3>
+                        <p>Record your first sale.</p>
+                    </div>
+                `;
+
+                return;
+            }
+
+            container.innerHTML = sales.map(sale => `
+                <div class="sale-item">
+
+                    <div>
+                        <strong>
+                            ${safe(sale.productName)}
+                        </strong>
+
+                        <span>
+                            ${sale.quantity} ×
+                            ${money(
+                                sale.total /
+                                Math.max(sale.quantity, 1)
+                            )}
+                        </span>
+                    </div>
+
+                    <div>
+                        <strong>${money(sale.total)}</strong>
+                        <small>${formatDate(sale.createdAt)}</small>
+                    </div>
+
+                    <button
+                        class="delete-sale"
+                        data-id="${sale.id}">
+                        Delete
+                    </button>
+
+                </div>
+            `).join("");
+
+            container
+                .querySelectorAll(".delete-sale")
+                .forEach(button => {
+
+                    button.addEventListener("click", () => {
+                        deleteSale(button.dataset.id);
+                    });
+                });
+        });
+
+        renderSalesTable();
+    }
+
+    function renderSalesTable() {
+
+        const tbody =
+            document.querySelector(
+                "#salesTable tbody"
+            );
+
+        if (!tbody) return;
+
+        if (!sales.length) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        No sales yet.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        tbody.innerHTML = sales.map(sale => `
+            <tr>
+
+                <td>${safe(sale.productName)}</td>
+
+                <td>${sale.quantity}</td>
+
+                <td>${money(sale.total)}</td>
+
+                <td>${formatDate(sale.createdAt)}</td>
+
+                <td>
+                    <button
+                        class="delete-sale"
+                        data-id="${sale.id}">
+                        Delete
+                    </button>
+                </td>
+
+            </tr>
+        `).join("");
+
+        tbody
+            .querySelectorAll(".delete-sale")
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+                    deleteSale(button.dataset.id);
+                });
+            });
+    }
+
+    function setupSaleForm() {
+
+        const form =
+            document.querySelector(
+                "#saleForm, #addSaleForm"
+            );
+
+        if (!form) return;
+
+        populateProductSelects();
+
+        form.addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            const productSelect =
+                form.querySelector(
+                    "#saleProduct, #sale-product, [name='productId']"
+                );
+
+            const quantityInput =
+                form.querySelector(
+                    "#saleQuantity, #sale-quantity, [name='quantity']"
+                );
+
+            const productId =
+                productSelect?.value;
+
+            const quantity =
+                Number(quantityInput?.value);
+
+            if (!productId) {
+                alert("Please select a product.");
+                return;
+            }
+
+            if (!quantity || quantity <= 0) {
+                alert("Please enter a valid quantity.");
+                return;
+            }
+
+            const product =
+                products.find(
+                    p => p.id === productId
+                );
+
+            if (!product) {
+                alert("Product not found.");
+                return;
+            }
+
+            if (quantity > product.stock) {
+                alert(
+                    `Only ${product.stock} item(s) available in stock.`
+                );
+                return;
+            }
+
+            const total =
+                Number(product.price) * quantity;
+
+            try {
+
+                // 1. INSERT SALE
+                const { data: saleData, error: saleError } =
+                    await supabaseClient
+                        .from("sales")
+                        .insert({
+                            business_id: currentBusiness.id,
+                            product_id: product.id,
+                            product_name: product.name,
+                            quantity,
+                            total
+                        })
+                        .select()
+                        .single();
+
+                if (saleError) throw saleError;
+
+                // 2. UPDATE STOCK
+                const newStock =
+                    Number(product.stock) - quantity;
+
+                const {
+                    data: productData,
+                    error: stockError
+                } = await supabaseClient
+                    .from("products")
+                    .update({
+                        stock: newStock,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", product.id)
+                    .select()
+                    .single();
+
+                if (stockError) {
+
+                    // Try to remove sale if stock update fails
+                    await supabaseClient
+                        .from("sales")
+                        .delete()
+                        .eq("id", saleData.id);
+
+                    throw stockError;
+                }
+
+                sales.unshift(
+                    mapSale(saleData)
+                );
+
+                const index =
+                    products.findIndex(
+                        p => p.id === product.id
+                    );
+
+                if (index !== -1) {
+                    products[index] =
+                        mapProduct(productData);
+                }
+
+                form.reset();
+
+                closeAllModals();
+
+                renderAll();
+
+                alert("Sale recorded successfully.");
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Could not record sale.\n\n" +
+                    error.message
+                );
+            }
+        });
+    }
+
+    async function deleteSale(saleId) {
+
+        const sale =
+            sales.find(
+                s => s.id === saleId
+            );
+
+        if (!sale) return;
+
+        if (!confirm("Delete this sale?")) {
+            return;
+        }
+
+        try {
+
+            // Delete sale
+            const { error: deleteError } =
+                await supabaseClient
+                    .from("sales")
+                    .delete()
+                    .eq("id", saleId);
+
+            if (deleteError) {
+                throw deleteError;
+            }
+
+            // Restore stock
+            const product =
+                products.find(
+                    p => p.id === sale.productId
+                );
+
+            if (product) {
+
+                const restoredStock =
+                    Number(product.stock) +
+                    Number(sale.quantity);
+
+                const {
+                    data: productData,
+                    error: stockError
+                } = await supabaseClient
+                    .from("products")
+                    .update({
+                        stock: restoredStock,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", product.id)
+                    .select()
+                    .single();
+
+                if (stockError) {
+                    console.error(
+                        "Stock restoration failed:",
+                        stockError
+                    );
+                } else {
+
+                    const index =
+                        products.findIndex(
+                            p => p.id === product.id
+                        );
+
+                    if (index !== -1) {
+                        products[index] =
+                            mapProduct(productData);
+                    }
+                }
+            }
+
+            sales =
+                sales.filter(
+                    s => s.id !== saleId
+                );
+
+            renderAll();
+
+            alert("Sale deleted.");
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Could not delete sale.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    // ========================================================
+    // INVOICES
+    // ========================================================
+
+    function renderInvoices() {
+
+        const containers = document.querySelectorAll(
+            "#invoicesList, #invoiceList, .invoices-list"
+        );
+
+        containers.forEach(container => {
+
+            if (!invoices.length) {
+
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No invoices yet</h3>
+                        <p>Create your first invoice.</p>
+                    </div>
+                `;
+
+                return;
+            }
+
+            container.innerHTML = invoices.map(invoice => `
+                <div class="invoice-card">
+
+                    <div>
+                        <strong>
+                            ${safe(invoice.invoiceNumber)}
+                        </strong>
+
+                        <p>
+                            ${safe(invoice.customerName)}
+                        </p>
+
+                        <p>
+                            ${safe(invoice.productName)}
+                        </p>
+                    </div>
+
+                    <div>
+                        <strong>
+                            ${money(invoice.total)}
+                        </strong>
+
+                        <span>
+                            ${safe(invoice.status)}
+                        </span>
+                    </div>
+
+                    <div>
+
+                        <button
+                            class="toggle-invoice"
+                            data-id="${invoice.id}">
+                            Mark ${
+                                invoice.status === "paid"
+                                    ? "Unpaid"
+                                    : "Paid"
+                            }
+                        </button>
+
+                        <button
+                            class="delete-invoice"
+                            data-id="${invoice.id}">
+                            Delete
+                        </button>
+
+                    </div>
+
+                </div>
+            `).join("");
+
+            setupInvoiceButtons(container);
+        });
+
+        renderInvoiceTable();
+    }
+
+    function setupInvoiceButtons(container) {
+
+        container
+            .querySelectorAll(".toggle-invoice")
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+                    toggleInvoiceStatus(button.dataset.id);
+                });
+            });
+
+        container
+            .querySelectorAll(".delete-invoice")
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+                    deleteInvoice(button.dataset.id);
+                });
+            });
+    }
+
+    function renderInvoiceTable() {
+
+        const tbody =
+            document.querySelector(
+                "#invoicesTable tbody"
+            );
+
+        if (!tbody) return;
+
+        if (!invoices.length) {
+
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        No invoices yet.
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+        tbody.innerHTML = invoices.map(invoice => `
+            <tr>
+
+                <td>
+                    ${safe(invoice.invoiceNumber)}
+                </td>
+
+                <td>
+                    ${safe(invoice.customerName)}
+                </td>
+
+                <td>
+                    ${safe(invoice.productName)}
+                </td>
+
+                <td>
+                    ${money(invoice.total)}
+                </td>
+
+                <td>
+                    ${safe(invoice.status)}
+                </td>
+
+                <td>
+                    ${formatDate(invoice.dueDate)}
+                </td>
+
+                <td>
+
+                    <button
+                        class="toggle-invoice"
+                        data-id="${invoice.id}">
+                        ${
+                            invoice.status === "paid"
+                                ? "Unpaid"
+                                : "Paid"
+                        }
+                    </button>
+
+                    <button
+                        class="delete-invoice"
+                        data-id="${invoice.id}">
+                        Delete
+                    </button>
+
+                </td>
+
+            </tr>
+        `).join("");
+
+        setupInvoiceButtons(tbody);
+    }
+
+    function generateInvoiceNumber() {
+
+        const number =
+            invoices.length + 1;
+
+        return "INV-" +
+            String(number).padStart(4, "0");
+    }
+
+    function setupInvoiceForm() {
+
+        const form =
+            document.querySelector(
+                "#invoiceForm, #createInvoiceForm"
+            );
+
+        if (!form) return;
+
+        populateInvoiceSelects();
+
+        form.addEventListener("submit", async event => {
+
+            event.preventDefault();
+
+            const customerSelect =
+                form.querySelector(
+                    "#invoiceCustomer, #invoice-customer, [name='customerId']"
+                );
+
+            const productSelect =
+                form.querySelector(
+                    "#invoiceProduct, #invoice-product, [name='productId']"
+                );
+
+            const quantityInput =
+                form.querySelector(
+                    "#invoiceQuantity, #invoice-quantity, [name='quantity']"
+                );
+
+            const discountInput =
+                form.querySelector(
+                    "#invoiceDiscount, #invoice-discount, [name='discount']"
+                );
+
+            const taxInput =
+                form.querySelector(
+                    "#invoiceTax, #invoice-tax, [name='taxRate']"
+                );
+
+            const dueDateInput =
+                form.querySelector(
+                    "#invoiceDueDate, #invoice-due-date, [name='dueDate']"
+                );
+
+            const customerId =
+                customerSelect?.value;
+
+            const productId =
+                productSelect?.value;
+
+            const quantity =
+                Number(quantityInput?.value);
+
+            const discount =
+                Number(discountInput?.value || 0);
+
+            const taxRate =
+                Number(taxInput?.value || 0);
+
+            const dueDate =
+                dueDateInput?.value || null;
+
+            const customer =
+                customers.find(
+                    c => c.id === customerId
+                );
+
+            const product =
+                products.find(
+                    p => p.id === productId
+                );
+
+            if (!customer) {
+                alert("Please select a customer.");
+                return;
+            }
+
+            if (!product) {
+                alert("Please select a product.");
+                return;
+            }
+
+            if (!quantity || quantity <= 0) {
+                alert("Please enter a valid quantity.");
+                return;
+            }
+
+            if (discount < 0) {
+                alert("Discount cannot be negative.");
+                return;
+            }
+
+            if (taxRate < 0) {
+                alert("Tax rate cannot be negative.");
+                return;
+            }
+
+            const subtotal =
+                Number(product.price) *
+                quantity;
+
+            const discountedSubtotal =
+                Math.max(
+                    0,
+                    subtotal - discount
+                );
+
+            const tax =
+                discountedSubtotal *
+                (taxRate / 100);
+
+            const total =
+                discountedSubtotal + tax;
+
+            try {
+
+                const { data, error } =
+                    await supabaseClient
+                        .from("invoices")
+                        .insert({
+                            business_id: currentBusiness.id,
+
+                            invoice_number:
+                                generateInvoiceNumber(),
+
+                            customer_id:
+                                customer.id,
+
+                            customer_name:
+                                customer.name,
+
+                            product_id:
+                                product.id,
+
+                            product_name:
+                                product.name,
+
+                            quantity,
+
+                            subtotal,
+
+                            discount,
+
+                            tax_rate: taxRate,
+
+                            tax,
+
+                            total,
+
+                            due_date: dueDate,
+
+                            status: "unpaid"
+                        })
+                        .select()
+                        .single();
+
+                if (error) throw error;
+
+                invoices.unshift(
+                    mapInvoice(data)
+                );
+
+                form.reset();
+
+                closeAllModals();
+
+                renderAll();
+
+                alert("Invoice created successfully.");
+
+            } catch (error) {
+
+                console.error(error);
+
+                alert(
+                    "Could not create invoice.\n\n" +
+                    error.message
+                );
+            }
+        });
+    }
+
+    async function toggleInvoiceStatus(invoiceId) {
+
+        const invoice =
+            invoices.find(
+                i => i.id === invoiceId
+            );
+
+        if (!invoice) return;
+
+        const newStatus =
+            invoice.status === "paid"
+                ? "unpaid"
+                : "paid";
+
+        try {
+
+            const { data, error } =
+                await supabaseClient
+                    .from("invoices")
+                    .update({
+                        status: newStatus
+                    })
+                    .eq("id", invoiceId)
+                    .select()
+                    .single();
+
+            if (error) throw error;
+
+            const index =
+                invoices.findIndex(
+                    i => i.id === invoiceId
+                );
+
+            if (index !== -1) {
+                invoices[index] =
+                    mapInvoice(data);
+            }
+
+            renderAll();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Could not update invoice.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    async function deleteInvoice(invoiceId) {
+
+        if (!confirm("Delete this invoice?")) {
+            return;
+        }
+
+        try {
+
+            const { error } =
+                await supabaseClient
+                    .from("invoices")
+                    .delete()
+                    .eq("id", invoiceId);
+
+            if (error) throw error;
 
             invoices =
                 invoices.filter(
                     invoice =>
-                        String(invoice.id) !==
-                        String(invoiceId)
+                        invoice.id !== invoiceId
                 );
 
-
-            saveData();
             renderAll();
-        };
 
+            alert("Invoice deleted.");
 
-    /* =========================================================
-       DASHBOARD
-       ========================================================= */
+        } catch (error) {
 
-    function updateDashboardStats() {
+            console.error(error);
 
-        const totalRevenue =
-            sales.reduce(
-                (sum, sale) =>
-                    sum +
-                    Number(sale.total || 0),
-                0
+            alert(
+                "Could not delete invoice.\n\n" +
+                error.message
             );
-
-
-        const today =
-            todayString();
-
-
-        const todayRevenue =
-            sales
-                .filter(sale => {
-
-                    if (!sale.date) {
-                        return false;
-                    }
-
-                    const date =
-                        new Date(sale.date);
-
-                    if (
-                        Number.isNaN(
-                            date.getTime()
-                        )
-                    ) {
-                        return false;
-                    }
-
-                    return (
-                        date.toISOString()
-                            .slice(0, 10) ===
-                        today
-                    );
-
-                })
-                .reduce(
-                    (sum, sale) =>
-                        sum +
-                        Number(
-                            sale.total || 0
-                        ),
-                    0
-                );
-
-
-        const paidInvoices =
-            invoices.filter(
-                invoice =>
-                    invoice.status === "paid"
-            ).length;
-
-
-        const unpaidInvoices =
-            invoices.filter(
-                invoice =>
-                    invoice.status !== "paid"
-            ).length;
-
-
-        const lowStock =
-            products.filter(
-                product =>
-                    Number(product.stock) <= 5
-            ).length;
-
-
-        text("totalRevenue", money(totalRevenue));
-        text("todayRevenue", money(todayRevenue));
-        text("totalProducts", products.length);
-        text("totalCustomers", customers.length);
-        text("totalSales", sales.length);
-        text("paidInvoices", paidInvoices);
-        text("unpaidInvoices", unpaidInvoices);
-        text("lowStockProducts", lowStock);
+        }
     }
 
+    // ========================================================
+    // SELECT DROPDOWNS
+    // ========================================================
 
-    /* =========================================================
-       ANALYTICS
-       ========================================================= */
+    function populateProductSelects() {
 
-    function updateAnalytics() {
+        const selectors = [
+            "#saleProduct",
+            "#sale-product",
+            "#invoiceProduct",
+            "#invoice-product"
+        ];
 
-        const totalRevenue =
+        selectors.forEach(selector => {
+
+            const select =
+                document.querySelector(selector);
+
+            if (!select) return;
+
+            const current =
+                select.value;
+
+            const isInvoice =
+                selector.toLowerCase().includes("invoice");
+
+            const firstOption =
+                isInvoice
+                    ? "Select product"
+                    : "Select product";
+
+            select.innerHTML = `
+                <option value="">
+                    ${firstOption}
+                </option>
+
+                ${products.map(product => `
+                    <option value="${product.id}">
+                        ${safe(product.name)}
+                        - ${money(product.price)}
+                        ${
+                            isInvoice
+                                ? ""
+                                : `(${product.stock} in stock)`
+                        }
+                    </option>
+                `).join("")}
+            `;
+
+            if (
+                products.some(
+                    p => p.id === current
+                )
+            ) {
+                select.value = current;
+            }
+        });
+    }
+
+    function populateInvoiceSelects() {
+
+        const customerSelect =
+            document.querySelector(
+                "#invoiceCustomer, #invoice-customer"
+            );
+
+        if (customerSelect) {
+
+            customerSelect.innerHTML = `
+                <option value="">
+                    Select customer
+                </option>
+
+                ${customers.map(customer => `
+                    <option value="${customer.id}">
+                        ${safe(customer.name)}
+                    </option>
+                `).join("")}
+            `;
+        }
+
+        populateProductSelects();
+    }
+
+    // ========================================================
+    // ANALYTICS
+    // ========================================================
+
+    function renderAnalytics() {
+
+        const revenue =
             sales.reduce(
                 (sum, sale) =>
-                    sum +
-                    Number(sale.total || 0),
+                    sum + Number(sale.total || 0),
                 0
             );
 
+        const totalItems =
+            sales.reduce(
+                (sum, sale) =>
+                    sum + Number(sale.quantity || 0),
+                0
+            );
 
         const averageSale =
             sales.length
-                ? totalRevenue / sales.length
+                ? revenue / sales.length
                 : 0;
 
+        document
+            .querySelectorAll(
+                "#analyticsRevenue, [data-analytics='revenue']"
+            )
+            .forEach(el => {
+                el.textContent = money(revenue);
+            });
 
-        const unitsInStock =
-            products.reduce(
-                (sum, product) =>
-                    sum +
-                    Number(product.stock || 0),
-                0
-            );
+        document
+            .querySelectorAll(
+                "#totalItemsSold, [data-analytics='items']"
+            )
+            .forEach(el => {
+                el.textContent = totalItems;
+            });
 
-
-        const inventoryValue =
-            products.reduce(
-                (sum, product) =>
-                    sum +
-                    Number(product.price || 0) *
-                    Number(product.stock || 0),
-                0
-            );
-
-
-        text(
-            "averageSale",
-            money(averageSale)
-        );
-
-        text(
-            "unitsInStock",
-            unitsInStock
-        );
-
-        text(
-            "inventoryValue",
-            money(inventoryValue)
-        );
-
-
-        const productSales = {};
-
-
-        sales.forEach(sale => {
-
-            const name =
-                sale.productName ||
-                "Unknown Product";
-
-
-            productSales[name] =
-                (productSales[name] || 0) +
-                Number(sale.quantity || 0);
-        });
-
-
-        const bestSeller =
-            Object.entries(productSales)
-                .sort(
-                    (a, b) =>
-                        b[1] - a[1]
-                )[0];
-
-
-        text(
-            "bestSeller",
-            bestSeller
-                ? bestSeller[0]
-                : "—"
-        );
-
-
-        const unitsSold =
-            sales.reduce(
-                (sum, sale) =>
-                    sum +
-                    Number(sale.quantity || 0),
-                0
-            );
-
-
-        const largestSale =
-            sales.length
-                ? Math.max(
-                    ...sales.map(
-                        sale =>
-                            Number(
-                                sale.total || 0
-                            )
-                    )
-                )
-                : 0;
-
-
-        text(
-            "overviewRevenue",
-            money(totalRevenue)
-        );
-
-        text(
-            "unitsSold",
-            unitsSold
-        );
-
-        text(
-            "overviewAverage",
-            money(averageSale)
-        );
-
-        text(
-            "largestSale",
-            money(largestSale)
-        );
-
+        document
+            .querySelectorAll(
+                "#averageSale, [data-analytics='average']"
+            )
+            .forEach(el => {
+                el.textContent = money(averageSale);
+            });
 
         renderTopProducts();
-        renderInventoryAlerts();
-        renderRevenueChart();
     }
-
-
-    /* =========================================================
-       TOP PRODUCTS
-       ========================================================= */
 
     function renderTopProducts() {
 
         const container =
-            document.getElementById(
-                "topProducts"
+            document.querySelector(
+                "#topProducts, .top-products"
             );
 
-
-        if (!container) {
-            return;
-        }
-
-
-        if (!sales.length) {
-
-            container.innerHTML = `
-                <div class="empty-state">
-                    No sales yet.
-                </div>
-            `;
-
-            return;
-        }
-
+        if (!container) return;
 
         const totals = {};
 
-
         sales.forEach(sale => {
 
-            const name =
-                sale.productName ||
-                "Unknown Product";
-
-
-            totals[name] =
-                (totals[name] || 0) +
-                Number(sale.quantity || 0);
-        });
-
-
-        const ranking =
-            Object.entries(totals)
-                .sort(
-                    (a, b) =>
-                        b[1] - a[1]
-                )
-                .slice(0, 5);
-
-
-        container.innerHTML =
-            ranking
-                .map(
-                    ([name, quantity], index) => {
-
-                        return `
-                            <div
-                                class="top-product-row">
-
-                                <span>
-                                    #${index + 1}
-                                </span>
-
-                                <strong>
-                                    ${safe(name)}
-                                </strong>
-
-                                <span>
-                                    ${quantity} sold
-                                </span>
-
-                            </div>
-                        `;
-                    }
-                )
-                .join("");
-    }
-
-
-    /* =========================================================
-       INVENTORY ALERTS
-       ========================================================= */
-
-    function renderInventoryAlerts() {
-
-        const container =
-            document.getElementById(
-                "inventoryAlerts"
-            );
-
-
-        if (!container) {
-            return;
-        }
-
-
-        const lowStockProducts =
-            products.filter(
-                product =>
-                    Number(product.stock) <= 5
-            );
-
-
-        if (!lowStockProducts.length) {
-
-            container.innerHTML = `
-                <div class="success-message">
-                    ✅ All products have healthy stock levels.
-                </div>
-            `;
-
-            return;
-        }
-
-
-        container.innerHTML =
-            lowStockProducts
-                .map(product => {
-
-                    return `
-                        <div class="inventory-alert">
-
-                            <strong>
-                                ⚠️
-                                ${safe(product.name)}
-                            </strong>
-
-                            <span>
-                                Only
-                                ${Number(product.stock) || 0}
-                                left
-                            </span>
-
-                        </div>
-                    `;
-
-                })
-                .join("");
-    }
-
-
-    /* =========================================================
-       REVENUE CHART
-       ========================================================= */
-
-    function renderRevenueChart() {
-
-        const chart =
-            document.getElementById(
-                "revenueChart"
-            );
-
-
-        if (!chart) {
-            return;
-        }
-
-
-        if (!sales.length) {
-
-            chart.innerHTML = `
-                <div class="empty-chart">
-                    Make your first sale to see your revenue trend.
-                </div>
-            `;
-
-            return;
-        }
-
-
-        const daily = {};
-
-
-        sales.forEach(sale => {
-
-            const date =
-                new Date(sale.date);
-
-
-            if (
-                Number.isNaN(
-                    date.getTime()
-                )
-            ) {
-                return;
+            if (!totals[sale.productName]) {
+                totals[sale.productName] = 0;
             }
 
-
-            const key =
-                date.toLocaleDateString(
-                    "en-US",
-                    {
-                        month: "short",
-                        day: "numeric"
-                    }
-                );
-
-
-            daily[key] =
-                (daily[key] || 0) +
+            totals[sale.productName] +=
                 Number(sale.total || 0);
         });
 
+        const sorted =
+            Object.entries(totals)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
 
-        const entries =
-            Object.entries(daily)
-                .slice(-7);
+        if (!sorted.length) {
 
-
-        const max =
-            Math.max(
-                ...entries.map(
-                    entry => entry[1]
-                ),
-                1
-            );
-
-
-        chart.innerHTML = `
-            <div class="revenue-bars">
-
-                ${
-                    entries
-                        .map(
-                            ([date, amount]) => {
-
-                                const height =
-                                    Math.max(
-                                        8,
-                                        (
-                                            amount /
-                                            max
-                                        ) * 100
-                                    );
-
-
-                                return `
-                                    <div
-                                        class="revenue-bar-item">
-
-                                        <div
-                                            class="revenue-bar"
-                                            style="height:${height}%"
-                                            title="${money(amount)}">
-                                        </div>
-
-                                        <span>
-                                            ${safe(date)}
-                                        </span>
-
-                                    </div>
-                                `;
-                            }
-                        )
-                        .join("")
-                }
-
-            </div>
-        `;
-    }
-
-
-    /* =========================================================
-       RECENT ACTIVITY
-       ========================================================= */
-
-    function renderRecentActivity() {
-
-        const container =
-            document.getElementById(
-                "recentActivity"
-            );
-
-
-        if (!container) {
-            return;
-        }
-
-
-        const activities = [];
-
-
-        sales.forEach(sale => {
-
-            activities.push({
-
-                icon: "🛒",
-
-                title:
-                    `Sale: ${
-                        sale.productName ||
-                        "Product"
-                    }`,
-
-                detail:
-                    `${money(sale.total)} • ${
-                        sale.quantity
-                    } unit(s)`,
-
-                date:
-                    sale.date
-            });
-        });
-
-
-        invoices.forEach(invoice => {
-
-            activities.push({
-
-                icon: "🧾",
-
-                title:
-                    `Invoice ${
-                        invoice.invoiceNumber || ""
-                    }`,
-
-                detail:
-                    `${
-                        invoice.customerName ||
-                        "Customer"
-                    } • ${
-                        money(invoice.total)
-                    }`,
-
-                date:
-                    invoice.createdAt
-            });
-        });
-
-
-        customers.forEach(customer => {
-
-            activities.push({
-
-                icon: "👤",
-
-                title:
-                    `Customer added: ${
-                        customer.name
-                    }`,
-
-                detail:
-                    customer.email ||
-                    customer.phone ||
-                    "New customer",
-
-                date:
-                    customer.createdAt
-            });
-        });
-
-
-        products.forEach(product => {
-
-            activities.push({
-
-                icon: "📦",
-
-                title:
-                    `Product: ${
-                        product.name
-                    }`,
-
-                detail:
-                    `${money(product.price)} • Stock: ${
-                        product.stock
-                    }`,
-
-                date:
-                    product.createdAt
-            });
-        });
-
-
-        activities.sort(
-            (a, b) =>
-                new Date(b.date) -
-                new Date(a.date)
-        );
-
-
-        const recent =
-            activities.slice(0, 8);
-
-
-        if (!recent.length) {
-
-            container.innerHTML = `
-                <div class="empty-state">
-
-                    <div class="empty-icon">
-                        📊
-                    </div>
-
-                    <h3>
-                        No recent activity
-                    </h3>
-
-                    <p>
-                        Your latest business activity
-                        will appear here.
-                    </p>
-
-                </div>
-            `;
+            container.innerHTML =
+                `<p>No sales data yet.</p>`;
 
             return;
         }
-
 
         container.innerHTML =
-            recent
-                .map(activity => {
+            sorted.map(([name, total], index) => `
+                <div class="top-product-item">
 
-                    return `
-                        <div class="activity-item">
+                    <span>
+                        ${index + 1}.
+                        ${safe(name)}
+                    </span>
 
-                            <div class="activity-icon">
-                                ${activity.icon}
-                            </div>
+                    <strong>
+                        ${money(total)}
+                    </strong>
 
-                            <div class="activity-info">
-
-                                <strong>
-                                    ${safe(activity.title)}
-                                </strong>
-
-                                <p>
-                                    ${safe(activity.detail)}
-                                </p>
-
-                            </div>
-
-                            <span class="activity-date">
-                                ${formatDate(activity.date)}
-                            </span>
-
-                        </div>
-                    `;
-
-                })
-                .join("");
+                </div>
+            `).join("");
     }
 
-
-    /* =========================================================
-       SEARCH
-       ========================================================= */
-
-    function setupSearch() {
-
-        const productSearch =
-            document.getElementById(
-                "productSearch"
-            );
-
-
-        productSearch?.addEventListener(
-            "input",
-            () => {
-
-                const query =
-                    productSearch.value
-                        .trim()
-                        .toLowerCase();
-
-
-                renderProductResults(
-                    products.filter(
-                        product =>
-                            String(
-                                product.name
-                            )
-                            .toLowerCase()
-                            .includes(query)
-                    )
-                );
-            }
-        );
-
-
-        const customerSearch =
-            document.getElementById(
-                "customerSearch"
-            );
-
-
-        customerSearch?.addEventListener(
-            "input",
-            () => {
-
-                const query =
-                    customerSearch.value
-                        .trim()
-                        .toLowerCase();
-
-
-                renderCustomerResults(
-                    customers.filter(
-                        customer =>
-
-                            String(
-                                customer.name
-                            )
-                            .toLowerCase()
-                            .includes(query) ||
-
-                            String(
-                                customer.email || ""
-                            )
-                            .toLowerCase()
-                            .includes(query) ||
-
-                            String(
-                                customer.phone || ""
-                            )
-                            .toLowerCase()
-                            .includes(query)
-                    )
-                );
-            }
-        );
-
-
-        const salesSearch =
-            document.getElementById(
-                "salesSearch"
-            );
-
-
-        salesSearch?.addEventListener(
-            "input",
-            () => {
-
-                const query =
-                    salesSearch.value
-                        .trim()
-                        .toLowerCase();
-
-
-                renderSales(
-                    sales.filter(
-                        sale =>
-
-                            String(
-                                sale.productName || ""
-                            )
-                            .toLowerCase()
-                            .includes(query) ||
-
-                            String(
-                                sale.total || ""
-                            )
-                            .includes(query)
-                    )
-                );
-            }
-        );
-
-
-        const invoiceSearch =
-            document.getElementById(
-                "invoiceSearch"
-            );
-
-
-        const invoiceStatusFilter =
-            document.getElementById(
-                "invoiceStatusFilter"
-            );
-
-
-        function filterInvoices() {
-
-            const query =
-                invoiceSearch?.value
-                    .trim()
-                    .toLowerCase() || "";
-
-
-            const status =
-                invoiceStatusFilter?.value ||
-                "all";
-
-
-            renderInvoices(
-                invoices.filter(invoice => {
-
-                    const matchesSearch =
-                        !query ||
-
-                        String(
-                            invoice.invoiceNumber || ""
-                        )
-                        .toLowerCase()
-                        .includes(query) ||
-
-                        String(
-                            invoice.customerName || ""
-                        )
-                        .toLowerCase()
-                        .includes(query) ||
-
-                        String(
-                            invoice.productName || ""
-                        )
-                        .toLowerCase()
-                        .includes(query);
-
-
-                    const matchesStatus =
-                        status === "all" ||
-                        invoice.status === status;
-
-
-                    return (
-                        matchesSearch &&
-                        matchesStatus
-                    );
-                })
-            );
-        }
-
-
-        invoiceSearch?.addEventListener(
-            "input",
-            filterInvoices
-        );
-
-
-        invoiceStatusFilter?.addEventListener(
-            "change",
-            filterInvoices
-        );
-    }
-
-
-    /* =========================================================
-       BACKUP
-       ========================================================= */
-
-    window.exportBusinessData =
-        function() {
-
-            const backup = {
-
-                app: "PATRIODX",
-
-                version: "3.0",
-
-                exportedAt:
-                    new Date().toISOString(),
-
-                products,
-                customers,
-                sales,
-                invoices
-            };
-
-
-            const blob =
-                new Blob(
-                    [
-                        JSON.stringify(
-                            backup,
-                            null,
-                            2
-                        )
-                    ],
-                    {
-                        type:
-                            "application/json"
-                    }
-                );
-
-
-            const url =
-                URL.createObjectURL(blob);
-
-
-            const link =
-                document.createElement("a");
-
-
-            link.href = url;
-
-
-            link.download =
-                `patriodx-backup-${todayString()}.json`;
-
-
-            document.body.appendChild(link);
-
-            link.click();
-
-            link.remove();
-
-            URL.revokeObjectURL(url);
-        };
-
-
-    window.importBusinessData =
-        function(file) {
-
-            if (!file) {
-                return;
-            }
-
-
-            const reader =
-                new FileReader();
-
-
-            reader.onload =
-                event => {
-
-                    try {
-
-                        const data =
-                            JSON.parse(
-                                event.target.result
-                            );
-
-
-                        if (
-                            !data ||
-                            !Array.isArray(data.products) ||
-                            !Array.isArray(data.customers) ||
-                            !Array.isArray(data.sales) ||
-                            !Array.isArray(data.invoices)
-                        ) {
-
-                            throw new Error(
-                                "Invalid backup"
-                            );
-                        }
-
-
-                        if (
-                            !confirm(
-                                "Importing this backup will replace your current PATRIODX data. Continue?"
-                            )
-                        ) {
-                            return;
-                        }
-
-
-                        products = data.products;
-                        customers = data.customers;
-                        sales = data.sales;
-                        invoices = data.invoices;
-
-
-                        saveData();
-                        renderAll();
-
-
-                        alert(
-                            "Business data restored successfully."
-                        );
-
-                    } catch (error) {
-
-                        console.error(error);
-
-                        alert(
-                            "Could not import this backup."
-                        );
-                    }
-                };
-
-
-            reader.readAsText(file);
-        };
-
-
-    /* =========================================================
-       RESET
-       ========================================================= */
-
-    window.resetBusinessData =
-        function() {
-
-            if (
-                !confirm(
-                    "Are you sure you want to reset ALL PATRIODX data?"
-                )
-            ) {
-                return;
-            }
-
-
-            if (
-                !confirm(
-                    "This permanently deletes your PATRIODX browser data. Continue?"
-                )
-            ) {
-                return;
-            }
-
-
-            products = [];
-            customers = [];
-            sales = [];
-            invoices = [];
-
-
-            localStorage.removeItem(
-                "businessOSProducts"
-            );
-
-            localStorage.removeItem(
-                "businessOSCustomers"
-            );
-
-            localStorage.removeItem(
-                "businessOSSales"
-            );
-
-            localStorage.removeItem(
-                "businessOSInvoices"
-            );
-
-
-            renderAll();
-
-
-            alert(
-                "All PATRIODX data has been reset."
-            );
-        };
-
-
-    /* =========================================================
-       MODALS
-       ========================================================= */
+    // ========================================================
+    // MODALS
+    // ========================================================
 
     function setupModalBehavior() {
+
+        document
+            .querySelectorAll(
+                "[data-modal], .open-modal"
+            )
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+
+                    const modalId =
+                        button.dataset.modal ||
+                        button.dataset.target;
+
+                    if (!modalId) return;
+
+                    const modal =
+                        document.querySelector(
+                            modalId.startsWith("#")
+                                ? modalId
+                                : "#" + modalId
+                        );
+
+                    if (modal) {
+                        modal.classList.add("active");
+                        modal.style.display = "flex";
+                    }
+                });
+            });
+
+        document
+            .querySelectorAll(
+                ".modal-close, .close-modal, [data-close-modal]"
+            )
+            .forEach(button => {
+
+                button.addEventListener("click", () => {
+                    closeAllModals();
+                });
+            });
 
         document
             .querySelectorAll(".modal")
@@ -3158,1118 +2308,1066 @@ const PRO_PRICE_GHS =
                         if (
                             event.target === modal
                         ) {
-
-                            modal.classList.remove(
-                                "active"
-                            );
+                            closeAllModals();
                         }
                     }
                 );
             });
+    }
 
+    function closeAllModals() {
 
-        document.addEventListener(
-            "keydown",
+        document
+            .querySelectorAll(
+                ".modal, .modal-overlay"
+            )
+            .forEach(modal => {
+
+                modal.classList.remove("active");
+                modal.style.display = "none";
+            });
+
+        editingProductId = null;
+
+        document
+            .querySelectorAll(
+                "#productForm button[type='submit']"
+            )
+            .forEach(button => {
+                button.textContent = "Add Product";
+            });
+    }
+
+    // ========================================================
+    // BUSINESS CONTACT LINKS
+    // ========================================================
+
+    function setupBusinessContactLinks() {
+
+        const emailElements =
+            document.querySelectorAll(
+                "[data-business-email]"
+            );
+
+        emailElements.forEach(el => {
+
+            if (currentUser?.email) {
+
+                el.textContent =
+                    currentUser.email;
+
+                if (el.tagName === "A") {
+                    el.href =
+                        "mailto:" + currentUser.email;
+                }
+            }
+        });
+    }
+
+    // ========================================================
+    // CONTACT FORM
+    // ========================================================
+
+    function setupContactForm() {
+
+        const form =
+            document.querySelector(
+                "#contactForm"
+            );
+
+        if (!form) return;
+
+        form.addEventListener(
+            "submit",
             event => {
 
-                if (
-                    event.key !== "Escape"
-                ) {
-                    return;
-                }
+                event.preventDefault();
 
+                alert(
+                    "Thanks! Your message has been received."
+                );
 
-                document
-                    .querySelectorAll(
-                        ".modal.active"
-                    )
-                    .forEach(modal => {
-
-                        modal.classList.remove(
-                            "active"
-                        );
-                    });
+                form.reset();
             }
         );
     }
 
+    // ========================================================
+    // BACKUP / EXPORT
+    // ========================================================
 
-    /* =========================================================
-       DARK MODE
-       ========================================================= */
+    function setupBackup() {
 
-    function setupDarkMode() {
-
-        const themeToggle =
-            document.getElementById(
-                "themeToggle"
+        const exportButtons =
+            document.querySelectorAll(
+                "#exportData, #exportBackup, [data-export]"
             );
 
+        exportButtons.forEach(button => {
 
-        if (!themeToggle) {
+            button.addEventListener(
+                "click",
+                exportBusinessData
+            );
+        });
+
+        const importInput =
+            document.querySelector(
+                "#importData, #importBackup"
+            );
+
+        if (importInput) {
+
+            importInput.addEventListener(
+                "change",
+                event => {
+
+                    const file =
+                        event.target.files?.[0];
+
+                    if (file) {
+                        importBusinessData(file);
+                    }
+                }
+            );
+        }
+
+        const resetButtons =
+            document.querySelectorAll(
+                "#resetData, #resetBusinessData, [data-reset]"
+            );
+
+        resetButtons.forEach(button => {
+
+            button.addEventListener(
+                "click",
+                resetBusinessData
+            );
+        });
+    }
+
+    function exportBusinessData() {
+
+        const backup = {
+
+            version: 1,
+
+            business: {
+                name: currentBusiness?.name || ""
+            },
+
+            products,
+            customers,
+            sales,
+            invoices,
+
+            exportedAt:
+                new Date().toISOString()
+        };
+
+        const blob =
+            new Blob(
+                [JSON.stringify(backup, null, 2)],
+                {
+                    type: "application/json"
+                }
+            );
+
+        const url =
+            URL.createObjectURL(blob);
+
+        const link =
+            document.createElement("a");
+
+        link.href = url;
+
+        link.download =
+            "patriodx-backup-" +
+            todayString() +
+            ".json";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        link.remove();
+
+        URL.revokeObjectURL(url);
+    }
+
+    // ========================================================
+    // IMPORT DATA
+    // ========================================================
+
+    async function importBusinessData(file) {
+
+        if (
+            !confirm(
+                "Importing this backup will replace your current " +
+                "PATRIODX business data. Continue?"
+            )
+        ) {
             return;
         }
 
+        try {
 
-        const savedTheme =
-            localStorage.getItem(
-                "businessOSTheme"
-            );
+            const textData =
+                await file.text();
 
+            const backup =
+                JSON.parse(textData);
 
-        if (savedTheme === "dark") {
-
-            document.body.classList.add(
-                "dark-mode"
-            );
-
-            themeToggle.textContent =
-                "☀️ Light Mode";
-
-        } else {
-
-            themeToggle.textContent =
-                "🌙 Dark Mode";
-        }
-
-
-        themeToggle.addEventListener(
-            "click",
-            () => {
-
-                document.body.classList.toggle(
-                    "dark-mode"
+            if (!backup || typeof backup !== "object") {
+                throw new Error(
+                    "Invalid backup file."
                 );
+            }
 
+            const oldProducts =
+                Array.isArray(backup.products)
+                    ? backup.products
+                    : [];
 
-                const dark =
-                    document.body.classList.contains(
-                        "dark-mode"
+            const oldCustomers =
+                Array.isArray(backup.customers)
+                    ? backup.customers
+                    : [];
+
+            const oldSales =
+                Array.isArray(backup.sales)
+                    ? backup.sales
+                    : [];
+
+            const oldInvoices =
+                Array.isArray(backup.invoices)
+                    ? backup.invoices
+                    : [];
+
+            // --------------------------------------------
+            // DELETE CURRENT DATA
+            // --------------------------------------------
+
+            let result =
+                await supabaseClient
+                    .from("invoices")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
                     );
 
+            if (result.error) throw result.error;
 
-                localStorage.setItem(
-                    "businessOSTheme",
-                    dark ? "dark" : "light"
-                );
+            result =
+                await supabaseClient
+                    .from("sales")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
 
+            if (result.error) throw result.error;
 
-                themeToggle.textContent =
-                    dark
-                        ? "☀️ Light Mode"
-                        : "🌙 Dark Mode";
+            result =
+                await supabaseClient
+                    .from("customers")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
+
+            if (result.error) throw result.error;
+
+            result =
+                await supabaseClient
+                    .from("products")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
+
+            if (result.error) throw result.error;
+
+            // --------------------------------------------
+            // PRODUCT ID MAP
+            // --------------------------------------------
+
+            const productIdMap = {};
+
+            for (const oldProduct of oldProducts) {
+
+                const { data, error } =
+                    await supabaseClient
+                        .from("products")
+                        .insert({
+                            business_id:
+                                currentBusiness.id,
+
+                            name:
+                                oldProduct.name ||
+                                oldProduct.productName ||
+                                "Unnamed Product",
+
+                            price:
+                                Number(
+                                    oldProduct.price
+                                ) || 0,
+
+                            stock:
+                                Number(
+                                    oldProduct.stock
+                                ) || 0
+                        })
+                        .select()
+                        .single();
+
+                if (error) throw error;
+
+                const oldId =
+                    oldProduct.id ||
+                    oldProduct.productId;
+
+                if (oldId) {
+                    productIdMap[oldId] =
+                        data.id;
+                }
             }
-        );
-    }
 
+            // --------------------------------------------
+            // CUSTOMER ID MAP
+            // --------------------------------------------
 
-    /* =========================================================
-       PAYMENT BACKEND
-       ========================================================= */
+            const customerIdMap = {};
 
-    function paymentBackendReady() {
+            for (const oldCustomer of oldCustomers) {
 
-        if (
-            !PAYMENT_API_URL ||
-            PAYMENT_API_URL.includes(
-                "YOUR_VERCEL_URL"
-            )
-        ) {
+                const { data, error } =
+                    await supabaseClient
+                        .from("customers")
+                        .insert({
+                            business_id:
+                                currentBusiness.id,
+
+                            name:
+                                oldCustomer.name ||
+                                oldCustomer.customerName ||
+                                "Unnamed Customer",
+
+                            email:
+                                oldCustomer.email || "",
+
+                            phone:
+                                oldCustomer.phone || ""
+                        })
+                        .select()
+                        .single();
+
+                if (error) throw error;
+
+                const oldId =
+                    oldCustomer.id ||
+                    oldCustomer.customerId;
+
+                if (oldId) {
+                    customerIdMap[oldId] =
+                        data.id;
+                }
+            }
+
+            // --------------------------------------------
+            // SALES
+            // --------------------------------------------
+
+            for (const oldSale of oldSales) {
+
+                const oldProductId =
+                    oldSale.productId ||
+                    oldSale.product_id;
+
+                const newProductId =
+                    productIdMap[oldProductId];
+
+                if (!newProductId) continue;
+
+                const { error } =
+                    await supabaseClient
+                        .from("sales")
+                        .insert({
+                            business_id:
+                                currentBusiness.id,
+
+                            product_id:
+                                newProductId,
+
+                            product_name:
+                                oldSale.productName ||
+                                oldSale.product_name ||
+                                "Product",
+
+                            quantity:
+                                Number(
+                                    oldSale.quantity
+                                ) || 0,
+
+                            total:
+                                Number(
+                                    oldSale.total
+                                ) || 0
+                        });
+
+                if (error) throw error;
+            }
+
+            // --------------------------------------------
+            // INVOICES
+            // --------------------------------------------
+
+            for (const oldInvoice of oldInvoices) {
+
+                const oldCustomerId =
+                    oldInvoice.customerId ||
+                    oldInvoice.customer_id;
+
+                const oldProductId =
+                    oldInvoice.productId ||
+                    oldInvoice.product_id;
+
+                const newCustomerId =
+                    customerIdMap[oldCustomerId];
+
+                const newProductId =
+                    productIdMap[oldProductId];
+
+                if (!newCustomerId || !newProductId) {
+                    continue;
+                }
+
+                const { error } =
+                    await supabaseClient
+                        .from("invoices")
+                        .insert({
+                            business_id:
+                                currentBusiness.id,
+
+                            invoice_number:
+                                oldInvoice.invoiceNumber ||
+                                "INV-" +
+                                Math.random()
+                                    .toString(36)
+                                    .substring(2, 8)
+                                    .toUpperCase(),
+
+                            customer_id:
+                                newCustomerId,
+
+                            customer_name:
+                                oldInvoice.customerName ||
+                                "Customer",
+
+                            product_id:
+                                newProductId,
+
+                            product_name:
+                                oldInvoice.productName ||
+                                "Product",
+
+                            quantity:
+                                Number(
+                                    oldInvoice.quantity
+                                ) || 0,
+
+                            subtotal:
+                                Number(
+                                    oldInvoice.subtotal
+                                ) || 0,
+
+                            discount:
+                                Number(
+                                    oldInvoice.discount
+                                ) || 0,
+
+                            tax_rate:
+                                Number(
+                                    oldInvoice.taxRate
+                                ) || 0,
+
+                            tax:
+                                Number(
+                                    oldInvoice.tax
+                                ) || 0,
+
+                            total:
+                                Number(
+                                    oldInvoice.total
+                                ) || 0,
+
+                            due_date:
+                                oldInvoice.dueDate ||
+                                null,
+
+                            status:
+                                oldInvoice.status ||
+                                "unpaid"
+                        });
+
+                if (error) throw error;
+            }
+
+            await loadDataFromSupabase();
+
+            renderAll();
 
             alert(
-                "Your Vercel payment URL has not been configured."
+                "Backup imported successfully."
             );
 
-            return false;
-        }
+        } catch (error) {
 
-
-        if (
-            !PAYSTACK_PUBLIC_KEY ||
-            !PAYSTACK_PUBLIC_KEY.startsWith("pk_")
-        ) {
+            console.error(
+                "Import error:",
+                error
+            );
 
             alert(
-                "Your Paystack public key has not been configured."
+                "Could not import backup.\n\n" +
+                error.message
             );
 
-            return false;
+            await loadDataFromSupabase();
+
+            renderAll();
         }
-
-
-        return true;
     }
 
+    // ========================================================
+    // RESET BUSINESS DATA
+    // ========================================================
 
-    /* =========================================================
-       INITIALIZE PAYSTACK PAYMENT
-       ========================================================= */
+    async function resetBusinessData() {
+
+        const confirmation =
+            prompt(
+                "This will permanently delete all products, " +
+                "customers, sales and invoices.\n\n" +
+                "Type DELETE to continue:"
+            );
+
+        if (confirmation !== "DELETE") {
+            return;
+        }
+
+        try {
+
+            let result =
+                await supabaseClient
+                    .from("invoices")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
+
+            if (result.error) throw result.error;
+
+            result =
+                await supabaseClient
+                    .from("sales")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
+
+            if (result.error) throw result.error;
+
+            result =
+                await supabaseClient
+                    .from("customers")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
+
+            if (result.error) throw result.error;
+
+            result =
+                await supabaseClient
+                    .from("products")
+                    .delete()
+                    .eq(
+                        "business_id",
+                        currentBusiness.id
+                    );
+
+            if (result.error) throw result.error;
+
+            products = [];
+            customers = [];
+            sales = [];
+            invoices = [];
+
+            renderAll();
+
+            alert(
+                "All business data has been reset."
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Could not reset your data.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    // ========================================================
+    // PAYMENT
+    // ========================================================
 
     async function initializeRealPayment({
-
         email,
         amountGHS,
         product,
-        plan = null
-
+        plan
     }) {
 
-        if (!paymentBackendReady()) {
+        if (!email || !isValidEmail(email)) {
+
+            alert(
+                "Please provide a valid email address."
+            );
+
             return;
         }
 
+        try {
+
+            const reference =
+                createReference();
+
+            localStorage.setItem(
+                "patriodxPendingPayment",
+                JSON.stringify({
+                    reference,
+                    email,
+                    amountGHS,
+                    product,
+                    plan,
+                    createdAt:
+                        new Date().toISOString()
+                })
+            );
+
+            const response =
+                await fetch(
+                    PAYMENT_API_URL +
+                    "/api/initialize-payment",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            email,
+                            amount:
+                                amountGHS * 100,
+                            currency:
+                                PAYSTACK_CURRENCY,
+                            reference,
+                            product,
+                            plan
+                        })
+                    }
+                );
+
+            const result =
+                await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.message ||
+                    "Payment initialization failed."
+                );
+            }
+
+            if (result.authorization_url) {
+
+                window.location.href =
+                    result.authorization_url;
+
+                return;
+            }
+
+            if (result.data?.authorization_url) {
+
+                window.location.href =
+                    result.data.authorization_url;
+
+                return;
+            }
+
+            throw new Error(
+                "No payment URL returned."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Payment error:",
+                error
+            );
+
+            alert(
+                "Payment could not be started.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    // ========================================================
+    // VERIFY RETURNED PAYMENT
+    // ========================================================
+
+    async function verifyReturnedPayment() {
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
 
         const reference =
-            createReference("BOS");
+            params.get("reference") ||
+            params.get("trxref");
 
-
-        /*
-         * IMPORTANT:
-         *
-         * We send the amount as GHS.
-         *
-         * Our Vercel backend converts the amount
-         * to the smallest currency unit.
-         */
-
-        const response =
-            await fetch(
-                `${PAYMENT_API_URL}/api/initialize-payment`,
-                {
-
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                  body:
-    JSON.stringify({
-
-        email:
-            email.trim(),
-
-        amount:
-            Number(amountGHS),
-
-        reference,
-
-        callback_url:
-            window.location.origin +
-            window.location.pathname
-
-    })
-                }
-            );
-
-
-        let result;
+        if (!reference) {
+            return;
+        }
 
         try {
 
-            result =
+            const response =
+                await fetch(
+                    PAYMENT_API_URL +
+                    "/api/verify-payment?reference=" +
+                    encodeURIComponent(reference)
+                );
+
+            const result =
                 await response.json();
 
-        } catch (error) {
+            if (!response.ok) {
 
-            throw new Error(
-                "The payment server returned an invalid response."
-            );
-        }
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                result.error ||
-                "Unable to initialize payment."
-            );
-        }
-
-
-        if (
-            !result.status ||
-            !result.data
-        ) {
-
-            throw new Error(
-                result.error ||
-                "Payment initialization failed."
-            );
-        }
-
-
-        const authorizationUrl =
-            result.data.authorization_url;
-
-
-        if (!authorizationUrl) {
-
-            throw new Error(
-                "Paystack did not return a checkout URL."
-            );
-        }
-
-
-        /*
-         * Save pending payment information.
-         */
-
-        localStorage.setItem(
-            "businessOSPendingPayment",
-            JSON.stringify({
-
-                reference:
-                    result.data.reference ||
-                    reference,
-
-                email:
-                    email.trim(),
-
-                amount:
-                    Number(amountGHS),
-
-                product,
-
-                plan,
-
-                startedAt:
-                    new Date().toISOString()
-
-            })
-        );
-
-
-        /*
-         * Redirect to Paystack checkout.
-         */
-
-        window.location.href =
-            authorizationUrl;
-    }
-
-
-    /* =========================================================
-       GENERAL PAYMENT
-       ========================================================= */
-
-    window.payWithPaystack =
-        async function() {
-
-            const email =
-                prompt(
-                    "Enter your email address:"
+                throw new Error(
+                    result.message ||
+                    "Payment verification failed."
                 );
-
-
-            if (!email) {
-                return;
             }
 
+            const payment =
+                result.data ||
+                result;
 
-            if (!isValidEmail(email)) {
-
-                alert(
-                    "Please enter a valid email address."
+            const pendingRaw =
+                localStorage.getItem(
+                    "patriodxPendingPayment"
                 );
 
+            const pending =
+                pendingRaw
+                    ? JSON.parse(pendingRaw)
+                    : null;
+
+            if (!payment) {
                 return;
             }
-
-
-            const amountInput =
-                prompt(
-                    "Enter payment amount in GHS:"
-                );
-
-
-            if (
-                amountInput === null
-            ) {
-                return;
-            }
-
 
             const amount =
-                Number(amountInput);
-
-
-            if (
-                !Number.isFinite(amount) ||
-                amount <= 0
-            ) {
-
-                alert(
-                    "Enter a valid payment amount."
-                );
-
-                return;
-            }
-
-
-            try {
-
-                await initializeRealPayment({
-
-                    email,
-
-                    amountGHS:
-                        amount,
-
-                    product:
-                        "PATRIODX Payment"
-
-                });
-
-            } catch (error) {
-
-                console.error(
-                    "Payment initialization error:",
-                    error
-                );
-
-
-                alert(
-                    "Payment could not be started.\n\n" +
-                    (
-                        error.message ||
-                        "Please try again."
-                    )
-                );
-            }
-        };
-
-
-    /* =========================================================
-       PATRIODX PRO
-       ========================================================= */
-
-    const upgradeProBtn =
-        document.getElementById(
-            "upgradeProBtn"
-        );
-
-
-    if (upgradeProBtn) {
-
-        upgradeProBtn.addEventListener(
-            "click",
-            async () => {
-
-                const email =
-                    prompt(
-                        "Enter your email address for PATRIODX Pro:"
-                    );
-
-
-                if (!email) {
-                    return;
-                }
-
-
-                if (!isValidEmail(email)) {
-
-                    alert(
-                        "Please enter a valid email address."
-                    );
-
-                    return;
-                }
-
-
-                const confirmed =
-                    confirm(
-                        `PATRIODX Pro costs ${ghcMoney(PRO_PRICE_GHS)}.\n\nContinue to Paystack checkout?`
-                    );
-
-
-                if (!confirmed) {
-                    return;
-                }
-
-
-                try {
-
-                    await initializeRealPayment({
-
-                        email,
-
-                        amountGHS:
-                            PRO_PRICE_GHS,
-
-                        product:
-                            "PATRIODX Pro",
-
-                        plan:
-                            "Pro"
-
-                    });
-
-                } catch (error) {
-
-                    console.error(
-                        "PATRIODX Pro payment error:",
-                        error
-                    );
-
-
-                    alert(
-                        "Could not start PATRIODX Pro payment.\n\n" +
-                        (
-                            error.message ||
-                            "Please try again."
-                        )
-                    );
-                }
-
-            }
-        );
-    }
-
-
-    /* =========================================================
-       PRICING BUTTONS
-       ========================================================= */
-
-    window.startProPlan =
-        function() {
-
-            if (upgradeProBtn) {
-
-                upgradeProBtn.click();
-
-                return;
-            }
-
-
-            alert(
-                "PATRIODX Pro payment is available through the Upgrade button."
-            );
-        };
-
-
-    window.startBusinessPlan =
-        function() {
-
-            alert(
-                "PATRIODX Business is coming soon.\n\n" +
-                "This plan will include multiple users, " +
-                "advanced reports and priority support."
-            );
-        };
-
-
-  /* =========================================================
-   PAYMENT RETURN / VERIFICATION
-   ========================================================= */
-
-async function verifyReturnedPayment() {
-
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
-
-    const reference =
-        params.get("reference") ||
-        params.get("trxref");
-
-    /*
-     * User did not return from Paystack.
-     */
-    if (!reference) {
-        return;
-    }
-
-    console.log(
-        "Paystack reference detected:",
-        reference
-    );
-
-    const pending =
-        JSON.parse(
-            localStorage.getItem(
-                "businessOSPendingPayment"
-            ) || "null"
-        );
-
-    try {
-
-        /*
-         * Make sure our backend exists.
-         */
-        if (!PAYMENT_API_URL) {
-
-            throw new Error(
-                "Payment server is not configured."
-            );
-        }
-
-
-        /*
-         * Verify payment with our Vercel backend.
-         */
-        const response =
-            await fetch(
-                `${PAYMENT_API_URL}/api/verify-payment`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body:
-                        JSON.stringify({
-                            reference
-                        })
-                }
-            );
-
-
-        let result;
-
-        try {
-
-            result =
-                await response.json();
-
-        } catch (error) {
-
-            throw new Error(
-                "The payment server returned an invalid response."
-            );
-        }
-
-
-        console.log(
-            "Payment verification response:",
-            result
-        );
-
-
-        /*
-         * Backend returned an HTTP error.
-         */
-        if (!response.ok) {
-
-            throw new Error(
-                result.error ||
-                "Payment verification failed."
-            );
-        }
-
-
-        /*
-         * Backend must confirm success.
-         */
-        if (
-            !result.status ||
-            !result.data
-        ) {
-
-            throw new Error(
-                result.error ||
-                "Paystack verification failed."
-            );
-        }
-
-
-        const payment =
-            result.data;
-
-
-        console.log(
-            "Verified Paystack payment:",
-            payment
-        );
-
-
-        /*
-         * Payment must actually be successful.
-         */
-        if (
-            payment.status !==
-            "success"
-        ) {
-
-            throw new Error(
-                `Payment status is "${payment.status}".`
-            );
-        }
-
-
-        /*
-         * -----------------------------------------------------
-         * PATRIODX PRO PAYMENT CHECK
-         * -----------------------------------------------------
-         */
-
-        if (
-            pending?.plan ===
-            "Pro"
-        ) {
-
-            /*
-             * Paystack normally returns the amount
-             * in the smallest currency unit.
-             *
-             * GHS 900 = 90000 pesewas.
-             */
-
-            const expectedAmount =
-                PRO_PRICE_GHS * 100;
-
-
-            const paidAmount =
                 Number(
                     payment.amount || 0
                 );
 
+            const currency =
+                payment.currency;
 
-            /*
-             * Verify the amount.
-             */
+            const status =
+                payment.status;
+
             if (
-                paidAmount !==
-                expectedAmount
+                status === "success" &&
+                currency === PAYSTACK_CURRENCY &&
+                amount === PRO_PRICE_GHS * 100
             ) {
 
-                throw new Error(
-                    `Payment amount mismatch. Expected GHS ${PRO_PRICE_GHS}, but Paystack returned ${paidAmount / 100}.`
+                localStorage.setItem(
+                    "businessOSPro",
+                    "true"
+                );
+
+                localStorage.setItem(
+                    "patriodxPayment",
+                    JSON.stringify({
+                        reference,
+                        amount,
+                        currency,
+                        paidAt:
+                            new Date().toISOString(),
+                        email:
+                            pending?.email ||
+                            currentUser?.email ||
+                            ""
+                    })
+                );
+
+                localStorage.removeItem(
+                    "patriodxPendingPayment"
+                );
+
+                updateProUI();
+
+                alert(
+                    "Payment successful! PATRIODX Pro is now active."
                 );
             }
 
+            window.history.replaceState(
+                {},
+                document.title,
+                window.location.pathname
+            );
 
-            /*
-             * Verify currency.
-             */
+        } catch (error) {
+
+            console.error(
+                "Payment verification error:",
+                error
+            );
+        }
+    }
+
+    // ========================================================
+    // PRO UI
+    // ========================================================
+
+    function updateProUI() {
+
+        const isPro =
+            localStorage.getItem(
+                "businessOSPro"
+            ) === "true";
+
+        document
+            .querySelectorAll(
+                "#proStatus, .pro-status"
+            )
+            .forEach(el => {
+
+                el.textContent =
+                    isPro
+                        ? "Pro Active"
+                        : "Free Plan";
+            });
+
+        document
+            .querySelectorAll(
+                "[data-pro-only]"
+            )
+            .forEach(el => {
+
+                el.style.display =
+                    isPro ? "" : "none";
+            });
+    }
+
+    // ========================================================
+    // PRICING BUTTONS
+    // ========================================================
+
+    function setupPaymentButtons() {
+
+        document
+            .querySelectorAll(
+                "#proPlanButton, .pro-plan-button, [data-plan='pro']"
+            )
+            .forEach(button => {
+
+                button.addEventListener(
+                    "click",
+                    async () => {
+
+                        if (
+                            localStorage.getItem(
+                                "businessOSPro"
+                            ) === "true"
+                        ) {
+
+                            alert(
+                                "PATRIODX Pro is already active."
+                            );
+
+                            return;
+                        }
+
+                        const email =
+                            currentUser?.email;
+
+                        if (!email) {
+
+                            alert(
+                                "Please sign in before purchasing Pro."
+                            );
+
+                            return;
+                        }
+
+                        await initializeRealPayment({
+                            email,
+                            amountGHS:
+                                PRO_PRICE_GHS,
+                            product:
+                                "PATRIODX Pro",
+                            plan:
+                                "pro"
+                        });
+                    }
+                );
+            });
+    }
+
+    // ========================================================
+    // LOGOUT
+    // ========================================================
+
+    async function logout() {
+
+        try {
+
+            const { error } =
+                await supabaseClient
+                    .auth.signOut();
+
+            if (error) {
+                throw error;
+            }
+
+            window.location.href =
+                "auth.html";
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Could not sign out.\n\n" +
+                error.message
+            );
+        }
+    }
+
+    // Make logout available to HTML buttons
+    window.logout = logout;
+    window.PATRIODX = {
+        logout,
+        exportBusinessData,
+        resetBusinessData
+    };
+
+    // ========================================================
+    // AUTO LOGOUT IF SESSION ENDS
+    // ========================================================
+
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
+
             if (
-                payment.currency &&
-                payment.currency !== "GHS"
+                event === "SIGNED_OUT" ||
+                !session
             ) {
 
-                throw new Error(
-                    "Payment currency does not match GHS."
-                );
+                window.location.href =
+                    "auth.html";
             }
-
-
-            /*
-             * ACTIVATE PATRIODX PRO
-             */
-            localStorage.setItem(
-                "businessOSPro",
-                "true"
-            );
-
-
-            /*
-             * Store useful subscription information.
-             */
-            localStorage.setItem(
-                "businessOSProPayment",
-                JSON.stringify({
-
-                    reference,
-
-                    email:
-                        pending.email ||
-                        payment.customer?.email ||
-                        "",
-
-                    amount:
-                        PRO_PRICE_GHS,
-
-                    currency:
-                        "GHS",
-
-                    product:
-                        "PATRIODX Pro",
-
-                    paidAt:
-                        payment.paid_at ||
-                        new Date().toISOString()
-
-                })
-            );
-
-
-            /*
-             * Remove pending payment.
-             */
-            localStorage.removeItem(
-                "businessOSPendingPayment"
-            );
-
-
-            /*
-             * Show success message.
-             */
-            showPaymentSuccess(
-                "PATRIODX Pro Activated!",
-                `Your GHS ${PRO_PRICE_GHS} payment was successfully verified by Paystack.`,
-                reference
-            );
-
-
-            /*
-             * Refresh the PATRIODX interface.
-             */
-            updateProUI();
         }
-
-
-        /*
-         * General PATRIODX payment.
-         */
-        else {
-
-            localStorage.removeItem(
-                "businessOSPendingPayment"
-            );
-
-
-            showPaymentSuccess(
-                "Payment Successful!",
-                "Your payment has been successfully verified by Paystack.",
-                reference
-            );
-        }
-
-
-        /*
-         * Remove ?reference=... from URL.
-         */
-        window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname +
-            window.location.hash
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Payment verification error:",
-            error
-        );
-
-
-        /*
-         * Show a visible error instead of
-         * silently failing.
-         */
-        showPaymentError(
-            error.message ||
-            "Payment verification failed."
-        );
-    }
-}
-
-
-/* =========================================================
-   PAYMENT SUCCESS UI
-   ========================================================= */
-
-function showPaymentSuccess(
-    title,
-    message,
-    reference
-) {
-
-    /*
-     * Remove existing payment message.
-     */
-    document
-        .getElementById(
-            "businessOSPaymentMessage"
-        )
-        ?.remove();
-
-
-    const messageBox =
-        document.createElement("div");
-
-
-    messageBox.id =
-        "businessOSPaymentMessage";
-
-
-    messageBox.innerHTML = `
-
-        <div class="payment-success-overlay">
-
-            <div class="payment-success-card">
-
-                <div class="payment-success-icon">
-                    ✓
-                </div>
-
-                <h2>
-                    ${safe(title)}
-                </h2>
-
-                <p>
-                    ${safe(message)}
-                </p>
-
-                <div class="payment-reference">
-
-                    <strong>
-                        Payment Reference
-                    </strong>
-
-                    <span>
-                        ${safe(reference)}
-                    </span>
-
-                </div>
-
-                <button
-                    id="closePaymentSuccess"
-                    class="primary-btn">
-
-                    Continue to PATRIODX
-
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    document.body.appendChild(
-        messageBox
     );
 
+    // ========================================================
+    // INITIALIZE APP
+    // ========================================================
 
-    document
-        .getElementById(
-            "closePaymentSuccess"
-        )
-        ?.addEventListener(
-            "click",
-            () => {
+    async function initializeApp() {
 
-                messageBox.remove();
+        try {
 
+            // 1. Check login
+            const authenticated =
+                await checkAuthentication();
+
+            if (!authenticated) {
+                return;
             }
-        );
-}
 
+            // 2. Get business
+            const businessLoaded =
+                await loadBusiness();
 
-/* =========================================================
-   PAYMENT ERROR UI
-   ========================================================= */
-
-function showPaymentError(
-    message
-) {
-
-    document
-        .getElementById(
-            "businessOSPaymentMessage"
-        )
-        ?.remove();
-
-
-    const messageBox =
-        document.createElement("div");
-
-
-    messageBox.id =
-        "businessOSPaymentMessage";
-
-
-    messageBox.innerHTML = `
-
-        <div class="payment-error-overlay">
-
-            <div class="payment-error-card">
-
-                <div class="payment-error-icon">
-                    !
-                </div>
-
-                <h2>
-                    Payment Verification Failed
-                </h2>
-
-                <p>
-                    ${safe(message)}
-                </p>
-
-                <p>
-                    <strong>
-                        Do not pay again yet.
-                    </strong>
-                    Check your Paystack transaction
-                    before trying again.
-                </p>
-
-                <button
-                    id="closePaymentError"
-                    class="primary-btn">
-
-                    Close
-
-                </button>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    document.body.appendChild(
-        messageBox
-    );
-
-
-    document
-        .getElementById(
-            "closePaymentError"
-        )
-        ?.addEventListener(
-            "click",
-            () => {
-
-                messageBox.remove();
-
+            if (!businessLoaded) {
+                return;
             }
-        );
-}
 
+            // 3. Load cloud data
+            await loadDataFromSupabase();
 
-/* =========================================================
-   PATRIODX PRO UI
-   ========================================================= */
+            // 4. Setup UI
+            setupNavigation();
+            setupSearch();
+            setupModalBehavior();
+            setupDarkMode();
 
-function updateProUI() {
+            setupProductForm();
+            setupCustomerForm();
+            setupSaleForm();
+            setupInvoiceForm();
 
-    const isPro =
-        localStorage.getItem(
-            "businessOSPro"
-        ) === "true";
+            setupBackup();
+            setupContactForm();
+            setupBusinessContactLinks();
 
+            setupPaymentButtons();
 
-    if (!isPro) {
-        return;
-    }
+            // 5. Render everything
+            renderAll();
 
+            // 6. Check payment return
+            await verifyReturnedPayment();
 
-    /*
-     * Upgrade button.
-     */
-    const upgradeButton =
-        document.getElementById(
-            "upgradeProBtn"
-        );
-
-
-    if (upgradeButton) {
-
-        upgradeButton.textContent =
-            "✓ PATRIODX Pro Active";
-
-        upgradeButton.disabled =
-            true;
-
-        upgradeButton.classList.add(
-            "pro-active"
-        );
-    }
-
-
-    /*
-     * Any element using
-     * data-pro-status will be updated.
-     */
-    document
-        .querySelectorAll(
-            "[data-pro-status]"
-        )
-        .forEach(element => {
-
-            element.textContent =
-                "✓ Pro Active";
-
-            element.classList.add(
-                "pro-active"
+            console.log(
+                "PATRIODX initialized successfully."
             );
-        });
 
+        } catch (error) {
 
-    /*
-     * Any element using
-     * #proStatus will be updated.
-     */
-    const proStatus =
-        document.getElementById(
-            "proStatus"
-        );
+            console.error(
+                "PATRIODX initialization error:",
+                error
+            );
 
-
-    if (proStatus) {
-
-        proStatus.textContent =
-            "✓ PATRIODX Pro Active";
-
-        proStatus.classList.add(
-            "pro-active"
-        );
-    }
-}
-    /* =========================================================
-       RENDER EVERYTHING
-       ========================================================= */
-
-    function renderAll() {
-
-        renderProducts();
-
-        renderCustomers();
-
-        renderSales();
-
-        renderInvoices();
-
-        updateDashboardStats();
-
-        updateAnalytics();
-
-        renderRecentActivity();
+            alert(
+                "PATRIODX could not load your business data.\n\n" +
+                error.message
+            );
+        }
     }
 
-
-    /* =========================================================
-       INITIALIZATION
-       ========================================================= */
-
-  setupNavigation();
-
-setupSearch();
-
-setupModalBehavior();
-
-setupDarkMode();
-
-setupContactForm();
-
-setupBusinessContactLinks();
-
-renderAll();
-
-updateProUI();
-
-verifyReturnedPayment();
-
+    await initializeApp();
 });
-

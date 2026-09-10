@@ -1,3 +1,10 @@
+const SUPABASE_URL = "https://saerujjsfzyxkyacbvgr.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l50YIYtYLXkjWE1iQSTyoA_GkrIKWn7";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================================

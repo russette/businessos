@@ -75,7 +75,11 @@ async function loadUser() {
     }
 
     currentUser = session.user;
+const userEmail = document.getElementById("userEmail");
 
+if (userEmail) {
+    userEmail.textContent = currentUser.email || "Account";
+}
     const { data: business, error: businessError } =
         await supabaseClient
             .from("businesses")
@@ -2035,13 +2039,44 @@ async function startPATRIODX() {
     setupModalBehavior();
 
     setupForms();
-
+document
+    .getElementById("logoutButton")
+    ?.addEventListener("click", logoutUser);
     renderAll();
 
     console.log("PATRIODX connected successfully.");
 }
 
+// =========================================================
+// LOGOUT
+// =========================================================
 
+async function logoutUser() {
+
+    const button = document.getElementById("logoutButton");
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "Logging out...";
+    }
+
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+        console.error(error);
+
+        alert("Could not log out. Please try again.");
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = "Logout";
+        }
+
+        return;
+    }
+
+    window.location.href = "auth.html";
+}
 // =========================================================
 // MAKE HTML ONCLICK FUNCTIONS GLOBAL
 // =========================================================
@@ -2075,7 +2110,7 @@ window.resetBusinessData = resetBusinessData;
 
 window.startProPlan = startProPlan;
 window.startBusinessPlan = startBusinessPlan;
-
+window.logoutUser = logoutUser;
 
 // =========================================================
 // START

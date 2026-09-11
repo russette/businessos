@@ -13,7 +13,36 @@ let invoices = [];
 
 let currentUser = null;
 let currentBusiness = null;
+let currentPlan = "free";
 let editingProductId = null;
+
+
+// =========================================================
+// PLAN LIMITS
+// =========================================================
+
+const PLAN_LIMITS = {
+    free: {
+        products: 20,
+        customers: 20,
+        salesPerMonth: 30,
+        invoicesPerMonth: 5
+    },
+
+    pro: {
+        products: Infinity,
+        customers: Infinity,
+        salesPerMonth: Infinity,
+        invoicesPerMonth: Infinity
+    },
+
+    business: {
+        products: Infinity,
+        customers: Infinity,
+        salesPerMonth: Infinity,
+        invoicesPerMonth: Infinity
+    }
+};
 
 
 // =========================================================
@@ -53,6 +82,126 @@ function formatDate(date) {
 
 
 // =========================================================
+// PLAN CHECKING
+// =========================================================
+
+function loadPlan() {
+
+    if (!currentBusiness) {
+        currentPlan = "free";
+        return;
+    }
+
+    currentPlan =
+        String(currentBusiness.plan || "free").toLowerCase();
+
+    if (!PLAN_LIMITS[currentPlan]) {
+        currentPlan = "free";
+    }
+
+    console.log("PATRIODX plan:", currentPlan);
+}
+
+function getSalesThisMonth() {
+
+    const now = new Date();
+
+    return sales.filter(sale => {
+
+        if (!sale.created_at) return false;
+
+        const date = new Date(sale.created_at);
+
+        return (
+            date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth()
+        );
+
+    }).length;
+}
+
+function getInvoicesThisMonth() {
+
+    const now = new Date();
+
+    return invoices.filter(invoice => {
+
+        if (!invoice.created_at) return false;
+
+        const date = new Date(invoice.created_at);
+
+        return (
+            date.getFullYear() === now.getFullYear() &&
+            date.getMonth() === now.getMonth()
+        );
+
+    }).length;
+}
+
+function canCreate(type) {
+
+    const limits =
+        PLAN_LIMITS[currentPlan] || PLAN_LIMITS.free;
+
+    if (type === "product") {
+
+        if (products.length >= limits.products) {
+
+            alert(
+                "Free plan limit reached: 20 products.\n\nUpgrade to Pro for unlimited products."
+            );
+
+            return false;
+        }
+    }
+
+    if (type === "customer") {
+
+        if (customers.length >= limits.customers) {
+
+            alert(
+                "Free plan limit reached: 20 customers.\n\nUpgrade to Pro for unlimited customers."
+            );
+
+            return false;
+        }
+    }
+
+    if (type === "sale") {
+
+        const count =
+            getSalesThisMonth();
+
+        if (count >= limits.salesPerMonth) {
+
+            alert(
+                "Free plan limit reached: 30 sales this month.\n\nUpgrade to Pro for unlimited sales."
+            );
+
+            return false;
+        }
+    }
+
+    if (type === "invoice") {
+
+        const count =
+            getInvoicesThisMonth();
+
+        if (count >= limits.invoicesPerMonth) {
+
+            alert(
+                "Free plan limit reached: 5 invoices this month.\n\nUpgrade to Pro for unlimited invoices."
+            );
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+// =========================================================
 // AUTH / SUPABASE
 // =========================================================
 
@@ -64,22 +213,31 @@ async function loadUser() {
     } = await supabaseClient.auth.getSession();
 
     if (error) {
+
         console.error(error);
+
         alert("Unable to connect to PATRIODX.");
+
         return false;
     }
 
     if (!session) {
+
         window.location.href = "auth.html";
+
         return false;
     }
 
     currentUser = session.user;
-const userEmail = document.getElementById("userEmail");
 
-if (userEmail) {
-    userEmail.textContent = currentUser.email || "Account";
-}
+    const userEmail =
+        document.getElementById("userEmail");
+
+    if (userEmail) {
+        userEmail.textContent =
+            currentUser.email || "Account";
+    }
+
     const { data: business, error: businessError } =
         await supabaseClient
             .from("businesses")
@@ -88,12 +246,19 @@ if (userEmail) {
             .single();
 
     if (businessError) {
+
         console.error(businessError);
-        alert("Your PATRIODX business account could not be loaded.");
+
+        alert(
+            "Your PATRIODX business account could not be loaded."
+        );
+
         return false;
     }
 
     currentBusiness = business;
+
+    loadPlan();
 
     return true;
 }
@@ -107,7 +272,8 @@ async function loadData() {
 
     if (!currentBusiness) return;
 
-    const businessId = currentBusiness.id;
+    const businessId =
+        currentBusiness.id;
 
     const [
         productsResult,
@@ -120,25 +286,33 @@ async function loadData() {
             .from("products")
             .select("*")
             .eq("business_id", businessId)
-            .order("created_at", { ascending: false }),
+            .order("created_at", {
+                ascending: false
+            }),
 
         supabaseClient
             .from("customers")
             .select("*")
             .eq("business_id", businessId)
-            .order("created_at", { ascending: false }),
+            .order("created_at", {
+                ascending: false
+            }),
 
         supabaseClient
             .from("sales")
             .select("*")
             .eq("business_id", businessId)
-            .order("created_at", { ascending: false }),
+            .order("created_at", {
+                ascending: false
+            }),
 
         supabaseClient
             .from("invoices")
             .select("*")
             .eq("business_id", businessId)
-            .order("created_at", { ascending: false })
+            .order("created_at", {
+                ascending: false
+            })
     ]);
 
     if (productsResult.error) {
@@ -157,10 +331,17 @@ async function loadData() {
         console.error(invoicesResult.error);
     }
 
-    products = productsResult.data || [];
-    customers = customersResult.data || [];
-    sales = salesResult.data || [];
-    invoices = invoicesResult.data || [];
+    products =
+        productsResult.data || [];
+
+    customers =
+        customersResult.data || [];
+
+    sales =
+        salesResult.data || [];
+
+    invoices =
+        invoicesResult.data || [];
 }
 
 
@@ -170,9 +351,11 @@ async function loadData() {
 
 function scrollToSection(id) {
 
-    const section = document.getElementById(id);
+    const section =
+        document.getElementById(id);
 
     if (section) {
+
         section.scrollIntoView({
             behavior: "smooth",
             block: "start"
@@ -182,26 +365,36 @@ function scrollToSection(id) {
 
 function setupNavigation() {
 
-    document.querySelectorAll("nav a, .footer-links a").forEach(link => {
+    document
+        .querySelectorAll("nav a, .footer-links a")
+        .forEach(link => {
 
-        link.addEventListener("click", function (event) {
+            link.addEventListener(
+                "click",
+                function(event) {
 
-            const href = this.getAttribute("href");
+                    const href =
+                        this.getAttribute("href");
 
-            if (!href || !href.startsWith("#")) return;
+                    if (
+                        !href ||
+                        !href.startsWith("#")
+                    ) return;
 
-            const id = href.substring(1);
+                    const id =
+                        href.substring(1);
 
-            const section = document.getElementById(id);
+                    const section =
+                        document.getElementById(id);
 
-            if (!section) return;
+                    if (!section) return;
 
-            event.preventDefault();
+                    event.preventDefault();
 
-            scrollToSection(id);
+                    scrollToSection(id);
+                }
+            );
         });
-
-    });
 }
 
 
@@ -211,32 +404,48 @@ function setupNavigation() {
 
 function setupDarkMode() {
 
-    const button = document.getElementById("themeToggle");
+    const button =
+        document.getElementById("themeToggle");
 
     if (!button) return;
 
-    const savedTheme = localStorage.getItem("patriodxTheme");
+    const savedTheme =
+        localStorage.getItem("patriodxTheme");
 
     if (savedTheme === "dark") {
-        document.body.classList.add("dark-mode");
-        button.textContent = "☀️ Light Mode";
-    }
 
-    button.addEventListener("click", function () {
-
-        document.body.classList.toggle("dark-mode");
-
-        const dark = document.body.classList.contains("dark-mode");
-
-        localStorage.setItem(
-            "patriodxTheme",
-            dark ? "dark" : "light"
+        document.body.classList.add(
+            "dark-mode"
         );
 
-        button.textContent = dark
-            ? "☀️ Light Mode"
-            : "🌙 Dark Mode";
-    });
+        button.textContent =
+            "☀️ Light Mode";
+    }
+
+    button.addEventListener(
+        "click",
+        function() {
+
+            document.body.classList.toggle(
+                "dark-mode"
+            );
+
+            const dark =
+                document.body.classList.contains(
+                    "dark-mode"
+                );
+
+            localStorage.setItem(
+                "patriodxTheme",
+                dark ? "dark" : "light"
+            );
+
+            button.textContent =
+                dark
+                    ? "☀️ Light Mode"
+                    : "🌙 Dark Mode";
+        }
+    );
 }
 
 
@@ -246,30 +455,58 @@ function setupDarkMode() {
 
 function openProductModal(productId = null) {
 
-    const modal = document.getElementById("productModal");
-    const form = document.getElementById("productForm");
+    const modal =
+        document.getElementById("productModal");
+
+    const form =
+        document.getElementById("productForm");
 
     if (!modal || !form) return;
 
-    editingProductId = productId;
+    editingProductId =
+        productId;
 
     form.reset();
 
-    document.getElementById("productId").value = "";
+    document.getElementById(
+        "productId"
+    ).value = "";
 
-    document.getElementById("productModalTitle").textContent =
-        productId ? "Edit Product" : "Add Product";
+    document.getElementById(
+        "productModalTitle"
+    ).textContent =
+        productId
+            ? "Edit Product"
+            : "Add Product";
 
     if (productId) {
 
-        const product = products.find(p => p.id === productId);
+        const product =
+            products.find(
+                p => p.id === productId
+            );
 
         if (!product) return;
 
-        document.getElementById("productId").value = product.id;
-        document.getElementById("productName").value = product.name;
-        document.getElementById("productPrice").value = product.price;
-        document.getElementById("productStock").value = product.stock;
+        document.getElementById(
+            "productId"
+        ).value =
+            product.id;
+
+        document.getElementById(
+            "productName"
+        ).value =
+            product.name;
+
+        document.getElementById(
+            "productPrice"
+        ).value =
+            product.price;
+
+        document.getElementById(
+            "productStock"
+        ).value =
+            product.stock;
     }
 
     modal.classList.add("active");
@@ -277,10 +514,15 @@ function openProductModal(productId = null) {
 
 function closeProductModal() {
 
-    const modal = document.getElementById("productModal");
+    const modal =
+        document.getElementById(
+            "productModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 
     editingProductId = null;
@@ -293,16 +535,34 @@ async function saveProduct(event) {
     if (!currentBusiness) return;
 
     const name =
-        document.getElementById("productName").value.trim();
+        document.getElementById(
+            "productName"
+        ).value.trim();
 
     const price =
-        Number(document.getElementById("productPrice").value);
+        Number(
+            document.getElementById(
+                "productPrice"
+            ).value
+        );
 
     const stock =
-        Number(document.getElementById("productStock").value);
+        Number(
+            document.getElementById(
+                "productStock"
+            ).value
+        );
 
-    if (!name || price < 0 || stock < 0) {
-        alert("Please enter valid product details.");
+    if (
+        !name ||
+        price < 0 ||
+        stock < 0
+    ) {
+
+        alert(
+            "Please enter valid product details."
+        );
+
         return;
     }
 
@@ -310,34 +570,50 @@ async function saveProduct(event) {
 
     if (editingProductId) {
 
-        result = await supabaseClient
-            .from("products")
-            .update({
-                name,
-                price,
-                stock,
-                updated_at: new Date().toISOString()
-            })
-            .eq("id", editingProductId)
-            .eq("business_id", currentBusiness.id);
+        result =
+            await supabaseClient
+                .from("products")
+                .update({
+                    name,
+                    price,
+                    stock,
+                    updated_at:
+                        new Date().toISOString()
+                })
+                .eq(
+                    "id",
+                    editingProductId
+                )
+                .eq(
+                    "business_id",
+                    currentBusiness.id
+                );
 
     } else {
 
-        result = await supabaseClient
-            .from("products")
-            .insert({
-                business_id: currentBusiness.id,
-                name,
-                price,
-                stock
-            });
+        if (!canCreate("product")) {
+            return;
+        }
+
+        result =
+            await supabaseClient
+                .from("products")
+                .insert({
+                    business_id:
+                        currentBusiness.id,
+                    name,
+                    price,
+                    stock
+                });
     }
 
     if (result.error) {
 
         console.error(result.error);
 
-        alert("Could not save product.");
+        alert(
+            "Could not save product."
+        );
 
         return;
     }
@@ -356,18 +632,26 @@ async function saveProduct(event) {
 
 function renderProducts() {
 
-    const container = document.getElementById("productsList");
+    const container =
+        document.getElementById(
+            "productsList"
+        );
 
     if (!container) return;
 
     const search =
-        document.getElementById("productSearch")?.value
+        document.getElementById(
+            "productSearch"
+        )?.value
             .toLowerCase()
             .trim() || "";
 
-    const filtered = products.filter(product =>
-        product.name.toLowerCase().includes(search)
-    );
+    const filtered =
+        products.filter(product =>
+            product.name
+                .toLowerCase()
+                .includes(search)
+        );
 
     if (!filtered.length) {
 
@@ -382,18 +666,25 @@ function renderProducts() {
         return;
     }
 
-    container.innerHTML = filtered.map(product => `
+    container.innerHTML =
+        filtered.map(product => `
 
         <div class="item-card">
 
             <h3>${safe(product.name)}</h3>
 
             <p>
-                Price: <strong>${money(product.price)}</strong>
+                Price:
+                <strong>
+                    ${money(product.price)}
+                </strong>
             </p>
 
             <p>
-                Stock: <strong>${product.stock}</strong>
+                Stock:
+                <strong>
+                    ${product.stock}
+                </strong>
             </p>
 
             <div class="card-actions">
@@ -422,19 +713,30 @@ function renderProducts() {
 
 async function deleteProduct(id) {
 
-    if (!confirm("Delete this product?")) return;
+    if (!confirm("Delete this product?")) {
+        return;
+    }
 
-    const { error } = await supabaseClient
-        .from("products")
-        .delete()
-        .eq("id", id)
-        .eq("business_id", currentBusiness.id);
+    const { error } =
+        await supabaseClient
+            .from("products")
+            .delete()
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "business_id",
+                currentBusiness.id
+            );
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not delete product.");
+        alert(
+            "Could not delete product."
+        );
 
         return;
     }
@@ -451,8 +753,15 @@ async function deleteProduct(id) {
 
 function openCustomerModal() {
 
-    const modal = document.getElementById("customerModal");
-    const form = document.getElementById("customerForm");
+    const modal =
+        document.getElementById(
+            "customerModal"
+        );
+
+    const form =
+        document.getElementById(
+            "customerForm"
+        );
 
     if (!modal || !form) return;
 
@@ -463,10 +772,15 @@ function openCustomerModal() {
 
 function closeCustomerModal() {
 
-    const modal = document.getElementById("customerModal");
+    const modal =
+        document.getElementById(
+            "customerModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 }
 
@@ -476,34 +790,52 @@ async function saveCustomer(event) {
 
     if (!currentBusiness) return;
 
-    const name =
-        document.getElementById("customerName").value.trim();
-
-    const email =
-        document.getElementById("customerEmail").value.trim();
-
-    const phone =
-        document.getElementById("customerPhone").value.trim();
-
-    if (!name) {
-        alert("Customer name is required.");
+    if (!canCreate("customer")) {
         return;
     }
 
-    const { error } = await supabaseClient
-        .from("customers")
-        .insert({
-            business_id: currentBusiness.id,
-            name,
-            email,
-            phone
-        });
+    const name =
+        document.getElementById(
+            "customerName"
+        ).value.trim();
+
+    const email =
+        document.getElementById(
+            "customerEmail"
+        ).value.trim();
+
+    const phone =
+        document.getElementById(
+            "customerPhone"
+        ).value.trim();
+
+    if (!name) {
+
+        alert(
+            "Customer name is required."
+        );
+
+        return;
+    }
+
+    const { error } =
+        await supabaseClient
+            .from("customers")
+            .insert({
+                business_id:
+                    currentBusiness.id,
+                name,
+                email,
+                phone
+            });
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not save customer.");
+        alert(
+            "Could not save customer."
+        );
 
         return;
     }
@@ -522,27 +854,39 @@ async function saveCustomer(event) {
 
 function renderCustomers() {
 
-    const container = document.getElementById("customersList");
+    const container =
+        document.getElementById(
+            "customersList"
+        );
 
     if (!container) return;
 
     const search =
-        document.getElementById("customerSearch")?.value
+        document.getElementById(
+            "customerSearch"
+        )?.value
             .toLowerCase()
             .trim() || "";
 
-    const filtered = customers.filter(customer =>
+    const filtered =
+        customers.filter(customer =>
 
-        customer.name.toLowerCase().includes(search) ||
+            customer.name
+                .toLowerCase()
+                .includes(search)
 
-        (customer.email || "")
-            .toLowerCase()
-            .includes(search) ||
+            ||
 
-        (customer.phone || "")
-            .toLowerCase()
-            .includes(search)
-    );
+            (customer.email || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (customer.phone || "")
+                .toLowerCase()
+                .includes(search)
+        );
 
     if (!filtered.length) {
 
@@ -557,15 +901,30 @@ function renderCustomers() {
         return;
     }
 
-    container.innerHTML = filtered.map(customer => `
+    container.innerHTML =
+        filtered.map(customer => `
 
         <div class="item-card">
 
-            <h3>${safe(customer.name)}</h3>
+            <h3>
+                ${safe(customer.name)}
+            </h3>
 
-            <p>📧 ${safe(customer.email || "No email")}</p>
+            <p>
+                📧
+                ${safe(
+                    customer.email ||
+                    "No email"
+                )}
+            </p>
 
-            <p>📱 ${safe(customer.phone || "No phone")}</p>
+            <p>
+                📱
+                ${safe(
+                    customer.phone ||
+                    "No phone"
+                )}
+            </p>
 
             <div class="card-actions">
 
@@ -586,19 +945,30 @@ function renderCustomers() {
 
 async function deleteCustomer(id) {
 
-    if (!confirm("Delete this customer?")) return;
+    if (!confirm("Delete this customer?")) {
+        return;
+    }
 
-    const { error } = await supabaseClient
-        .from("customers")
-        .delete()
-        .eq("id", id)
-        .eq("business_id", currentBusiness.id);
+    const { error } =
+        await supabaseClient
+            .from("customers")
+            .delete()
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "business_id",
+                currentBusiness.id
+            );
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not delete customer.");
+        alert(
+            "Could not delete customer."
+        );
 
         return;
     }
@@ -615,25 +985,40 @@ async function deleteCustomer(id) {
 
 function openSaleModal() {
 
-    const modal = document.getElementById("saleModal");
-    const select = document.getElementById("saleProduct");
+    const modal =
+        document.getElementById(
+            "saleModal"
+        );
+
+    const select =
+        document.getElementById(
+            "saleProduct"
+        );
 
     if (!modal || !select) return;
 
     select.innerHTML = `
-        <option value="">Select a product</option>
+        <option value="">
+            Select a product
+        </option>
     `;
 
     products.forEach(product => {
 
         select.innerHTML += `
             <option value="${product.id}">
-                ${safe(product.name)} — ${money(product.price)} — Stock: ${product.stock}
+                ${safe(product.name)}
+                —
+                ${money(product.price)}
+                —
+                Stock: ${product.stock}
             </option>
         `;
     });
 
-    document.getElementById("saleQuantity").value = 1;
+    document.getElementById(
+        "saleQuantity"
+    ).value = 1;
 
     updateSaleTotal();
 
@@ -642,32 +1027,51 @@ function openSaleModal() {
 
 function closeSaleModal() {
 
-    const modal = document.getElementById("saleModal");
+    const modal =
+        document.getElementById(
+            "saleModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 }
 
 function updateSaleTotal() {
 
     const productId =
-        document.getElementById("saleProduct")?.value;
+        document.getElementById(
+            "saleProduct"
+        )?.value;
 
     const quantity =
-        Number(document.getElementById("saleQuantity")?.value || 0);
+        Number(
+            document.getElementById(
+                "saleQuantity"
+            )?.value || 0
+        );
 
     const product =
-        products.find(p => p.id === productId);
+        products.find(
+            p => p.id === productId
+        );
 
     const total =
-        product ? Number(product.price) * quantity : 0;
+        product
+            ? Number(product.price) *
+              quantity
+            : 0;
 
     const display =
-        document.getElementById("saleTotal");
+        document.getElementById(
+            "saleTotal"
+        );
 
     if (display) {
-        display.textContent = money(total);
+        display.textContent =
+            money(total);
     }
 }
 
@@ -677,46 +1081,71 @@ async function saveSale(event) {
 
     if (!currentBusiness) return;
 
+    if (!canCreate("sale")) {
+        return;
+    }
+
     const productId =
-        document.getElementById("saleProduct").value;
+        document.getElementById(
+            "saleProduct"
+        ).value;
 
     const quantity =
-        Number(document.getElementById("saleQuantity").value);
+        Number(
+            document.getElementById(
+                "saleQuantity"
+            ).value
+        );
 
     const product =
-        products.find(p => p.id === productId);
+        products.find(
+            p => p.id === productId
+        );
 
     if (!product) {
 
-        alert("Please select a product.");
+        alert(
+            "Please select a product."
+        );
 
         return;
     }
 
     if (quantity <= 0) {
 
-        alert("Quantity must be at least 1.");
+        alert(
+            "Quantity must be at least 1."
+        );
 
         return;
     }
 
     if (quantity > product.stock) {
 
-        alert("Not enough stock.");
+        alert(
+            "Not enough stock."
+        );
 
         return;
     }
 
     const total =
-        Number(product.price) * quantity;
+        Number(product.price) *
+        quantity;
 
-    const { data: sale, error: saleError } =
+    const {
+        data: sale,
+        error: saleError
+    } =
         await supabaseClient
             .from("sales")
             .insert({
-                business_id: currentBusiness.id,
-                product_id: product.id,
-                product_name: product.name,
+                business_id:
+                    currentBusiness.id,
+                product_id:
+                    product.id,
+                product_name:
+                    product.name,
                 quantity,
                 total
             })
@@ -727,7 +1156,9 @@ async function saveSale(event) {
 
         console.error(saleError);
 
-        alert("Could not record sale.");
+        alert(
+            "Could not record sale."
+        );
 
         return;
     }
@@ -736,11 +1167,21 @@ async function saveSale(event) {
         await supabaseClient
             .from("products")
             .update({
-                stock: product.stock - quantity,
-                updated_at: new Date().toISOString()
+                stock:
+                    product.stock -
+                    quantity,
+
+                updated_at:
+                    new Date().toISOString()
             })
-            .eq("id", product.id)
-            .eq("business_id", currentBusiness.id);
+            .eq(
+                "id",
+                product.id
+            )
+            .eq(
+                "business_id",
+                currentBusiness.id
+            );
 
     if (stockError) {
 
@@ -749,9 +1190,14 @@ async function saveSale(event) {
         await supabaseClient
             .from("sales")
             .delete()
-            .eq("id", sale.id);
+            .eq(
+                "id",
+                sale.id
+            );
 
-        alert("Sale could not update stock.");
+        alert(
+            "Sale could not update stock."
+        );
 
         return;
     }
@@ -770,21 +1216,27 @@ async function saveSale(event) {
 
 function renderSales() {
 
-    const container = document.getElementById("salesList");
+    const container =
+        document.getElementById(
+            "salesList"
+        );
 
     if (!container) return;
 
     const search =
-        document.getElementById("salesSearch")?.value
+        document.getElementById(
+            "salesSearch"
+        )?.value
             .toLowerCase()
             .trim() || "";
 
-    const filtered = sales.filter(sale =>
+    const filtered =
+        sales.filter(sale =>
 
-        (sale.product_name || "")
-            .toLowerCase()
-            .includes(search)
-    );
+            (sale.product_name || "")
+                .toLowerCase()
+                .includes(search)
+        );
 
     if (!filtered.length) {
 
@@ -799,20 +1251,30 @@ function renderSales() {
         return;
     }
 
-    container.innerHTML = filtered.map(sale => `
+    container.innerHTML =
+        filtered.map(sale => `
 
         <div class="sale-card">
 
             <div>
-                <h3>${safe(sale.product_name)}</h3>
+
+                <h3>
+                    ${safe(
+                        sale.product_name
+                    )}
+                </h3>
 
                 <p>
-                    Quantity: ${sale.quantity}
+                    Quantity:
+                    ${sale.quantity}
                 </p>
 
                 <small>
-                    ${formatDate(sale.created_at)}
+                    ${formatDate(
+                        sale.created_at
+                    )}
                 </small>
+
             </div>
 
             <strong>
@@ -835,24 +1297,36 @@ function renderSales() {
 async function deleteSale(id) {
 
     const sale =
-        sales.find(s => s.id === id);
+        sales.find(
+            s => s.id === id
+        );
 
     if (!sale) return;
 
-    if (!confirm("Delete this sale?")) return;
+    if (!confirm("Delete this sale?")) {
+        return;
+    }
 
     const { error } =
         await supabaseClient
             .from("sales")
             .delete()
-            .eq("id", id)
-            .eq("business_id", currentBusiness.id);
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "business_id",
+                currentBusiness.id
+            );
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not delete sale.");
+        alert(
+            "Could not delete sale."
+        );
 
         return;
     }
@@ -860,18 +1334,30 @@ async function deleteSale(id) {
     if (sale.product_id) {
 
         const product =
-            products.find(p => p.id === sale.product_id);
+            products.find(
+                p => p.id === sale.product_id
+            );
 
         if (product) {
 
             await supabaseClient
                 .from("products")
                 .update({
-                    stock: Number(product.stock) + Number(sale.quantity),
-                    updated_at: new Date().toISOString()
+                    stock:
+                        Number(product.stock) +
+                        Number(sale.quantity),
+
+                    updated_at:
+                        new Date().toISOString()
                 })
-                .eq("id", product.id)
-                .eq("business_id", currentBusiness.id);
+                .eq(
+                    "id",
+                    product.id
+                )
+                .eq(
+                    "business_id",
+                    currentBusiness.id
+                );
         }
     }
 
@@ -888,18 +1374,26 @@ async function deleteSale(id) {
 function openInvoiceModal() {
 
     const modal =
-        document.getElementById("invoiceModal");
+        document.getElementById(
+            "invoiceModal"
+        );
 
     if (!modal) return;
 
     const customerSelect =
-        document.getElementById("invoiceCustomer");
+        document.getElementById(
+            "invoiceCustomer"
+        );
 
     const productSelect =
-        document.getElementById("invoiceProduct");
+        document.getElementById(
+            "invoiceProduct"
+        );
 
     customerSelect.innerHTML = `
-        <option value="">Select a customer</option>
+        <option value="">
+            Select a customer
+        </option>
     `;
 
     customers.forEach(customer => {
@@ -912,29 +1406,43 @@ function openInvoiceModal() {
     });
 
     productSelect.innerHTML = `
-        <option value="">Select a product</option>
+        <option value="">
+            Select a product
+        </option>
     `;
 
     products.forEach(product => {
 
         productSelect.innerHTML += `
             <option value="${product.id}">
-                ${safe(product.name)} — ${money(product.price)}
+                ${safe(product.name)}
+                —
+                ${money(product.price)}
             </option>
         `;
     });
 
-    document.getElementById("invoiceNumber").value =
+    document.getElementById(
+        "invoiceNumber"
+    ).value =
         createReference();
 
-    document.getElementById("invoiceDueDate").value =
+    document.getElementById(
+        "invoiceDueDate"
+    ).value =
         todayString();
 
-    document.getElementById("invoiceQuantity").value = 1;
+    document.getElementById(
+        "invoiceQuantity"
+    ).value = 1;
 
-    document.getElementById("invoiceDiscount").value = 0;
+    document.getElementById(
+        "invoiceDiscount"
+    ).value = 0;
 
-    document.getElementById("invoiceTax").value = 0;
+    document.getElementById(
+        "invoiceTax"
+    ).value = 0;
 
     updateInvoiceTotal();
 
@@ -944,54 +1452,87 @@ function openInvoiceModal() {
 function closeInvoiceModal() {
 
     const modal =
-        document.getElementById("invoiceModal");
+        document.getElementById(
+            "invoiceModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 }
 
 function updateInvoiceTotal() {
 
     const productId =
-        document.getElementById("invoiceProduct")?.value;
+        document.getElementById(
+            "invoiceProduct"
+        )?.value;
 
     const quantity =
-        Number(document.getElementById("invoiceQuantity")?.value || 0);
+        Number(
+            document.getElementById(
+                "invoiceQuantity"
+            )?.value || 0
+        );
 
     const discount =
-        Number(document.getElementById("invoiceDiscount")?.value || 0);
+        Number(
+            document.getElementById(
+                "invoiceDiscount"
+            )?.value || 0
+        );
 
     const taxRate =
-        Number(document.getElementById("invoiceTax")?.value || 0);
+        Number(
+            document.getElementById(
+                "invoiceTax"
+            )?.value || 0
+        );
 
     const product =
-        products.find(p => p.id === productId);
+        products.find(
+            p => p.id === productId
+        );
 
     const subtotal =
         product
-            ? Number(product.price) * quantity
+            ? Number(product.price) *
+              quantity
             : 0;
 
     const afterDiscount =
-        Math.max(0, subtotal - discount);
+        Math.max(
+            0,
+            subtotal - discount
+        );
 
     const tax =
-        afterDiscount * (taxRate / 100);
+        afterDiscount *
+        (taxRate / 100);
 
     const total =
         afterDiscount + tax;
 
-    document.getElementById("invoiceSubtotal").textContent =
+    document.getElementById(
+        "invoiceSubtotal"
+    ).textContent =
         money(subtotal);
 
-    document.getElementById("invoiceDiscountDisplay").textContent =
+    document.getElementById(
+        "invoiceDiscountDisplay"
+    ).textContent =
         "-" + money(discount);
 
-    document.getElementById("invoiceTaxDisplay").textContent =
+    document.getElementById(
+        "invoiceTaxDisplay"
+    ).textContent =
         money(tax);
 
-    document.getElementById("invoiceTotal").textContent =
+    document.getElementById(
+        "invoiceTotal"
+    ).textContent =
         money(total);
 }
 
@@ -1001,48 +1542,83 @@ async function saveInvoice(event) {
 
     if (!currentBusiness) return;
 
+    if (!canCreate("invoice")) {
+        return;
+    }
+
     const invoiceNumber =
-        document.getElementById("invoiceNumber").value;
+        document.getElementById(
+            "invoiceNumber"
+        ).value;
 
     const customerId =
-        document.getElementById("invoiceCustomer").value;
+        document.getElementById(
+            "invoiceCustomer"
+        ).value;
 
     const productId =
-        document.getElementById("invoiceProduct").value;
+        document.getElementById(
+            "invoiceProduct"
+        ).value;
 
     const quantity =
-        Number(document.getElementById("invoiceQuantity").value);
+        Number(
+            document.getElementById(
+                "invoiceQuantity"
+            ).value
+        );
 
     const dueDate =
-        document.getElementById("invoiceDueDate").value;
+        document.getElementById(
+            "invoiceDueDate"
+        ).value;
 
     const discount =
-        Number(document.getElementById("invoiceDiscount").value || 0);
+        Number(
+            document.getElementById(
+                "invoiceDiscount"
+            ).value || 0
+        );
 
     const taxRate =
-        Number(document.getElementById("invoiceTax").value || 0);
+        Number(
+            document.getElementById(
+                "invoiceTax"
+            ).value || 0
+        );
 
     const customer =
-        customers.find(c => c.id === customerId);
+        customers.find(
+            c => c.id === customerId
+        );
 
     const product =
-        products.find(p => p.id === productId);
+        products.find(
+            p => p.id === productId
+        );
 
     if (!customer || !product) {
 
-        alert("Please select a customer and product.");
+        alert(
+            "Please select a customer and product."
+        );
 
         return;
     }
 
     const subtotal =
-        Number(product.price) * quantity;
+        Number(product.price) *
+        quantity;
 
     const afterDiscount =
-        Math.max(0, subtotal - discount);
+        Math.max(
+            0,
+            subtotal - discount
+        );
 
     const tax =
-        afterDiscount * (taxRate / 100);
+        afterDiscount *
+        (taxRate / 100);
 
     const total =
         afterDiscount + tax;
@@ -1052,17 +1628,23 @@ async function saveInvoice(event) {
             .from("invoices")
             .insert({
 
-                business_id: currentBusiness.id,
+                business_id:
+                    currentBusiness.id,
 
-                invoice_number: invoiceNumber,
+                invoice_number:
+                    invoiceNumber,
 
-                customer_id: customer.id,
+                customer_id:
+                    customer.id,
 
-                customer_name: customer.name,
+                customer_name:
+                    customer.name,
 
-                product_id: product.id,
+                product_id:
+                    product.id,
 
-                product_name: product.name,
+                product_name:
+                    product.name,
 
                 quantity,
 
@@ -1070,22 +1652,27 @@ async function saveInvoice(event) {
 
                 discount,
 
-                tax_rate: taxRate,
+                tax_rate:
+                    taxRate,
 
                 tax,
 
                 total,
 
-                due_date: dueDate,
+                due_date:
+                    dueDate,
 
-                status: "unpaid"
+                status:
+                    "unpaid"
             });
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not create invoice.");
+        alert(
+            "Could not create invoice."
+        );
 
         return;
     }
@@ -1105,44 +1692,54 @@ async function saveInvoice(event) {
 function renderInvoices() {
 
     const container =
-        document.getElementById("invoicesList");
+        document.getElementById(
+            "invoicesList"
+        );
 
     if (!container) return;
 
     const search =
-        document.getElementById("invoiceSearch")?.value
+        document.getElementById(
+            "invoiceSearch"
+        )?.value
             .toLowerCase()
             .trim() || "";
 
     const status =
-        document.getElementById("invoiceStatusFilter")?.value || "all";
+        document.getElementById(
+            "invoiceStatusFilter"
+        )?.value || "all";
 
-    const filtered = invoices.filter(invoice => {
+    const filtered =
+        invoices.filter(invoice => {
 
-        const matchesSearch =
+            const matchesSearch =
 
-            (invoice.invoice_number || "")
-                .toLowerCase()
-                .includes(search)
+                (invoice.invoice_number || "")
+                    .toLowerCase()
+                    .includes(search)
 
-            ||
+                ||
 
-            (invoice.customer_name || "")
-                .toLowerCase()
-                .includes(search)
+                (invoice.customer_name || "")
+                    .toLowerCase()
+                    .includes(search)
 
-            ||
+                ||
 
-            (invoice.product_name || "")
-                .toLowerCase()
-                .includes(search);
+                (invoice.product_name || "")
+                    .toLowerCase()
+                    .includes(search);
 
-        const matchesStatus =
-            status === "all" ||
-            invoice.status === status;
+            const matchesStatus =
+                status === "all" ||
+                invoice.status === status;
 
-        return matchesSearch && matchesStatus;
-    });
+            return (
+                matchesSearch &&
+                matchesStatus
+            );
+        });
 
     if (!filtered.length) {
 
@@ -1157,29 +1754,38 @@ function renderInvoices() {
         return;
     }
 
-    container.innerHTML = filtered.map(invoice => `
+    container.innerHTML =
+        filtered.map(invoice => `
 
         <div class="invoice-card">
 
             <div>
 
                 <h3>
-                    ${safe(invoice.invoice_number)}
+                    ${safe(
+                        invoice.invoice_number
+                    )}
                 </h3>
 
                 <p>
                     Customer:
-                    ${safe(invoice.customer_name)}
+                    ${safe(
+                        invoice.customer_name
+                    )}
                 </p>
 
                 <p>
                     Product:
-                    ${safe(invoice.product_name)}
+                    ${safe(
+                        invoice.product_name
+                    )}
                 </p>
 
                 <p>
                     Due:
-                    ${formatDate(invoice.due_date)}
+                    ${formatDate(
+                        invoice.due_date
+                    )}
                 </p>
 
                 <strong>
@@ -1191,9 +1797,11 @@ function renderInvoices() {
             <div>
 
                 <span>
-                    ${invoice.status === "paid"
-                        ? "✅ Paid"
-                        : "⏳ Unpaid"}
+                    ${
+                        invoice.status === "paid"
+                            ? "✅ Paid"
+                            : "⏳ Unpaid"
+                    }
                 </span>
 
                 <br><br>
@@ -1234,7 +1842,9 @@ function renderInvoices() {
 async function toggleInvoiceStatus(id) {
 
     const invoice =
-        invoices.find(i => i.id === id);
+        invoices.find(
+            i => i.id === id
+        );
 
     if (!invoice) return;
 
@@ -1249,14 +1859,22 @@ async function toggleInvoiceStatus(id) {
             .update({
                 status: newStatus
             })
-            .eq("id", id)
-            .eq("business_id", currentBusiness.id);
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "business_id",
+                currentBusiness.id
+            );
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not update invoice.");
+        alert(
+            "Could not update invoice."
+        );
 
         return;
     }
@@ -1268,20 +1886,30 @@ async function toggleInvoiceStatus(id) {
 
 async function deleteInvoice(id) {
 
-    if (!confirm("Delete this invoice?")) return;
+    if (!confirm("Delete this invoice?")) {
+        return;
+    }
 
     const { error } =
         await supabaseClient
             .from("invoices")
             .delete()
-            .eq("id", id)
-            .eq("business_id", currentBusiness.id);
+            .eq(
+                "id",
+                id
+            )
+            .eq(
+                "business_id",
+                currentBusiness.id
+            );
 
     if (error) {
 
         console.error(error);
 
-        alert("Could not delete invoice.");
+        alert(
+            "Could not delete invoice."
+        );
 
         return;
     }
@@ -1294,15 +1922,21 @@ async function deleteInvoice(id) {
 function viewInvoice(id) {
 
     const invoice =
-        invoices.find(i => i.id === id);
+        invoices.find(
+            i => i.id === id
+        );
 
     if (!invoice) return;
 
     const modal =
-        document.getElementById("invoiceViewModal");
+        document.getElementById(
+            "invoiceViewModal"
+        );
 
     const content =
-        document.getElementById("invoiceViewContent");
+        document.getElementById(
+            "invoiceViewContent"
+        );
 
     content.innerHTML = `
 
@@ -1313,19 +1947,25 @@ function viewInvoice(id) {
             </p>
 
             <h2>
-                ${safe(invoice.invoice_number)}
+                ${safe(
+                    invoice.invoice_number
+                )}
             </h2>
 
             <hr>
 
             <p>
                 <strong>Customer:</strong>
-                ${safe(invoice.customer_name)}
+                ${safe(
+                    invoice.customer_name
+                )}
             </p>
 
             <p>
                 <strong>Product:</strong>
-                ${safe(invoice.product_name)}
+                ${safe(
+                    invoice.product_name
+                )}
             </p>
 
             <p>
@@ -1335,7 +1975,9 @@ function viewInvoice(id) {
 
             <p>
                 <strong>Due Date:</strong>
-                ${formatDate(invoice.due_date)}
+                ${formatDate(
+                    invoice.due_date
+                )}
             </p>
 
             <hr>
@@ -1378,10 +2020,14 @@ function viewInvoice(id) {
 function closeInvoiceViewModal() {
 
     const modal =
-        document.getElementById("invoiceViewModal");
+        document.getElementById(
+            "invoiceViewModal"
+        );
 
     if (modal) {
-        modal.classList.remove("active");
+        modal.classList.remove(
+            "active"
+        );
     }
 }
 
@@ -1394,7 +2040,9 @@ function renderStats() {
 
     const totalRevenue =
         sales.reduce(
-            (sum, sale) => sum + Number(sale.total || 0),
+            (sum, sale) =>
+                sum +
+                Number(sale.total || 0),
             0
         );
 
@@ -1405,36 +2053,64 @@ function renderStats() {
         sales
             .filter(sale =>
                 sale.created_at &&
-                sale.created_at.startsWith(today)
+                sale.created_at.startsWith(
+                    today
+                )
             )
             .reduce(
-                (sum, sale) => sum + Number(sale.total || 0),
+                (sum, sale) =>
+                    sum +
+                    Number(
+                        sale.total || 0
+                    ),
                 0
             );
 
-    document.getElementById("totalRevenue").textContent =
+    document.getElementById(
+        "totalRevenue"
+    ).textContent =
         money(totalRevenue);
 
-    document.getElementById("todayRevenue").textContent =
+    document.getElementById(
+        "todayRevenue"
+    ).textContent =
         money(todayRevenue);
 
-    document.getElementById("totalProducts").textContent =
+    document.getElementById(
+        "totalProducts"
+    ).textContent =
         products.length;
 
-    document.getElementById("totalCustomers").textContent =
+    document.getElementById(
+        "totalCustomers"
+    ).textContent =
         customers.length;
 
-    document.getElementById("totalSales").textContent =
+    document.getElementById(
+        "totalSales"
+    ).textContent =
         sales.length;
 
-    document.getElementById("paidInvoices").textContent =
-        invoices.filter(i => i.status === "paid").length;
+    document.getElementById(
+        "paidInvoices"
+    ).textContent =
+        invoices.filter(
+            i => i.status === "paid"
+        ).length;
 
-    document.getElementById("unpaidInvoices").textContent =
-        invoices.filter(i => i.status !== "paid").length;
+    document.getElementById(
+        "unpaidInvoices"
+    ).textContent =
+        invoices.filter(
+            i => i.status !== "paid"
+        ).length;
 
-    document.getElementById("lowStockProducts").textContent =
-        products.filter(p => Number(p.stock) <= 5).length;
+    document.getElementById(
+        "lowStockProducts"
+    ).textContent =
+        products.filter(
+            p => Number(p.stock) <= 5
+        ).length;
 }
 
 
@@ -1446,60 +2122,93 @@ function renderAnalytics() {
 
     const totalRevenue =
         sales.reduce(
-            (sum, sale) => sum + Number(sale.total || 0),
+            (sum, sale) =>
+                sum +
+                Number(sale.total || 0),
             0
         );
 
     const totalUnits =
         sales.reduce(
-            (sum, sale) => sum + Number(sale.quantity || 0),
+            (sum, sale) =>
+                sum +
+                Number(
+                    sale.quantity || 0
+                ),
             0
         );
 
     const average =
         sales.length
-            ? totalRevenue / sales.length
+            ? totalRevenue /
+              sales.length
             : 0;
 
     const inventoryValue =
         products.reduce(
             (sum, product) =>
                 sum +
-                Number(product.price || 0) *
-                Number(product.stock || 0),
+                Number(
+                    product.price || 0
+                ) *
+                Number(
+                    product.stock || 0
+                ),
             0
         );
 
     const largest =
         sales.length
             ? Math.max(
-                ...sales.map(s => Number(s.total || 0))
+                ...sales.map(
+                    s =>
+                        Number(
+                            s.total || 0
+                        )
+                )
             )
             : 0;
 
-    document.getElementById("averageSale").textContent =
+    document.getElementById(
+        "averageSale"
+    ).textContent =
         money(average);
 
-    document.getElementById("unitsInStock").textContent =
+    document.getElementById(
+        "unitsInStock"
+    ).textContent =
         products.reduce(
             (sum, product) =>
-                sum + Number(product.stock || 0),
+                sum +
+                Number(
+                    product.stock || 0
+                ),
             0
         );
 
-    document.getElementById("inventoryValue").textContent =
+    document.getElementById(
+        "inventoryValue"
+    ).textContent =
         money(inventoryValue);
 
-    document.getElementById("overviewRevenue").textContent =
+    document.getElementById(
+        "overviewRevenue"
+    ).textContent =
         money(totalRevenue);
 
-    document.getElementById("unitsSold").textContent =
+    document.getElementById(
+        "unitsSold"
+    ).textContent =
         totalUnits;
 
-    document.getElementById("overviewAverage").textContent =
+    document.getElementById(
+        "overviewAverage"
+    ).textContent =
         money(average);
 
-    document.getElementById("largestSale").textContent =
+    document.getElementById(
+        "largestSale"
+    ).textContent =
         money(largest);
 
 
@@ -1509,38 +2218,59 @@ function renderAnalytics() {
 
     sales.forEach(sale => {
 
-        const name = sale.product_name || "Unknown";
+        const name =
+            sale.product_name ||
+            "Unknown";
 
         productSales[name] =
-            (productSales[name] || 0) +
-            Number(sale.quantity || 0);
+            (
+                productSales[name] ||
+                0
+            ) +
+            Number(
+                sale.quantity || 0
+            );
     });
 
     let bestSeller = "—";
 
-    Object.keys(productSales).forEach(name => {
+    Object.keys(
+        productSales
+    ).forEach(name => {
 
         if (
             bestSeller === "—" ||
-            productSales[name] > productSales[bestSeller]
+            productSales[name] >
+            productSales[bestSeller]
         ) {
-            bestSeller = name;
+
+            bestSeller =
+                name;
         }
     });
 
-    document.getElementById("bestSeller").textContent =
+    document.getElementById(
+        "bestSeller"
+    ).textContent =
         bestSeller;
 
 
     // TOP PRODUCTS
 
     const topProducts =
-        Object.entries(productSales)
-            .sort((a, b) => b[1] - a[1])
+        Object.entries(
+            productSales
+        )
+            .sort(
+                (a, b) =>
+                    b[1] - a[1]
+            )
             .slice(0, 5);
 
     const topContainer =
-        document.getElementById("topProducts");
+        document.getElementById(
+            "topProducts"
+        );
 
     if (topContainer) {
 
@@ -1552,12 +2282,21 @@ function renderAnalytics() {
         } else {
 
             topContainer.innerHTML =
-                topProducts.map(([name, quantity]) => `
-                    <div class="overview-row">
-                        <span>${safe(name)}</span>
-                        <strong>${quantity} sold</strong>
-                    </div>
-                `).join("");
+                topProducts
+                    .map(
+                        ([name, quantity]) => `
+                            <div class="overview-row">
+                                <span>
+                                    ${safe(name)}
+                                </span>
+
+                                <strong>
+                                    ${quantity} sold
+                                </strong>
+                            </div>
+                        `
+                    )
+                    .join("");
         }
     }
 
@@ -1565,12 +2304,16 @@ function renderAnalytics() {
     // INVENTORY ALERTS
 
     const alertContainer =
-        document.getElementById("inventoryAlerts");
+        document.getElementById(
+            "inventoryAlerts"
+        );
 
     if (alertContainer) {
 
         const lowStock =
-            products.filter(p => Number(p.stock) <= 5);
+            products.filter(
+                p => Number(p.stock) <= 5
+            );
 
         if (!lowStock.length) {
 
@@ -1583,12 +2326,21 @@ function renderAnalytics() {
         } else {
 
             alertContainer.innerHTML =
-                lowStock.map(product => `
-                    <div class="overview-row">
-                        <span>${safe(product.name)}</span>
-                        <strong>${product.stock} left</strong>
-                    </div>
-                `).join("");
+                lowStock
+                    .map(
+                        product => `
+                            <div class="overview-row">
+                                <span>
+                                    ${safe(product.name)}
+                                </span>
+
+                                <strong>
+                                    ${product.stock} left
+                                </strong>
+                            </div>
+                        `
+                    )
+                    .join("");
         }
     }
 
@@ -1596,7 +2348,9 @@ function renderAnalytics() {
     // SIMPLE REVENUE TREND
 
     const chart =
-        document.getElementById("revenueChart");
+        document.getElementById(
+            "revenueChart"
+        );
 
     if (!chart) return;
 
@@ -1618,7 +2372,12 @@ function renderAnalytics() {
 
     const max =
         Math.max(
-            ...recent.map(s => Number(s.total || 0)),
+            ...recent.map(
+                s =>
+                    Number(
+                        s.total || 0
+                    )
+            ),
             1
         );
 
@@ -1626,27 +2385,40 @@ function renderAnalytics() {
 
         <div class="simple-chart">
 
-            ${recent.map(sale => {
+            ${
+                recent
+                    .map(sale => {
 
-                const height =
-                    Math.max(
-                        8,
-                        (Number(sale.total || 0) / max) * 100
-                    );
+                        const height =
+                            Math.max(
+                                8,
+                                (
+                                    Number(
+                                        sale.total ||
+                                        0
+                                    ) /
+                                    max
+                                ) *
+                                100
+                            );
 
-                return `
-                    <div class="chart-bar-wrap">
+                        return `
+                            <div class="chart-bar-wrap">
 
-                        <div
-                            class="chart-bar"
-                            style="height:${height}%"
-                            title="${money(sale.total)}"
-                        ></div>
+                                <div
+                                    class="chart-bar"
+                                    style="height:${height}%"
+                                    title="${money(
+                                        sale.total
+                                    )}"
+                                ></div>
 
-                    </div>
-                `;
+                            </div>
+                        `;
 
-            }).join("")}
+                    })
+                    .join("")
+            }
 
         </div>
     `;
@@ -1660,11 +2432,16 @@ function renderAnalytics() {
 function renderRecentActivity() {
 
     const container =
-        document.getElementById("recentActivity");
+        document.getElementById(
+            "recentActivity"
+        );
 
     if (!container) return;
 
-    if (!sales.length && !invoices.length) {
+    if (
+        !sales.length &&
+        !invoices.length
+    ) {
 
         container.innerHTML = `
             <div class="empty-state">
@@ -1680,17 +2457,31 @@ function renderRecentActivity() {
     const activity = [
 
         ...sales.map(sale => ({
+
             type: "Sale",
-            text: `${sale.product_name} sale`,
-            amount: sale.total,
-            date: sale.created_at
+
+            text:
+                `${sale.product_name} sale`,
+
+            amount:
+                sale.total,
+
+            date:
+                sale.created_at
         })),
 
         ...invoices.map(invoice => ({
+
             type: "Invoice",
-            text: `${invoice.invoice_number} created`,
-            amount: invoice.total,
-            date: invoice.created_at
+
+            text:
+                `${invoice.invoice_number} created`,
+
+            amount:
+                invoice.total,
+
+            date:
+                invoice.created_at
         }))
 
     ]
@@ -1702,31 +2493,37 @@ function renderRecentActivity() {
         .slice(0, 8);
 
     container.innerHTML =
-        activity.map(item => `
+        activity
+            .map(item => `
 
-            <div class="activity-item">
+                <div class="activity-item">
 
-                <div>
+                    <div>
+
+                        <strong>
+                            ${safe(item.type)}
+                        </strong>
+
+                        <p>
+                            ${safe(item.text)}
+                        </p>
+
+                        <small>
+                            ${formatDate(
+                                item.date
+                            )}
+                        </small>
+
+                    </div>
+
                     <strong>
-                        ${safe(item.type)}
+                        ${money(item.amount)}
                     </strong>
 
-                    <p>
-                        ${safe(item.text)}
-                    </p>
-
-                    <small>
-                        ${formatDate(item.date)}
-                    </small>
                 </div>
 
-                <strong>
-                    ${money(item.amount)}
-                </strong>
-
-            </div>
-
-        `).join("");
+            `)
+            .join("");
 }
 
 
@@ -1737,24 +2534,49 @@ function renderRecentActivity() {
 function setupSearch() {
 
     document
-        .getElementById("productSearch")
-        ?.addEventListener("input", renderProducts);
+        .getElementById(
+            "productSearch"
+        )
+        ?.addEventListener(
+            "input",
+            renderProducts
+        );
 
     document
-        .getElementById("customerSearch")
-        ?.addEventListener("input", renderCustomers);
+        .getElementById(
+            "customerSearch"
+        )
+        ?.addEventListener(
+            "input",
+            renderCustomers
+        );
 
     document
-        .getElementById("salesSearch")
-        ?.addEventListener("input", renderSales);
+        .getElementById(
+            "salesSearch"
+        )
+        ?.addEventListener(
+            "input",
+            renderSales
+        );
 
     document
-        .getElementById("invoiceSearch")
-        ?.addEventListener("input", renderInvoices);
+        .getElementById(
+            "invoiceSearch"
+        )
+        ?.addEventListener(
+            "input",
+            renderInvoices
+        );
 
     document
-        .getElementById("invoiceStatusFilter")
-        ?.addEventListener("change", renderInvoices);
+        .getElementById(
+            "invoiceStatusFilter"
+        )
+        ?.addEventListener(
+            "change",
+            renderInvoices
+        );
 }
 
 
@@ -1764,16 +2586,25 @@ function setupSearch() {
 
 function setupModalBehavior() {
 
-    document.querySelectorAll(".modal").forEach(modal => {
+    document
+        .querySelectorAll(".modal")
+        .forEach(modal => {
 
-        modal.addEventListener("click", function(event) {
+            modal.addEventListener(
+                "click",
+                function(event) {
 
-            if (event.target === modal) {
-                modal.classList.remove("active");
-            }
+                    if (
+                        event.target === modal
+                    ) {
 
+                        modal.classList.remove(
+                            "active"
+                        );
+                    }
+                }
+            );
         });
-    });
 }
 
 
@@ -1786,22 +2617,34 @@ function sendContactMessage(event) {
     event.preventDefault();
 
     const name =
-        document.getElementById("contactName").value.trim();
+        document.getElementById(
+            "contactName"
+        ).value.trim();
 
     const email =
-        document.getElementById("contactEmail").value.trim();
+        document.getElementById(
+            "contactEmail"
+        ).value.trim();
 
     const subject =
-        document.getElementById("contactSubject").value.trim();
+        document.getElementById(
+            "contactSubject"
+        ).value.trim();
 
     const message =
-        document.getElementById("contactMessage").value.trim();
+        document.getElementById(
+            "contactMessage"
+        ).value.trim();
 
     const body =
         `Name: ${name}\nEmail: ${email}\n\n${message}`;
 
     window.location.href =
-        `mailto:crarcss@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        `mailto:crarcss@gmail.com?subject=${encodeURIComponent(
+            subject
+        )}&body=${encodeURIComponent(
+            body
+        )}`;
 }
 
 
@@ -1812,25 +2655,44 @@ function sendContactMessage(event) {
 async function exportBusinessData() {
 
     const data = {
-        business: currentBusiness,
+
+        business:
+            currentBusiness,
+
         products,
+
         customers,
+
         sales,
+
         invoices,
-        exportedAt: new Date().toISOString()
+
+        exportedAt:
+            new Date().toISOString()
     };
 
     const blob =
         new Blob(
-            [JSON.stringify(data, null, 2)],
-            { type: "application/json" }
+            [
+                JSON.stringify(
+                    data,
+                    null,
+                    2
+                )
+            ],
+            {
+                type:
+                    "application/json"
+            }
         );
 
     const url =
         URL.createObjectURL(blob);
 
     const a =
-        document.createElement("a");
+        document.createElement(
+            "a"
+        );
 
     a.href = url;
 
@@ -1873,22 +2735,34 @@ async function resetBusinessData() {
     await supabaseClient
         .from("invoices")
         .delete()
-        .eq("business_id", businessId);
+        .eq(
+            "business_id",
+            businessId
+        );
 
     await supabaseClient
         .from("sales")
         .delete()
-        .eq("business_id", businessId);
+        .eq(
+            "business_id",
+            businessId
+        );
 
     await supabaseClient
         .from("customers")
         .delete()
-        .eq("business_id", businessId);
+        .eq(
+            "business_id",
+            businessId
+        );
 
     await supabaseClient
         .from("products")
         .delete()
-        .eq("business_id", businessId);
+        .eq(
+            "business_id",
+            businessId
+        );
 
     await loadData();
 
@@ -1897,7 +2771,7 @@ async function resetBusinessData() {
 
 
 // =========================================================
-// PAYSTACK
+// PAYMENTS
 // =========================================================
 
 function startProPlan() {
@@ -1944,72 +2818,90 @@ function renderAll() {
 function setupForms() {
 
     document
-        .getElementById("productForm")
+        .getElementById(
+            "productForm"
+        )
         ?.addEventListener(
             "submit",
             saveProduct
         );
 
     document
-        .getElementById("customerForm")
+        .getElementById(
+            "customerForm"
+        )
         ?.addEventListener(
             "submit",
             saveCustomer
         );
 
     document
-        .getElementById("saleForm")
+        .getElementById(
+            "saleForm"
+        )
         ?.addEventListener(
             "submit",
             saveSale
         );
 
     document
-        .getElementById("invoiceForm")
+        .getElementById(
+            "invoiceForm"
+        )
         ?.addEventListener(
             "submit",
             saveInvoice
         );
 
-
     document
-        .getElementById("saleProduct")
+        .getElementById(
+            "saleProduct"
+        )
         ?.addEventListener(
             "change",
             updateSaleTotal
         );
 
     document
-        .getElementById("saleQuantity")
+        .getElementById(
+            "saleQuantity"
+        )
         ?.addEventListener(
             "input",
             updateSaleTotal
         );
 
-
     document
-        .getElementById("invoiceProduct")
+        .getElementById(
+            "invoiceProduct"
+        )
         ?.addEventListener(
             "change",
             updateInvoiceTotal
         );
 
     document
-        .getElementById("invoiceQuantity")
+        .getElementById(
+            "invoiceQuantity"
+        )
         ?.addEventListener(
             "input",
             updateInvoiceTotal
         );
 
     document
-        .getElementById("invoiceDiscount")
+        .getElementById(
+            "invoiceDiscount"
+        )
         ?.addEventListener(
             "input",
             updateInvoiceTotal
         );
 
     document
-        .getElementById("invoiceTax")
+        .getElementById(
+            "invoiceTax"
+        )
         ?.addEventListener(
             "input",
             updateInvoiceTotal
@@ -2030,6 +2922,8 @@ async function startPATRIODX() {
 
     await loadData();
 
+    loadPlan();
+
     setupNavigation();
 
     setupSearch();
@@ -2039,13 +2933,23 @@ async function startPATRIODX() {
     setupModalBehavior();
 
     setupForms();
-document
-    .getElementById("logoutButton")
-    ?.addEventListener("click", logoutUser);
+
+    document
+        .getElementById(
+            "logoutButton"
+        )
+        ?.addEventListener(
+            "click",
+            logoutUser
+        );
+
     renderAll();
 
-    console.log("PATRIODX connected successfully.");
+    console.log(
+        "PATRIODX connected successfully."
+    );
 }
+
 
 // =========================================================
 // LOGOUT
@@ -2053,64 +2957,121 @@ document
 
 async function logoutUser() {
 
-    const button = document.getElementById("logoutButton");
+    const button =
+        document.getElementById(
+            "logoutButton"
+        );
 
     if (button) {
+
         button.disabled = true;
-        button.textContent = "Logging out...";
+
+        button.textContent =
+            "Logging out...";
     }
 
-    const { error } = await supabaseClient.auth.signOut();
+    const { error } =
+        await supabaseClient
+            .auth
+            .signOut();
 
     if (error) {
+
         console.error(error);
 
-        alert("Could not log out. Please try again.");
+        alert(
+            "Could not log out. Please try again."
+        );
 
         if (button) {
+
             button.disabled = false;
-            button.textContent = "Logout";
+
+            button.textContent =
+                "Logout";
         }
 
         return;
     }
 
-    window.location.href = "auth.html";
+    window.location.href =
+        "auth.html";
 }
+
+
 // =========================================================
 // MAKE HTML ONCLICK FUNCTIONS GLOBAL
 // =========================================================
 
-window.scrollToSection = scrollToSection;
+window.scrollToSection =
+    scrollToSection;
 
-window.openProductModal = openProductModal;
-window.closeProductModal = closeProductModal;
-window.deleteProduct = deleteProduct;
+window.openProductModal =
+    openProductModal;
 
-window.openCustomerModal = openCustomerModal;
-window.closeCustomerModal = closeCustomerModal;
-window.deleteCustomer = deleteCustomer;
+window.closeProductModal =
+    closeProductModal;
 
-window.openSaleModal = openSaleModal;
-window.closeSaleModal = closeSaleModal;
-window.deleteSale = deleteSale;
+window.deleteProduct =
+    deleteProduct;
 
-window.openInvoiceModal = openInvoiceModal;
-window.closeInvoiceModal = closeInvoiceModal;
-window.closeInvoiceViewModal = closeInvoiceViewModal;
-window.toggleInvoiceStatus = toggleInvoiceStatus;
-window.deleteInvoice = deleteInvoice;
-window.viewInvoice = viewInvoice;
+window.openCustomerModal =
+    openCustomerModal;
 
-window.sendContactMessage = sendContactMessage;
+window.closeCustomerModal =
+    closeCustomerModal;
 
-window.exportBusinessData = exportBusinessData;
-window.importBusinessData = importBusinessData;
-window.resetBusinessData = resetBusinessData;
+window.deleteCustomer =
+    deleteCustomer;
 
-window.startProPlan = startProPlan;
-window.startBusinessPlan = startBusinessPlan;
-window.logoutUser = logoutUser;
+window.openSaleModal =
+    openSaleModal;
+
+window.closeSaleModal =
+    closeSaleModal;
+
+window.deleteSale =
+    deleteSale;
+
+window.openInvoiceModal =
+    openInvoiceModal;
+
+window.closeInvoiceModal =
+    closeInvoiceModal;
+
+window.closeInvoiceViewModal =
+    closeInvoiceViewModal;
+
+window.toggleInvoiceStatus =
+    toggleInvoiceStatus;
+
+window.deleteInvoice =
+    deleteInvoice;
+
+window.viewInvoice =
+    viewInvoice;
+
+window.sendContactMessage =
+    sendContactMessage;
+
+window.exportBusinessData =
+    exportBusinessData;
+
+window.importBusinessData =
+    importBusinessData;
+
+window.resetBusinessData =
+    resetBusinessData;
+
+window.startProPlan =
+    startProPlan;
+
+window.startBusinessPlan =
+    startBusinessPlan;
+
+window.logoutUser =
+    logoutUser;
+
 
 // =========================================================
 // START
